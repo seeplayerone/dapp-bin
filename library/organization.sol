@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-import "./template.sol";
-import "./acl.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/library/acl.sol";
 
 // 预编译合约接口
 interface Instructions{
@@ -25,7 +25,7 @@ contract Organization is Template, ACL{
     
     bool initialized;
 
-    function initialize() {
+    function initialize() public {
         initialized = true;
     }
 
