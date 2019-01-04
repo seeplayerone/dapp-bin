@@ -47,23 +47,23 @@ contract Organization is Template, ACL{
         configureFunctionRoleInternal(CONFIGURE_FUNCTION_ADDRESS, ADMIN_ROLE, OpMode.Add);
     }
     
-    bytes32 public constant REGISTER_FUNCTION = keccak256("REGISTER_FUNCTION");
-    function register() public {
+    bytes32 constant REGISTER_FUNCTION = keccak256("REGISTER_FUNCTION");
+    function register() internal {
         registry.orgRegistry(orgName, parent);
     }
     
-    bytes32 public constant CREATE_ASSET_FUNCTION = keccak256("CREATE_ASSET_FUNCTION");
-    function create(bool indivisible, uint32 coinId, uint256 amount) public {
+    bytes32 constant CREATE_ASSET_FUNCTION = keccak256("CREATE_ASSET_FUNCTION");
+    function create(bool indivisible, uint32 coinId, uint256 amount) internal {
         instructions.createAsset(indivisible, coinId, amount);
     }
     
-    bytes32 public constant MINT_ASSET_FUNCTION = keccak256("MINT_ASSET_FUNCTION");
-    function mint(uint32 coinId, uint256 amount) public {
+    bytes32 constant MINT_ASSET_FUNCTION = keccak256("MINT_ASSET_FUNCTION");
+    function mint(uint32 coinId, uint256 amount) internal {
         instructions.mintAsset(coinId, amount);
     }
     
-    bytes32 public constant TRANSFER_ASSET_FUNCTION = keccak256("TRANSFER_ASSET_FUNCTION");
-    function transfer(address to, uint32 assetType, uint32 orgId, uint32 coinId, uint256 amount) public {
+    bytes32 constant TRANSFER_ASSET_FUNCTION = keccak256("TRANSFER_ASSET_FUNCTION");
+    function transfer(address to, uint32 assetType, uint32 orgId, uint32 coinId, uint256 amount) internal {
         instructions.transfer(to, assetType, orgId, coinId, amount);
     }
 }

@@ -25,7 +25,7 @@ contract ACL {
     
     // configure access role for function
     // if assistant, _function = assistant's address + function hash
-    bytes32 public constant CONFIGURE_FUNCTION_ROLE = keccak256("CONFIGURE_FUNCTION_ROLE");
+    bytes32 constant CONFIGURE_FUNCTION_ROLE = keccak256("CONFIGURE_FUNCTION_ROLE");
     function configureFunctionRole(bytes32 _function, bytes32 _role, OpMode _opMode) authFunctionHash(CONFIGURE_FUNCTION_ROLE) public { 
         configureFunctionRoleInternal(_function, _role, _opMode);
     }
@@ -55,7 +55,7 @@ contract ACL {
     
     
     // configure role for address
-    bytes32 public constant CONFIGURE_ADDRESS_ROLE = keccak256("CONFIGURE_ADDRESS_ROLE");
+    bytes32 constant CONFIGURE_ADDRESS_ROLE = keccak256("CONFIGURE_ADDRESS_ROLE");
     function configureAddressRole(address _address, bytes32 _role, OpMode _opMode) authFunctionHash(CONFIGURE_ADDRESS_ROLE) public {
         configureAddressRoleInternal(_address, _role, _opMode);
     }
@@ -85,7 +85,7 @@ contract ACL {
     
     // configure address for function
     // if assistant, _function = assistant's address + function hash
-    bytes32 public constant CONFIGURE_FUNCTION_ADDRESS = keccak256("CONFIGURE_FUNCTION_ADDRESS");
+    bytes32 constant CONFIGURE_FUNCTION_ADDRESS = keccak256("CONFIGURE_FUNCTION_ADDRESS");
     function configureFunctionAddress(bytes32 _function, address _address, OpMode _opMode) authFunctionHash(CONFIGURE_FUNCTION_ADDRESS) public {
         configureFunctionAddressInternal(_function, _address, _opMode);
     }
