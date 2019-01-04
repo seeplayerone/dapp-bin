@@ -27,6 +27,9 @@ contract ACL {
     // if assistant, _function = assistant's address + function hash
     bytes32 public constant CONFIGURE_FUNCTION_ROLE = keccak256("CONFIGURE_FUNCTION_ROLE");
     function configureFunctionRole(bytes32 _function, bytes32 _role, OpMode _opMode) authFunctionHash(CONFIGURE_FUNCTION_ROLE) public { 
+        configureFunctionRoleInternal(_function, _role, _opMode);
+    }
+    function configureFunctionRoleInternal(bytes32 _function, bytes32 _role, OpMode _opMode) internal {
         Roles storage funcRole = functionRoles[_function];
         if (_opMode == OpMode.Add) {
             if (!funcRole.exist) {
@@ -48,10 +51,15 @@ contract ACL {
             } 
         }
     }
+
+    
     
     // configure role for address
     bytes32 public constant CONFIGURE_ADDRESS_ROLE = keccak256("CONFIGURE_ADDRESS_ROLE");
     function configureAddressRole(address _address, bytes32 _role, OpMode _opMode) authFunctionHash(CONFIGURE_ADDRESS_ROLE) public {
+        configureAddressRoleInternal(_address, _role, _opMode);
+    }
+    function configureAddressRoleInternal(address _address, bytes32 _role, OpMode _opMode) internal {
         Roles storage addrRole = addressRoles[_address];
         if (_opMode == OpMode.Add) {
             if (!addrRole.exist) {
@@ -73,11 +81,15 @@ contract ACL {
             } 
         }
     }
+
     
     // configure address for function
     // if assistant, _function = assistant's address + function hash
     bytes32 public constant CONFIGURE_FUNCTION_ADDRESS = keccak256("CONFIGURE_FUNCTION_ADDRESS");
     function configureFunctionAddress(bytes32 _function, address _address, OpMode _opMode) authFunctionHash(CONFIGURE_FUNCTION_ADDRESS) public {
+        configureFunctionAddressInternal(_function, _address, _opMode);
+    }
+    function configureFunctionAddressInternal(bytes32 _function, address _address, OpMode _opMode) internal {
         Addresses storage addrFunc = functionAddress[_function];
         if (_opMode == OpMode.Add) {
               if (!addrFunc.exist) {
@@ -189,5 +201,4 @@ contract ACL {
             return result;
         }
     }
-    
 }

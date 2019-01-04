@@ -41,10 +41,10 @@ contract Organization is Template, ACL{
         registry = Registry(_registryAddr);
         
         // init admin role
-        configureAddressRole(msg.sender, ADMIN_ROLE, OpMode.Add);
-        configureFunctionRole(CONFIGURE_FUNCTION_ROLE, ADMIN_ROLE, OpMode.Add);
-        configureFunctionRole(CONFIGURE_ADDRESS_ROLE, ADMIN_ROLE, OpMode.Add);
-        configureFunctionRole(CONFIGURE_FUNCTION_ADDRESS, ADMIN_ROLE, OpMode.Add);
+        configureAddressRoleInternal(msg.sender, ADMIN_ROLE, OpMode.Add);
+        configureFunctionRoleInternal(CONFIGURE_FUNCTION_ROLE, ADMIN_ROLE, OpMode.Add);
+        configureFunctionRoleInternal(CONFIGURE_ADDRESS_ROLE, ADMIN_ROLE, OpMode.Add);
+        configureFunctionRoleInternal(CONFIGURE_FUNCTION_ADDRESS, ADMIN_ROLE, OpMode.Add);
     }
     
     bytes32 public constant REGISTER_FUNCTION = keccak256("REGISTER_FUNCTION");
