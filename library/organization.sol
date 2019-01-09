@@ -1,11 +1,14 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/library/acl.sol";
+import "github.com/seeplayerone/dapp-bin/library/template_v0.2.sol";
+import "github.com/seeplayerone/dapp-bin/library/acl_v0.2.sol";
+
+// import "./template.sol";
+// import "./acl.sol";
 
 // 预编译合约接口
 interface Instructions{
-    function createAsset(bool indivisible, uint32 coinId, uint256 amount) external;
+    function createAsset(uint32 indivisible, uint32 coinId, uint256 amount) external;
     function mintAsset (uint32 coinId, uint256 amount) external;
     function transfer(address to, uint32 assetType, uint32 orgId ,uint32 coinId, uint256 amount) external;
 }
@@ -18,10 +21,10 @@ interface Registry {
 }
 
 contract Organization is Template, ACL{
-    string public orgName;
+    string orgName;
     Instructions instructions;
     Registry registry;
-    bytes32 constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    string constant ROLE_MANAGER = "ROLE_MANAGER";
     
     bool initialized;
 
@@ -33,36 +36,30 @@ contract Organization is Template, ACL{
         require(initialized);
         _;
     }
-    constructor(uint16 _category, string _parent, string _orgName, address _precompileAddr, address _registryAddr) Template(_category, _parent) public {
-        category = _category; 
-        parent = _parent;
+    constructor(string _orgName) public {
         orgName = _orgName;
-        instructions =  Instructions(_precompileAddr);
-        registry = Registry(_registryAddr);
+        instructions =  Instructions(0x7E40Cbb99Aa080F2B3394D28D409b5391F8dE9EA);
+        registry = Registry(0x66f84b824Efa449F5f9E5d5fC70F81C232c2EFE4);
         
         // init admin role
-        configureAddressRoleInternal(msg.sender, ADMIN_ROLE, OpMode.Add);
-        configureFunctionRoleInternal(CONFIGURE_FUNCTION_ROLE, ADMIN_ROLE, OpMode.Add);
-        configureFunctionRoleInternal(CONFIGURE_ADDRESS_ROLE, ADMIN_ROLE, OpMode.Add);
-        configureFunctionRoleInternal(CONFIGURE_FUNCTION_ADDRESS, ADMIN_ROLE, OpMode.Add);
+        configureAddressRoleInternal(msg.sender, ROLE_MANAGER, OpMode.Add);
+        configureFunctionRoleInternal(CONFIGURE_FUNCTION_ROLE, ROLE_MANAGER, OpMode.Add);
+        configureFunctionRoleInternal(CONFIGURE_ADDRESS_ROLE, ROLE_MANAGER, OpMode.Add);
+        configureFunctionRoleInternal(CONFIGURE_FUNCTION_ADDRESS, ROLE_MANAGER, OpMode.Add);
     }
     
-    bytes32 constant REGISTER_FUNCTION = keccak256("REGISTER_FUNCTION");
     function register() internal {
-        registry.orgRegistry(orgName, parent);
+        registry.orgRegistry(orgName, templateName);
     }
     
-    bytes32 constant CREATE_ASSET_FUNCTION = keccak256("CREATE_ASSET_FUNCTION");
-    function create(bool indivisible, uint32 coinId, uint256 amount) internal {
+    function create(uint32 indivisible, uint32 coinId, uint256 amount) internal {
         instructions.createAsset(indivisible, coinId, amount);
     }
     
-    bytes32 constant MINT_ASSET_FUNCTION = keccak256("MINT_ASSET_FUNCTION");
     function mint(uint32 coinId, uint256 amount) internal {
         instructions.mintAsset(coinId, amount);
     }
     
-    bytes32 constant TRANSFER_ASSET_FUNCTION = keccak256("TRANSFER_ASSET_FUNCTION");
     function transfer(address to, uint32 assetType, uint32 orgId, uint32 coinId, uint256 amount) internal {
         instructions.transfer(to, assetType, orgId, coinId, amount);
     }

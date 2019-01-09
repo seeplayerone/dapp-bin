@@ -25,11 +25,13 @@ contract ACL {
     
     // configure access role for function
     // if assistant, _function = assistant's address + function hash
-    bytes32 constant CONFIGURE_FUNCTION_ROLE = keccak256("CONFIGURE_FUNCTION_ROLE");
-    function configureFunctionRole(bytes32 _function, bytes32 _role, OpMode _opMode) authFunctionHash(CONFIGURE_FUNCTION_ROLE) public { 
+    string constant CONFIGURE_FUNCTION_ROLE = "CONFIGURE_FUNCTION_ROLE";
+    function configureFunctionRole(string _function, string _role, OpMode _opMode) authFunctionHash(CONFIGURE_FUNCTION_ROLE) public { 
         configureFunctionRoleInternal(_function, _role, _opMode);
     }
-    function configureFunctionRoleInternal(bytes32 _function, bytes32 _role, OpMode _opMode) internal {
+    function configureFunctionRoleInternal(string _functionStr, string _roleStr, OpMode _opMode) internal {
+        bytes32 _function = keccak256(abi.encodePacked(_functionStr));
+        bytes32 _role = keccak256(abi.encodePacked(_roleStr));
         Roles storage funcRole = functionRoles[_function];
         if (_opMode == OpMode.Add) {
             if (!funcRole.exist) {
@@ -51,15 +53,14 @@ contract ACL {
             } 
         }
     }
-
-    
     
     // configure role for address
-    bytes32 constant CONFIGURE_ADDRESS_ROLE = keccak256("CONFIGURE_ADDRESS_ROLE");
-    function configureAddressRole(address _address, bytes32 _role, OpMode _opMode) authFunctionHash(CONFIGURE_ADDRESS_ROLE) public {
+    string constant CONFIGURE_ADDRESS_ROLE = "CONFIGURE_ADDRESS_ROLE";
+    function configureAddressRole(address _address, string _role, OpMode _opMode) authFunctionHash(CONFIGURE_ADDRESS_ROLE) public {
         configureAddressRoleInternal(_address, _role, _opMode);
     }
-    function configureAddressRoleInternal(address _address, bytes32 _role, OpMode _opMode) internal {
+    function configureAddressRoleInternal(address _address, string _roleStr, OpMode _opMode) internal {
+        bytes32 _role = keccak256(abi.encodePacked(_roleStr));
         Roles storage addrRole = addressRoles[_address];
         if (_opMode == OpMode.Add) {
             if (!addrRole.exist) {
@@ -81,15 +82,15 @@ contract ACL {
             } 
         }
     }
-
     
     // configure address for function
     // if assistant, _function = assistant's address + function hash
-    bytes32 constant CONFIGURE_FUNCTION_ADDRESS = keccak256("CONFIGURE_FUNCTION_ADDRESS");
-    function configureFunctionAddress(bytes32 _function, address _address, OpMode _opMode) authFunctionHash(CONFIGURE_FUNCTION_ADDRESS) public {
+    string constant CONFIGURE_FUNCTION_ADDRESS = "CONFIGURE_FUNCTION_ADDRESS";
+    function configureFunctionAddress(string _function, address _address, OpMode _opMode) authFunctionHash(CONFIGURE_FUNCTION_ADDRESS) public {
         configureFunctionAddressInternal(_function, _address, _opMode);
     }
-    function configureFunctionAddressInternal(bytes32 _function, address _address, OpMode _opMode) internal {
+    function configureFunctionAddressInternal(string _functionStr, address _address, OpMode _opMode) internal {
+        bytes32 _function = keccak256(abi.encodePacked(_functionStr));
         Addresses storage addrFunc = functionAddress[_function];
         if (_opMode == OpMode.Add) {
               if (!addrFunc.exist) {
@@ -127,7 +128,7 @@ contract ACL {
     }
     
     // 判断msg.sender的权限在不在设定权限中
-    modifier authRoles(bytes32[] _roles) {
+    modifier authRoles(string[] _roles) {
         // 获取caller的权限
         Roles storage addrRoleMap = addressRoles[msg.sender];
         require(addrRoleMap.exist);
@@ -135,7 +136,7 @@ contract ACL {
         bool hasAuth =false;
         for(uint i = 0; i < _roles.length; i++) {
             for(uint j = 0; j < addrRoleMap.value.length; j++) {
-                if (_roles[i] == addrRoleMap.value[j]) {
+                if (keccak256(abi.encodePacked(_roles[i])) == addrRoleMap.value[j]) {
                     hasAuth = true;
                     break;
                 }
@@ -147,12 +148,13 @@ contract ACL {
     }
     
     // 自由配置functionHash可访问的地址和权限
-    modifier authFunctionHash(bytes32 _function) {
-        require(canPerform(msg.sender, _function));
+    modifier authFunctionHash(string _functionStr) {
+        require(canPerform(msg.sender, _functionStr));
         _;
     }
     
-    function canPerform(address _caller, bytes32 _function) public view returns (bool) {
+    function canPerform(address _caller, string _functionStr) public view returns (bool) {
+        bytes32 _function = keccak256(abi.encodePacked(_functionStr));
         // 判断地址是不是直接能够访问方法
         bool hasAuth = false;
         Addresses storage addrFuncMap = functionAddress[_function];
@@ -188,6 +190,7 @@ contract ACL {
     }
     
     // 获取地址对应的限列表
+    // 返回的是role keccak256之后的结果
     function getAddressRoles(address _addr) public view returns (bytes32[]) {
         bytes32[] memory result;
         Roles memory roles = addressRoles[_addr];

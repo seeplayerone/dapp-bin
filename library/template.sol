@@ -1,11 +1,16 @@
 pragma solidity 0.4.25;
 
 contract Template {
-    uint16 public category;
-    string public parent;
+    uint16 category;
+    string templateName;
     
-    constructor(uint16 _category, string _parent) public {
+    function initTemplate(uint16 _category, string _templateName) public {
+        require(msg.sender == 0xf1512CCD48Bf5b352f2b44482afB37E22aAD3892);
         category = _category;
-        parent = _parent;
+        templateName = _templateName;
+    }
+    
+    function getTemplateInfo() public view returns (uint16, string){
+        return (category, templateName);
     }
 }
