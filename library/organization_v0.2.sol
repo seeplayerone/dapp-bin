@@ -39,7 +39,7 @@ contract Organization is Template, ACL{
     constructor(string _orgName) public {
         orgName = _orgName;
         instructions =  Instructions(0x7E40Cbb99Aa080F2B3394D28D409b5391F8dE9EA);
-        registry = Registry(0xb5D8BC7e5e87aF6Fffcda79E4fFe1c1E0EFDe920);
+        registry = Registry(0x66f84b824Efa449F5f9E5d5fC70F81C232c2EFE4);
         
         // init admin role
         configureAddressRoleInternal(msg.sender, ROLE_MANAGER, OpMode.Add);
