@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/library/template_v0.2.sol";
-import "github.com/seeplayerone/dapp-bin/library/acl_v0.2.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/library/acl.sol";
 
 // import "./template.sol";
 // import "./acl.sol";
