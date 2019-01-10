@@ -45,7 +45,7 @@ contract Organization is Template, ACL{
     constructor(string _organizationName) public {
         organizationName = _organizationName;
         instructions =  Instructions(0x79A961d796afAa37e53c40Aba0eF621Be999697b);
-        registry = Registry(0x37F041B90ceDeFc3711d02B7dE030fED6397b241);
+        registry = Registry(0xe9d72E727972BE60f0b8554a39438f7a35e225ae);
         
         /// default permission management settings, which grants the contract creator the "super admin" role
         configureAddressRoleInternal(msg.sender, ROLE_MANAGER, OpMode.Add);
