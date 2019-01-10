@@ -3,9 +3,6 @@ pragma solidity 0.4.25;
 import "./template.sol";
 import "./acl.sol";
 
-// import "./template.sol";
-// import "./acl.sol";
-
 // 预编译合约接口
 interface Instructions{
     function createAsset(uint32 indivisible, uint32 coinId, uint256 amount) external;
