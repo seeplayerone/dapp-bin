@@ -1,44 +1,64 @@
 pragma solidity ^0.4.25;
 
+/// @title This is the base contract to support ACL in flow contracts
+///  Permission control is applied at function level, to the end it is "whether an address can call a function in a contract"
+///  This ACL contract provides 3 ways for inheriting contracts to configure access control on the function
+///   - directly configure addresses, which is exposed by modifier authAddresses()
+///     once configured, the function can only be called by the addresses set in the modifier
+///   - configure roles, which is exposed by modifier authRoles()
+///     once configured, the function can only be called by the addresses which are assigned with the roles set in the modifier
+///     permission manager can configure the (address -> role) mapping by calling configureAddressRole() through transaction after the contract is deployed
+///   - configure functionHash, which is exposed by the modifier authFunctionHash()
+///     we need to define a unique functionHash for a given function, and
+///     once configured, the function can only be called by the addresses which are mapped to this functionHash
+///     or the addresses which are assigned with the roles which are mapped to this functionHash
+///     permission manager can configure the (functionHash -> address) mapping by calling configureFunctionAddress() through transaction after the contract is deployed
+///     he can also configure the (functionHash -> role) mapping by calling configureFunctionRole() though transaction after the contract is deployed
 contract ACL {
-    // 配置权限的操作类型
+    /// operation mode
+    /// add or remove a mapping
     enum OpMode { Add, Remove }
     
-    // 权限值结构体
     struct Roles {
         bool exist;
         bytes32[] value; 
     }
     
-    // 地址值结构体
     struct Addresses {
         bool exist;
         address[] value;
     }
     
-    // functionHash -> roleHash：映射方法对应的角色
-    mapping (bytes32 => Roles) functionRoles; 
-    // address -> roleHash：映射地址对应的角色
-    mapping (address => Roles) addressRoles;
-    // functionHash -> address：映射方法有哪些地址可以访问
-    mapping (bytes32 => Addresses) functionAddress;
+    /// functionHash -> roles
+    mapping (bytes32 => Roles) functionRolesMap; 
+    /// address -> roles
+    mapping (address => Roles) addressRolesMap;
+    /// functionHash -> addresses
+    mapping (bytes32 => Addresses) functionAddressesMap;
     
-    // configure access role for function
-    // if assistant, _function = assistant's address + function hash
+    /// @dev function to configure (functionHash -> roles) mapping
+    ///  Note that this function itself is guarded by the authFunctionHash() modifier with a unique functionHash
+    ///  and this design is applied to all configure functions in this ACL contract 
+    /// @param _function functionHash to configure
+    /// @param _role role to configure
+    /// @param _opMode either add or remove
     string constant CONFIGURE_FUNCTION_ROLE = "CONFIGURE_FUNCTION_ROLE";
     function configureFunctionRole(string _function, string _role, OpMode _opMode) authFunctionHash(CONFIGURE_FUNCTION_ROLE) public { 
         configureFunctionRoleInternal(_function, _role, _opMode);
     }
+
+    /// @dev internal function of configureFunctionRole()
+    ///  internal configure functions are normally called in constructor of inheriting contracts
     function configureFunctionRoleInternal(string _functionStr, string _roleStr, OpMode _opMode) internal {
         bytes32 _function = keccak256(abi.encodePacked(_functionStr));
         bytes32 _role = keccak256(abi.encodePacked(_roleStr));
-        Roles storage funcRole = functionRoles[_function];
+        Roles storage funcRole = functionRolesMap[_function];
         if (_opMode == OpMode.Add) {
             if (!funcRole.exist) {
                 funcRole.exist = true;
                 funcRole.value = new bytes32[](0);
                 funcRole.value.push(_role);
-                functionRoles[_function] = funcRole;
+                functionRolesMap[_function] = funcRole;
             } else {
                 funcRole.value.push(_role);
             }
@@ -46,6 +66,10 @@ contract ACL {
             if (funcRole.exist) {
                 for(uint i = 0; i < funcRole.value.length; i++) {
                     if (funcRole.value[i] == _role) {
+                        /// @dev code review comments - jack
+                        /// Use Swap & Delete mode when deleting an element in array
+                        /// https://stackoverflow.com/questions/49051856/is-there-a-pop-functionality-for-solidity-arrays
+                        /// This applies to all array deleting operations in this contract
                         delete funcRole.value[i];
                         break;
                     }
@@ -54,20 +78,25 @@ contract ACL {
         }
     }
     
-    // configure role for address
+    /// @dev function to configure (address -> roles) mapping
+    /// @param _address address to configure
+    /// @param _role role to configure
+    /// @param _opMode either add or remove
     string constant CONFIGURE_ADDRESS_ROLE = "CONFIGURE_ADDRESS_ROLE";
     function configureAddressRole(address _address, string _role, OpMode _opMode) authFunctionHash(CONFIGURE_ADDRESS_ROLE) public {
         configureAddressRoleInternal(_address, _role, _opMode);
     }
+
+    /// @dev internal function of configureAddressRole()
     function configureAddressRoleInternal(address _address, string _roleStr, OpMode _opMode) internal {
         bytes32 _role = keccak256(abi.encodePacked(_roleStr));
-        Roles storage addrRole = addressRoles[_address];
+        Roles storage addrRole = addressRolesMap[_address];
         if (_opMode == OpMode.Add) {
             if (!addrRole.exist) {
                 addrRole.exist = true;
                 addrRole.value = new bytes32[](0);
                 addrRole.value.push(_role);
-                addressRoles[_address] = addrRole;
+                addressRolesMap[_address] = addrRole;
             } else {
                 addrRole.value.push(_role);
             }
@@ -83,21 +112,24 @@ contract ACL {
         }
     }
     
-    // configure address for function
-    // if assistant, _function = assistant's address + function hash
+    /// @dev function to configure (functionHash -> addresses) mapping
+    /// @param _function functionHash to configure
+    /// @param _address address to configure
+    /// @param _opMode either add or remove
     string constant CONFIGURE_FUNCTION_ADDRESS = "CONFIGURE_FUNCTION_ADDRESS";
     function configureFunctionAddress(string _function, address _address, OpMode _opMode) authFunctionHash(CONFIGURE_FUNCTION_ADDRESS) public {
         configureFunctionAddressInternal(_function, _address, _opMode);
     }
+    /// @dev internal function of configureFunctionAddress()
     function configureFunctionAddressInternal(string _functionStr, address _address, OpMode _opMode) internal {
         bytes32 _function = keccak256(abi.encodePacked(_functionStr));
-        Addresses storage addrFunc = functionAddress[_function];
+        Addresses storage addrFunc = functionAddressesMap[_function];
         if (_opMode == OpMode.Add) {
               if (!addrFunc.exist) {
                 addrFunc.exist = true;
                 addrFunc.value = new address[](0);
                 addrFunc.value.push(_address);
-                functionAddress[_function] = addrFunc;
+                functionAddressesMap[_function] = addrFunc;
             } else {
                 addrFunc.value.push(_address);
             }
@@ -113,87 +145,95 @@ contract ACL {
         }
     }
     
-    // 判断msg.sender在不在设定地址中
+    /// @dev only authorized addresses are allowed to call
+    /// @param _addresses addresses in whitelist
     modifier authAddresses(address[] _addresses) {
-        bool hasAuth =false;
+        bool authorized =false;
         for(uint i = 0; i < _addresses.length; i++) {
             if (msg.sender == _addresses[i]) {
-                hasAuth = true;
+                authorized = true;
                 break;
             }
         }
         
-        require(hasAuth);
+        require(authorized);
         _;
     }
     
-    // 判断msg.sender的权限在不在设定权限中
+    /// @dev only authorized roles are allowed to call
+    /// @param _roles roles in whitelist
     modifier authRoles(string[] _roles) {
-        // 获取caller的权限
-        Roles storage addrRoleMap = addressRoles[msg.sender];
+        Roles storage addrRoleMap = addressRolesMap[msg.sender];
         require(addrRoleMap.exist);
         
-        bool hasAuth =false;
+        bool authorized =false;
         for(uint i = 0; i < _roles.length; i++) {
             for(uint j = 0; j < addrRoleMap.value.length; j++) {
                 if (keccak256(abi.encodePacked(_roles[i])) == addrRoleMap.value[j]) {
-                    hasAuth = true;
+                    authorized = true;
                     break;
                 }
             }
         }
         
-        require(hasAuth);
+        require(authorized);
         _;
     }
     
-    // 自由配置functionHash可访问的地址和权限
+    /// @dev only addresses/roles configured with functionHash are allowed to call
+    ///  internally it calls canPerform()
+    /// @param _functionStr functioHash 
     modifier authFunctionHash(string _functionStr) {
         require(canPerform(msg.sender, _functionStr));
         _;
     }
     
+    /// @dev check whether an address can call a function with specific functiohash
+    ///  it first checks the (functionHash -> addresses) mapping
+    ///  it then checks the (functionHash -> roles) and (address -> roles) mappings
+    /// @param _caller the calling address
+    /// @param _functionStr functioHash
     function canPerform(address _caller, string _functionStr) public view returns (bool) {
         bytes32 _function = keccak256(abi.encodePacked(_functionStr));
-        // 判断地址是不是直接能够访问方法
-        bool hasAuth = false;
-        Addresses storage addrFuncMap = functionAddress[_function];
+        /// check (functionHash -> addresses) mapping
+        bool authorized = false;
+        Addresses storage addrFuncMap = functionAddressesMap[_function];
         if (addrFuncMap.exist) {
             for(uint i = 0; i < addrFuncMap.value.length; i++) {
                 if (addrFuncMap.value[i] == _caller) {
-                   hasAuth = true;
+                   authorized = true;
                    break;
                 }
             }
         }
         
-        if (!hasAuth) {
-            // 获取方法的权限
-            Roles storage funcRoleMap = functionRoles[_function];
+        if (!authorized) {
+            /// check (functionHash -> roles) mapping
+            Roles storage funcRoleMap = functionRolesMap[_function];
             require(funcRoleMap.exist);
             
-            // 获取caller的权限
-            Roles storage addrRoleMap = addressRoles[_caller];
+            /// check (address -> roles) mapping
+            Roles storage addrRoleMap = addressRolesMap[_caller];
             require(addrRoleMap.exist);
             
             for(i = 0; i < funcRoleMap.value.length; i++) {
                 for(uint j = 0; j < addrRoleMap.value.length; j++) {
                     if (funcRoleMap.value[i] == addrRoleMap.value[j]) {
-                        hasAuth = true;
+                        authorized = true;
                         break;
                     }
                 }
             }
         }
         
-        return hasAuth;
+        return authorized;
     }
     
-    // 获取地址对应的限列表
-    // 返回的是role keccak256之后的结果
-    function getAddressRoles(address _addr) public view returns (bytes32[]) {
+    /// @dev get roles assigned to an address
+    /// @param _address the address to check
+    function getAddressRolesMap(address _address) public view returns (bytes32[]) {
         bytes32[] memory result;
-        Roles memory roles = addressRoles[_addr];
+        Roles memory roles = addressRolesMap[_address];
         if (roles.exist) {
             result = new bytes32[](roles.value.length);
             for(uint i = 0; i < roles.value.length; i++) {

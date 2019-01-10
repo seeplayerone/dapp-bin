@@ -1,31 +1,37 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/library/acl.sol";
+//import "github.com/seeplayerone/dapp-bin/library/template.sol";
+//import "github.com/seeplayerone/dapp-bin/library/acl.sol";
 
-// import "./template.sol";
-// import "./acl.sol";
+import "./template.sol";
+import "./acl.sol";
 
-// 预编译合约接口
+/// @dev the Instructions interface
+///  Instructions is a system contract
 interface Instructions{
-    function createAsset(uint32 indivisible, uint32 coinId, uint256 amount) external;
-    function mintAsset (uint32 coinId, uint256 amount) external;
-    function transfer(address to, uint32 assetType, uint32 orgId ,uint32 coinId, uint256 amount) external;
+    function createAsset(uint32 assetType, uint32 assetIndex, uint256 amount) external;
+    function mintAsset (uint32 assetIndex, uint256 amount) external;
+    function transfer(address to, uint32 assetType, uint32 organizationId ,uint32 assetIndex, uint256 amount) external;
 }
 
-// 注册中心接口
+/// @dev the Registry interface
+///  Registry is a system contract
 interface Registry {
-     function orgRegistry(string orgName, string templateName) external;
-     function getOrgId() external;
-     function registered() external returns (bool);
+     function registerOrganization(string organizationName, string templateName) external;
+     function hasRegistered() external returns (bool);
 }
 
+/// @title Simple organization which inherits Template, it has capabilities to:
+///  - register to Registry and create/mint assets on Flow chain
+///  - provide basic permission management through ACL contract
 contract Organization is Template, ACL{
-    string orgName;
+    string organizationName;
     Instructions instructions;
     Registry registry;
     string constant ROLE_MANAGER = "ROLE_MANAGER";
     
+    /// @dev initialization function module to support complex business requirements during organization startup
+    ///  which contains an initialized state, an initialize() function and a hasInitialized() modifier
     bool initialized;
 
     function initialize() public {
@@ -36,31 +42,48 @@ contract Organization is Template, ACL{
         require(initialized);
         _;
     }
-    constructor(string _orgName) public {
-        orgName = _orgName;
+
+    /// @dev constructor
+    /// @param _organizationName organization name
+    constructor(string _organizationName) public {
+        organizationName = _organizationName;
         instructions =  Instructions(0x7E40Cbb99Aa080F2B3394D28D409b5391F8dE9EA);
         registry = Registry(0x66f84b824Efa449F5f9E5d5fC70F81C232c2EFE4);
         
-        // init admin role
+        /// default permission management settings, which grants the contract creator the "super admin" role
         configureAddressRoleInternal(msg.sender, ROLE_MANAGER, OpMode.Add);
         configureFunctionRoleInternal(CONFIGURE_FUNCTION_ROLE, ROLE_MANAGER, OpMode.Add);
         configureFunctionRoleInternal(CONFIGURE_ADDRESS_ROLE, ROLE_MANAGER, OpMode.Add);
         configureFunctionRoleInternal(CONFIGURE_FUNCTION_ADDRESS, ROLE_MANAGER, OpMode.Add);
     }
     
+    /// @dev register to Registry Center
     function register() internal {
-        registry.orgRegistry(orgName, templateName);
+        registry.registerOrganization(organizationName, templateName);
     }
     
-    function create(uint32 indivisible, uint32 coinId, uint256 amount) internal {
-        instructions.createAsset(indivisible, coinId, amount);
+    /// @dev create an asset
+    /// @param assetType divisible 0, indivisible 1
+    /// @param assetIndex asset index in the organization
+    /// @param amount amount of asset to create (or the unique voucher id for an indivisible asset)
+    function create(uint32 assetType, uint32 assetIndex, uint256 amount) internal {
+        instructions.createAsset(assetType, assetIndex, amount);
+    }
+
+    /// @dev mint an asset
+    /// @param assetIndex asset index in the organization
+    /// @param amount amount of asset to mint (or the unique voucher id for an indivisible asset)    
+    function mint(uint32 assetIndex, uint256 amount) internal {
+        instructions.mintAsset(assetIndex, amount);
     }
     
-    function mint(uint32 coinId, uint256 amount) internal {
-        instructions.mintAsset(coinId, amount);
-    }
-    
-    function transfer(address to, uint32 assetType, uint32 orgId, uint32 coinId, uint256 amount) internal {
-        instructions.transfer(to, assetType, orgId, coinId, amount);
+    /// @dev transfer an asset
+    /// @param to the destination address
+    /// @param assetType divisible 0, indivisible 1
+    /// @param organizationId organization id
+    /// @param assetIndex asset index in the organization
+    /// @param amount amount of asset to transfer (or the unique voucher id for an indivisible asset)    
+    function transfer(address to, uint32 assetType, uint32 organizationId, uint32 assetIndex, uint256 amount) internal {
+        instructions.transfer(to, assetType, organizationId, assetIndex, amount);
     }
 }
