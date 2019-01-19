@@ -42,10 +42,26 @@ contract ACL {
     /// @param _function functionHash to configure
     /// @param _role role to configure
     /// @param _opMode either add or remove
-    string constant CONFIGURE_FUNCTION_ROLE = "CONFIGURE_FUNCTION_ROLE";
-    function configureFunctionRole(string _function, string _role, OpMode _opMode) authFunctionHash(CONFIGURE_FUNCTION_ROLE) public { 
+    string constant CONFIGURE_NORMAL_FUNCTION = "CONFIGURE_NORMAL_FUNCTION";
+    function configureFunctionRole(string _function, string _role, OpMode _opMode) authFunctionHash(CONFIGURE_NORMAL_FUNCTION) public { 
+        bytes32 func = keccak256(abi.encodePacked(_function));
+        require(func != keccak256(abi.encodePacked(CONFIGURE_NORMAL_FUNCTION)), "not allowed");
+        require(func != keccak256(abi.encodePacked(CONFIGURE_ADVANCED_FUNCTION)), "not allowed");
+        require(func != keccak256(abi.encodePacked(CONFIGURE_SUPER_FUNCTION)), "not allowed");
         configureFunctionRoleInternal(_function, _role, _opMode);
     }
+
+    string constant CONFIGURE_ADVANCED_FUNCTION = "CONFIGURE_ADVANCED_FUNCTION";
+    function configureFunctionRoleAdvanced(string _role, OpMode _opMode) authFunctionHash(CONFIGURE_ADVANCED_FUNCTION) public {
+        configureFunctionRoleInternal(CONFIGURE_NORMAL_FUNCTION, _role, _opMode);
+    }
+
+    string constant CONFIGURE_SUPER_FUNCTION = "CONFIGURE_SUPER_FUNCTION";
+    function configureFunctionRoleSuper(string _role, OpMode _opMode) authFunctionHash(CONFIGURE_SUPER_FUNCTION) public {
+        configureFunctionRoleInternal(CONFIGURE_ADVANCED_FUNCTION, _role, _opMode);
+        configureFunctionRoleInternal(CONFIGURE_SUPER_FUNCTION, _role, _opMode);        
+    }
+
     /// @dev internal function of configureFunctionRole()
     ///  internal configure functions are normally called in constructor of inheriting contracts
     function configureFunctionRoleInternal(string _functionStr, string _roleStr, OpMode _opMode) internal {
@@ -86,8 +102,7 @@ contract ACL {
     /// @param _address address to configure
     /// @param _role role to configure
     /// @param _opMode either add or remove
-    string constant CONFIGURE_ADDRESS_ROLE = "CONFIGURE_ADDRESS_ROLE";
-    function configureAddressRole(address _address, string _role, OpMode _opMode) authFunctionHash(CONFIGURE_ADDRESS_ROLE) public {
+    function configureAddressRole(address _address, string _role, OpMode _opMode) authFunctionHash(CONFIGURE_NORMAL_FUNCTION) public {
         configureAddressRoleInternal(_address, _role, _opMode);
     }
 
@@ -120,10 +135,23 @@ contract ACL {
     /// @param _function functionHash to configure
     /// @param _address address to configure
     /// @param _opMode either add or remove
-    string constant CONFIGURE_FUNCTION_ADDRESS = "CONFIGURE_FUNCTION_ADDRESS";
-    function configureFunctionAddress(string _function, address _address, OpMode _opMode) authFunctionHash(CONFIGURE_FUNCTION_ADDRESS) public {
+    function configureFunctionAddress(string _function, address _address, OpMode _opMode) authFunctionHash(CONFIGURE_NORMAL_FUNCTION) public {
+        bytes32 func = keccak256(abi.encodePacked(_function));
+        require(func != keccak256(abi.encodePacked(CONFIGURE_NORMAL_FUNCTION)), "not allowed");
+        require(func != keccak256(abi.encodePacked(CONFIGURE_ADVANCED_FUNCTION)), "not allowed");
+        require(func != keccak256(abi.encodePacked(CONFIGURE_SUPER_FUNCTION)), "not allowed");
         configureFunctionAddressInternal(_function, _address, _opMode);
     }
+
+    function configureFunctionAddressAdvanced(address _address, OpMode _opMode) authFunctionHash(CONFIGURE_ADVANCED_FUNCTION) public {
+        configureFunctionAddressInternal(CONFIGURE_NORMAL_FUNCTION, _address, _opMode);
+    }
+
+    function configureFunctionAddressSuper(address _address, OpMode _opMode) authFunctionHash(CONFIGURE_SUPER_FUNCTION) public {
+        configureFunctionAddressInternal(CONFIGURE_ADVANCED_FUNCTION, _address, _opMode);
+        configureFunctionAddressInternal(CONFIGURE_SUPER_FUNCTION, _address, _opMode);
+    }
+
     /// @dev internal function of configureFunctionAddress()
     function configureFunctionAddressInternal(string _functionStr, address _address, OpMode _opMode) internal {
         bytes32 _function = keccak256(abi.encodePacked(_functionStr));

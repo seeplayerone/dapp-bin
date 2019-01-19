@@ -25,7 +25,7 @@ contract Organization is Template, ACL{
     string organizationName;
     Instructions instructions;
     Registry registry;
-    string constant ROLE_MANAGER = "ROLE_MANAGER";
+    string constant SUPER_ADMIN = "SUPER_ADMIN";
     
     /// @dev initialization function module to support complex business requirements during organization startup
     ///  which contains an initialized state, an initialize() function and a hasInitialized() modifier
@@ -48,10 +48,10 @@ contract Organization is Template, ACL{
         registry = Registry(0x227E1900246D8bF85300B2A708027306B0f3C43e);
         
         /// default permission management settings, which grants the contract creator the "super admin" role
-        configureAddressRoleInternal(msg.sender, ROLE_MANAGER, OpMode.Add);
-        configureFunctionRoleInternal(CONFIGURE_FUNCTION_ROLE, ROLE_MANAGER, OpMode.Add);
-        configureFunctionRoleInternal(CONFIGURE_ADDRESS_ROLE, ROLE_MANAGER, OpMode.Add);
-        configureFunctionRoleInternal(CONFIGURE_FUNCTION_ADDRESS, ROLE_MANAGER, OpMode.Add);
+        configureAddressRoleInternal(msg.sender, SUPER_ADMIN, OpMode.Add);
+        configureFunctionRoleInternal(CONFIGURE_NORMAL_FUNCTION, SUPER_ADMIN, OpMode.Add);
+        configureFunctionRoleInternal(CONFIGURE_ADVANCED_FUNCTION, SUPER_ADMIN, OpMode.Add);
+        configureFunctionRoleInternal(CONFIGURE_SUPER_FUNCTION, SUPER_ADMIN, OpMode.Add);
     }
     
     /// @dev register to Registry Center
