@@ -66,11 +66,6 @@ contract ACL {
     ///  internal configure functions are normally called in constructor of inheriting contracts
     function configureFunctionRoleInternal(string _functionStr, string _roleStr, OpMode _opMode) internal {
         bytes32 _role = keccak256(abi.encodePacked(_roleStr));
-        configureFunctionRoleInternal(_functionStr, _role, _opMode);
-    }
-    /// @dev internal function of configureFunctionRole()
-    ///  internal configure functions are normally called in constructor of inheriting contracts
-    function configureFunctionRoleInternal(string _functionStr, bytes32 _role, OpMode _opMode) internal {
         bytes32 _function = keccak256(abi.encodePacked(_functionStr));
         Roles storage funcRole = functionRolesMap[_function];
         if (_opMode == OpMode.Add) {
