@@ -8,7 +8,7 @@ import "./acl.sol";
 interface Instructions{
     function createAsset(uint32 assetType, uint32 assetIndex, uint256 amount) external;
     function mintAsset (uint32 assetIndex, uint256 amount) external;
-    function transfer(address to, uint32 assetType, uint32 organizationId ,uint32 assetIndex, uint256 amount) external;
+    function transfer(address to, bytes12 asset, uint256 amount) external;
 }
 
 /// @dev the Registry interface
