@@ -76,11 +76,11 @@ contract Organization is Template, ACL{
     
     /// @dev transfer an asset
     /// @param to the destination address
-    /// @param assetType divisible 0, indivisible 1
-    /// @param organizationId organization id
-    /// @param assetIndex asset index in the organization
+    /// @param asset combined of assetType（divisible 0, indivisible 1）、
+    ///     organizationId（organization id）、
+    ///     assetIndex（asset index in the organization）
     /// @param amount amount of asset to transfer (or the unique voucher id for an indivisible asset)    
-    function transfer(address to, uint32 assetType, uint32 organizationId, uint32 assetIndex, uint256 amount) internal {
-        instructions.transfer(to, assetType, organizationId, assetIndex, amount);
+    function transfer(address to, bytes12 asset, uint256 amount) internal {
+        instructions.transfer(to, asset, amount);
     }
 }
