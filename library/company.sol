@@ -3,6 +3,11 @@ pragma solidity 0.4.25;
 import "./organization.sol";
 
 /// @dev NOT FINAL
+/// @dev CODE IN THIS FILE MIGHT BE MERGED TO ORGANIZATION
+/// @dev The purpose of this contract is to set a standard on how to manage various assets for an organization
+///  the abstract of asset on Flow is defined in AssetInfo struct, which contains basic information, asset properties and others
+///  an organization can create new assets and mint existing assets; and an asset owner can redeem or transfer an asset
+///  the asset issuer (the organization) can determine whether an asset can be transferred depending on the asset properties (asset type, whitelist, tag, etc)
 contract Company {
     /// @dev We define a voucher as an element of an indivisible asset
     ///  a hash is kept to validate the integrity for off chain data
@@ -18,20 +23,19 @@ contract Company {
         string symbol;
         string description;
 
-        /// properties kept in UTXO
-        /// currently it is DIVISIBLE + ANONYMOUS + RESTRICTED
+        /// properties of an asset
+        /// asset type contains DIVISIBLE + ANONYMOUS + RESTRICTED
         uint32 assetType;
 
-        /// whitelist control, which is the default restriction type
+        /// whitelist control, which is the default RISTRICTION type
         bool isTxinRestrictedToWhitelist;
         bool isTxoutRestrictedToWhitelist;
         mapping (address=>bool) whitelist;
 
-        /// tag: to be explained by each individual issuer
+        /// tag: field for each issuer to engrave extra information
         bytes32 tag;
 
-        /// total amount issued on a divisible asset
-        /// total count issued on an indivisible asset
+        /// total amount issued on a divisible asset OR total count issued on an indivisible asset
         uint totalIssued;
         /// all vouchers issued on an indivisible asset
         /// voucher id => voucher object
@@ -44,7 +48,7 @@ contract Company {
     uint32[] issuedIndexes;
     mapping (uint32=>AssetInfo) issuedAssets;
 
-    /// Standard Functions Provided to Application Layer
+    /// @dev Standard Functions Provided to Application Layer
 
     /// @dev get asset name by asset index
     /// @param assetIndex asset index 
@@ -58,7 +62,7 @@ contract Company {
     /// @param assetIndex asset index 
     function getDescription(uint32 assetIndex) external returns (string);
 
-    /// @dev get asset properties by asset index
+    /// @dev get asset type by asset index
     /// @param assetIndex asset index 
     function getAssetType(uint32 assetIndex) external returns (int32);
 
@@ -77,11 +81,17 @@ contract Company {
     /// @param newAddress the address to add 
     function addAddressToWhitelist(uint32 assetIndex, address newAddress) internal returns (bool);
 
+    /// @dev remove an address from whitelist
+    /// @dev should be ACLed
+    /// @param assetIndex asset index 
+    /// @param existingAddress the address to remove   
+    function removeAddressFromWhitelist(uint32 assetIndex, address existingAddress) internal returns (bool);
+
     /// @dev create an asset with given information
     /// @param name asset name
     /// @param symbol asset symbol
     /// @param description asset description
-    /// @param assetType asset properties
+    /// @param assetType asset type
     /// @param assetIndex asset index, which is unique inside the organization
     /// @param amountOrVoucherId amount for an divisible asset and voucher id for an indivisible asset
     /// @param isTxinRestrictedToWhitelist is the sender restricted by whitelist when transferring the asset
@@ -118,5 +128,4 @@ contract Company {
     /// @param amountOrVoucherId amount for a divisible asset; or voucher id for an indivisible asset
     /// @return success + fail reason
     function canTransfer(uint32 assetIndex, address from , address to, uint amountOrVoucherId) external returns (bool, bytes32);
-    
 }
