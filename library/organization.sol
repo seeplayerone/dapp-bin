@@ -9,6 +9,7 @@ interface Instructions{
     function createAsset(uint32 assetType, uint32 assetIndex, uint256 amount) external;
     function mintAsset (uint32 assetIndex, uint256 amount) external;
     function transfer(address to, bytes12 asset, uint256 amount) external;
+    function asset() external returns(bytes12);
 }
 
 /// @dev the Registry interface
@@ -82,5 +83,10 @@ contract Organization is Template, ACL{
     /// @param amount amount of asset to transfer (or the unique voucher id for an indivisible asset)    
     function transfer(address to, bytes12 asset, uint256 amount) internal {
         instructions.transfer(to, asset, amount);
+    }
+    
+    /// @dev get the asset id from the transaction
+    function getAsset() internal {
+        instructions.asset();
     }
 }
