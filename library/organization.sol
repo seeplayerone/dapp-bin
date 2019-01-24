@@ -86,7 +86,7 @@ contract Organization is Template, ACL{
     }
     
     /// @dev get the asset id from the transaction
-    function getAsset() internal {
-        instructions.asset();
+    function getAsset() internal returns(bytes12) {
+        return instructions.asset();
     }
 }
