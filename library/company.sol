@@ -107,25 +107,28 @@ contract Company {
     /// @dev mint an existing asset
     /// @param assetIndex asset index
     /// @param amountOrVoucherId amount of asset to mint (or the unique voucher id for an indivisible asset)    
-    function mint(uint32 assetIndex, uint amountOrVoucherId) internal;
+    /// @param tag extra 32 bytes for the issuer to engrave specific tags to the asset
+    function mint(uint32 assetIndex, uint amountOrVoucherId, bytes32 tag) internal;
     
     /// @dev transfer an asset
     /// @param to the recepient address
     /// @param assetId asset Id = organization id + asset index
     /// @param amountOrVoucherId amount of asset to transfer (or the unique voucher id for an indivisible asset)    
-    function transfer(address to, int64 assetId, uint amountOrVoucherId) internal;
+    /// @param tag extra restriction 
+    function transfer(address to, int64 assetId, uint amountOrVoucherId, bytes32 tag) internal;
 
+    /// @dev MAY NOT BE NECESSARY
     /// @dev redeem an asset by amount or by voucher id
     /// @param assetIndex asset index
     /// @param amountOrVoucherId amount of asset to mint (or the unique voucher id for an indivisible asset)
-    function redeem(int32 assetIndex, uint amountOrVoucherId) internal;
+    /// @param tag extra restriction 
+    function redeem(int32 assetIndex, uint amountOrVoucherId, bytes tag) internal;
 
     /// @dev whether an asset can be transferred or not, called when RISTRICTED bit is set
     /// @dev this function can be called by chain code or internal "transfer" implementation
-    /// @param assetIndex the asset index inside the organization
     /// @param from from who
     /// @param to to who
-    /// @param amountOrVoucherId amount for a divisible asset; or voucher id for an indivisible asset
+    /// @param txContext transaction context
     /// @return success + fail reason
-    function canTransfer(uint32 assetIndex, address from , address to, uint amountOrVoucherId) external returns (bool, bytes32);
+    function canTransfer(address from , address to, bytes txContext) external returns (bool, bytes32);
 }
