@@ -15,6 +15,12 @@ contract Template {
         category = _category;
         templateName = _templateName;
     }
+
+    /// @dev TEST ONLY: MUST BE REMOVED AFTER THE TEST IS DONE
+    function initTemplateExternal(uint16 _category, string _templateName) public {
+        category = _category;
+        templateName = _templateName;
+    }
     
     /// @dev get the template information
     function getTemplateInfo() public view returns (uint16, string){
