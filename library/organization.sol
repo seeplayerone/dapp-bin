@@ -9,7 +9,7 @@ interface Instructions{
     function createAsset(uint32 assetType, uint32 assetIndex, uint256 amount) external;
     function mintAsset (uint32 assetIndex, uint256 amount) external;
     function transfer(address to, bytes12 asset, uint256 amount) external;
-    function asset(bytes12 result) external;
+    function asset() external returns (bytes12);
 }
 
 /// @dev the Registry interface
@@ -45,7 +45,7 @@ contract Organization is Template, ACL{
     /// @param _organizationName organization name
     constructor(string _organizationName) public {
         organizationName = _organizationName;
-        instructions =  Instructions(0x609eF12bf3848d9568Da8EA471DBD435adA630FD);
+        instructions =  Instructions(0x87562960Bb35d1D97c24DD9977c99bcF38D3103a);
         registry = Registry(0x227E1900246D8bF85300B2A708027306B0f3C43e);
         
         /// default permission management settings, which grants the contract creator the "super admin" role
@@ -87,8 +87,6 @@ contract Organization is Template, ACL{
     
     /// @dev get the asset id from the transaction
     function getAsset() internal returns(bytes12) {
-        bytes12 result;
-        instructions.asset(result);
-        return result;
+        return instructions.asset();
     }
 }
