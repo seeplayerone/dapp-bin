@@ -11,7 +11,11 @@ contract Template {
     uint16 category;
     string templateName;
     TemplateWarehouse templateWarehouse;
-    
+   
+    event RecordAddress(
+        address addr
+    );
+ 
     constructor() public {
         templateWarehouse = TemplateWarehouse(0x9AFE6bf1DD7D653CD053a0F168edCadD4b98105F);
     }
@@ -52,5 +56,6 @@ contract Template {
         address deployed = deployedAddress;
         Template t = Template(deployed);
         t.initTemplateExternal(_category, templateName);
+        emit RecordAddress(deployedAddress);
   }
 }
