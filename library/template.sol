@@ -1,5 +1,7 @@
 pragma solidity 0.4.25;
 
+import "github.com/seeplayerone/dapp-bin/library/string_utils.sol";
+
 interface TemplateWarehouse{
     function getTemplate(uint16 _category, string name) external returns(string, string, uint, uint8, uint8, uint8, uint16);
 }
@@ -11,11 +13,11 @@ contract Template {
     uint16 category;
     string templateName;
     TemplateWarehouse templateWarehouse;
-   
+    
     event RecordAddress(
-        address addr
+       address addr
     );
- 
+    
     constructor() public {
         templateWarehouse = TemplateWarehouse(0x9AFE6bf1DD7D653CD053a0F168edCadD4b98105F);
     }
@@ -41,7 +43,7 @@ contract Template {
     }
     
     /// @dev deploy contract 
-    function deployContract(uint16 _category, string _templateName) public returns (address deployedAddress) {
+    function deployContract(uint16 _category, string _templateName, string _constructorParam) public returns (address deployedAddress) {
         string memory byteCode;
         uint16 status;
         
@@ -49,7 +51,15 @@ contract Template {
         // make sure template is approved
         require(status == 1);
         
-        bytes memory c = bytes(byteCode);
+        // calculate input
+        string memory input;
+        if (bytes(_constructorParam).length > 0) {
+            input = StringLib.strConcat(byteCode, _constructorParam);
+        } else {
+            input = byteCode;
+        }
+        
+        bytes memory c = bytes(input);
         assembly {
           deployedAddress := create(0, add(c, 0x20), mload(c))
         }
