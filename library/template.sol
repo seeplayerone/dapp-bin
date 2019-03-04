@@ -41,4 +41,34 @@ contract Template {
     function getTemplateInfo() public view returns (uint16, string){
         return (category, templateName);
     }
+    
+    /// @dev deploy contract 
+    function deployContract(uint16 _category, string _templateName, bytes _constructorParam) public returns (address) {
+        bytes memory byteCode;
+        uint16 status;
+        
+        (,byteCode,,,,,status) = templateWarehouse2.getTemplate(_category, _templateName);
+        // make sure template is approved
+        require(status == 1);
+        
+        // calculate input
+        bytes memory input;
+         if (_constructorParam.length > 0) {
+            input = mergeBytes(byteCode, _constructorParam);
+        } else {
+            input = byteCode;
+        }
+        
+        address deployedAddress;
+        assembly {
+          deployedAddress := create(0, add(input, 0x20), mload(input))
+        }
+        
+        require(deployedAddress != 0x0000000000000000000000000000000000000000000000000000000000000000);
+        Template t = Template(deployedAddress);
+        t.initTemplateExternal(_category, _templateName);
+        emit RecordAddress(deployedAddress);
+        return deployedAddress; 
+    }  
+
 }
