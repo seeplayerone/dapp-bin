@@ -19,7 +19,7 @@ contract Template {
     );
     
     constructor() public {
-        templateWarehouse = TemplateWarehouse(0xf870B015DA792dE31455595B298Ac09aB62633Eb);
+        templateWarehouse = TemplateWarehouse(0xb11Daac2A8f3f9B8CfAF8be885b583212477e004);
     }
     
     /// @dev initialize a template
