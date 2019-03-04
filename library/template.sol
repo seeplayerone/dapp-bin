@@ -3,7 +3,7 @@ pragma solidity 0.4.25;
 import "github.com/seeplayerone/dapp-bin/library/string_utils.sol";
 
 interface TemplateWarehouse{
-    function getTemplate(uint16 _category, string name) external returns(string, string, uint, uint8, uint8, uint8, uint16);
+    function getTemplate(uint16 _category, string name) external returns(string, bytes, uint, uint8, uint8, uint8, uint16);
 }
 
 /// @title This is the base contract any other contracts must directly or indirectly inherit to run on Flow platform
