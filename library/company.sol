@@ -90,6 +90,8 @@ contract Company is Organization {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(!assetInfo.existed, "asset not exist");
         
+        
+        
         assetInfo.name = name;
         assetInfo.symbol = symbol;
         assetInfo.description = description;
@@ -146,7 +148,7 @@ contract Company is Organization {
     
     /// @dev whether an asset can be transferred or not, called when RISTRICTED bit is set
     /// @dev this function can be called by chain code or internal "transfer" implementation
-    /// @param address in or out address
+    /// @param transferAddress in or out address
     /// @param assetIndex asset index
     /// @return success
     function canTransfer(address transferAddress, uint32 assetIndex)
@@ -176,7 +178,7 @@ contract Company is Organization {
         uint32 scope = lastFourBits & 12;
         bool result;
         if (0 == scope) {
-            result = isTxinRestricted && isTxoutRestricted;
+            result = (isTxinRestricted && isTxoutRestricted);
         }
         if (4 == scope) {
             result = isTxoutRestricted;
@@ -185,7 +187,7 @@ contract Company is Organization {
             result = isTxinRestricted;
         }
         if (12 == scope) {
-            result = isTxinRestricted || isTxoutRestricted;
+            result = (isTxinRestricted || isTxoutRestricted);
         }
         return result;
     }
@@ -197,7 +199,7 @@ contract Company is Organization {
     function addAddressToWhitelist(uint32 assetIndex, address newAddress) public authRoles(aclRoles) returns (bool) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(assetInfo.existed, "asset not exist");
-        
+
         assetInfo.whitelist[newAddress] = true;
         return true;
     }
@@ -212,38 +214,19 @@ contract Company is Organization {
         
         if (assetInfo.whitelist[existingAddress]) {
             delete assetInfo.whitelist[existingAddress];
-            return true;
         }
-        return false;
+        return true;
     }
     
     /// @dev get asset name by asset index
     /// @param assetIndex asset index 
-    function getName(uint32 assetIndex) public view returns (string) {
+    function getAssetInfo(uint32 assetIndex) public view returns (string, string, string) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(assetInfo.existed, "asset not exist");
         
-        return assetInfo.name;
+        return (assetInfo.name, assetInfo.symbol, assetInfo.description);
     }
-
-    /// @dev get asset symbol by asset index
-    /// @param assetIndex asset index 
-    function getSymbol(uint32 assetIndex) public view returns (string) {
-        AssetInfo storage assetInfo = issuedAssets[assetIndex];
-        require(assetInfo.existed, "asset not exist");
-        
-        return assetInfo.symbol;
-    }
-
-    /// @dev get asset description by asset index
-    /// @param assetIndex asset index 
-    function getDescription(uint32 assetIndex) public view returns (string) {
-        AssetInfo storage assetInfo = issuedAssets[assetIndex];
-        require(assetInfo.existed, "asset not exist");
-        
-        return assetInfo.description;
-    }
-
+    
     /// @dev get asset type by asset index
     /// @param assetIndex asset index 
     function getAssetType(uint32 assetIndex) public view returns (uint32) {
@@ -272,11 +255,6 @@ contract Company is Organization {
         Voucher storage voucher = assetInfo.issuedVouchers[voucherId];
         require(voucher.existed, "voucher not exist");
         return voucher.voucherHash;
-    }
-    
-    /// @dev get the asset id from the transaction
-    function getContractAsset() public returns(bytes12) {
-        return instructions.asset();
     }
     
 }
