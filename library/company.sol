@@ -90,8 +90,6 @@ contract Company is Organization {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(!assetInfo.existed, "asset not exist");
         
-        
-        
         assetInfo.name = name;
         assetInfo.symbol = symbol;
         assetInfo.description = description;
@@ -200,7 +198,9 @@ contract Company is Organization {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(assetInfo.existed, "asset not exist");
 
-        assetInfo.whitelist[newAddress] = true;
+        if (!assetInfo.whitelist[newAddress]) {
+            assetInfo.whitelist[newAddress] = true;
+        }
         return true;
     }
 
