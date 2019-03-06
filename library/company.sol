@@ -12,6 +12,7 @@ contract Company is Organization {
     address[] aclAddresses;
     string[] aclRoles;
 
+    /// 这些干嘛的呀？
     string public constant ROLE_SAMPLE = "ROLE_SAMPLE";
     string public constant FUNCTION_HASH_SAMPLE = "FUNCTION_HASH_SAMPLE";
     string public constant FUNCTION_FOUR_SAMPLE = "FUNCTION_FOUR_SAMPLE";
@@ -40,6 +41,7 @@ contract Company is Organization {
         mapping (address => bool) whitelist;
 
         /// tag: field for each issuer to engrave extra information
+        /// 应该是byte32，而不是byte32[]
         bytes32[] tag;
 
         /// total amount issued on a divisible asset OR total count issued on an indivisible asset
@@ -88,8 +90,10 @@ contract Company is Organization {
         authRoles(aclRoles)
     {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
+        /// 错误信息应该是 asset already existed
         require(!assetInfo.existed, "asset not exist");
-        
+
+        /// 需要添加验证assetType的信息是否和isTxinRestrictedToWhitelist/isTxoutRestrictedToWhitelist匹配
         assetInfo.name = name;
         assetInfo.symbol = symbol;
         assetInfo.description = description;
@@ -97,17 +101,22 @@ contract Company is Organization {
         assetInfo.isTxinRestrictedToWhitelist = isTxinRestrictedToWhitelist;
         assetInfo.isTxoutRestrictedToWhitelist = isTxoutRestrictedToWhitelist;
         assetInfo.tag.push(tag);
+        /// bit的判断抽象成private方法
         if (0 == ((assetType & 15) & 1)) {
             assetInfo.totalIssued = amountOrVoucherId; 
         } else if (1 == ((assetType & 15) & 1)) {
             assetInfo.totalIssued = 1;
+            /// 这样的初始化方式正规嘛？
             Voucher storage voucher = assetInfo.issuedVouchers[amountOrVoucherId];
+            /// 错误信息应该是 voucher already existed
             require(!voucher.existed, "voucher not exist");
             // TODO Voucher
         }
         assetInfo.existed = true;
         issuedIndexes.push(assetIndex);
         
+        /// 这一步调用应该在上面的信息更新前面，同时需要确保调用成功才更新信息
+        /// 详见以太坊合约重放攻击的描述
         create(assetType, assetIndex, amountOrVoucherId);
     }
 
@@ -119,6 +128,7 @@ contract Company is Organization {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(assetInfo.existed, "asset not exist");
         uint32 assetType = assetInfo.assetType;
+        /// 方法提取，如上描述
         uint32 isDivisible = (assetType & 15) & 1;
         if (0 == isDivisible) {
             assetInfo.totalIssued = assetInfo.totalIssued + amountOrVoucherId;
@@ -130,6 +140,7 @@ contract Company is Organization {
         }
         assetInfo.tag.push(tag);
         
+        /// 同上，注意重放攻击的可能
         mint(assetIndex, amountOrVoucherId);
     }
     
@@ -165,6 +176,7 @@ contract Company is Organization {
         // 是否限制性属性
         uint32 isRestricted = lastFourBits & 2;
         // 必须是限制性流通资产
+        /// require会导致交易失败，这个方法任意地方都应该返回true/false
         require(isRestricted == 2, "not restricted asset");
         if (!assetInfo.whitelist[transferAddress]) {
             return false;
@@ -196,6 +208,8 @@ contract Company is Organization {
     /// @param newAddress the address to add
     function addAddressToWhitelist(uint32 assetIndex, address newAddress) public authRoles(aclRoles) returns (bool) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
+        /// 条件错误，少了！
+        /// 信息错误，应该是asset already existed
         require(assetInfo.existed, "asset not exist");
 
         if (!assetInfo.whitelist[newAddress]) {
@@ -222,6 +236,7 @@ contract Company is Organization {
     /// @param assetIndex asset index 
     function getAssetInfo(uint32 assetIndex) public view returns (string, string, string) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
+        /// 同上
         require(assetInfo.existed, "asset not exist");
         
         return (assetInfo.name, assetInfo.symbol, assetInfo.description);
@@ -231,6 +246,7 @@ contract Company is Organization {
     /// @param assetIndex asset index 
     function getAssetType(uint32 assetIndex) public view returns (uint32) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
+        /// 同上
         require(assetInfo.existed, "asset not exist");
         
         return assetInfo.assetType;
@@ -240,6 +256,7 @@ contract Company is Organization {
     /// @param assetIndex asset index 
     function getTotalIssued(uint32 assetIndex) public view returns (uint) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
+        /// 同上
         require(assetInfo.existed, "asset not exist");
         
         return assetInfo.totalIssued;
@@ -250,9 +267,11 @@ contract Company is Organization {
     /// @param voucherId voucher id
     function getVoucherHash(uint32 assetIndex, uint voucherId) public view returns (bytes32) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
+        /// 同上
         require(assetInfo.existed, "asset not exist");
         
         Voucher storage voucher = assetInfo.issuedVouchers[voucherId];
+        /// 同上
         require(voucher.existed, "voucher not exist");
         return voucher.voucherHash;
     }
