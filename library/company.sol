@@ -70,7 +70,7 @@ contract Company is Organization {
     ///     (or the unique voucher id for an indivisible asset)
     function create(string name, string symbol, string description, uint32 assetType, uint32 assetIndex,
         uint256 amountOrVoucherId, bool isTxinRestrictedToWhitelist, bool isTxoutRestrictedToWhitelist, 
-        bytes32 tag)
+        bytes32 tag, bytes32 voucherHash)
         public
         authAddresses(superAdmins)
     {
@@ -107,7 +107,8 @@ contract Company is Organization {
             assetInfo.totalIssued = 1;
             Voucher storage voucher = assetInfo.issuedVouchers[amountOrVoucherId];
             require(!voucher.existed, "voucher already existed");
-            /// TODO Voucher
+            voucher.voucherHash = voucherHash;
+            voucher.existed = true;
         }
         assetInfo.existed = true;
         issuedIndexes.push(assetIndex);
@@ -117,7 +118,7 @@ contract Company is Organization {
     /// @param assetIndex asset index in the organization
     /// @param amountOrVoucherId amount or voucherId of asset to mint 
     ///     (or the unique voucher id for an indivisible asset)    
-    function mint(uint32 assetIndex, uint256 amountOrVoucherId, bytes32 tag)
+    function mint(uint32 assetIndex, uint256 amountOrVoucherId, bytes32 tag, bytes32 voucherHash)
         public
         authAddresses(superAdmins)
     {
@@ -134,7 +135,8 @@ contract Company is Organization {
             assetInfo.totalIssued++;
             Voucher storage voucher = assetInfo.issuedVouchers[amountOrVoucherId];
             require(!voucher.existed, "voucher already existed");
-            // TODO Voucher
+            voucher.voucherHash = voucherHash;
+            voucher.existed = true;
         }
         assetInfo.tag.push(tag);
     }
