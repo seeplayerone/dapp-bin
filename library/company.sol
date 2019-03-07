@@ -8,14 +8,7 @@ import "./organization.sol";
 ///  the asset issuer (the organization) can determine whether an asset can be transferred depending on the asset properties (asset type, whitelist, tag, etc)
 contract Company is Organization {
     
-    /// @dev aclAddresses and aclRoles are used to demostrate the ACL capibility provided by Kernel
-    address[] aclAddresses;
-    string[] aclRoles;
-
-    /// 这些干嘛的呀？
-    string public constant ROLE_SAMPLE = "ROLE_SAMPLE";
-    string public constant FUNCTION_HASH_SAMPLE = "FUNCTION_HASH_SAMPLE";
-    string public constant FUNCTION_FOUR_SAMPLE = "FUNCTION_FOUR_SAMPLE";
+    address[] superAdmins;
     
     /// @dev We define a voucher as an element of an indivisible asset
     ///  a hash is kept to validate the integrity for off chain data
@@ -41,7 +34,6 @@ contract Company is Organization {
         mapping (address => bool) whitelist;
 
         /// tag: field for each issuer to engrave extra information
-        /// 应该是byte32，而不是byte32[]
         bytes32[] tag;
 
         /// total amount issued on a divisible asset OR total count issued on an indivisible asset
@@ -60,21 +52,14 @@ contract Company is Organization {
     
     /// @dev constructor of the contract
     ///  initial acl settings are configured in the constructor
-    constructor(string organizationName) Organization(organizationName) 
-    public {
-        aclAddresses = new address[](0);
-        aclAddresses.push(msg.sender);
-
-        aclRoles = new string[](0);
-        aclRoles.push(ROLE_SAMPLE);
-        
-        configureAddressRoleInternal(msg.sender, ROLE_SAMPLE, OpMode.Add);
-        configureFunctionRoleInternal(FUNCTION_HASH_SAMPLE, ROLE_SAMPLE, OpMode.Add);
-        configureFunctionRoleInternal(FUNCTION_FOUR_SAMPLE, ROLE_SAMPLE, OpMode.Add);
+    constructor(string organizationName) Organization(organizationName) public {
+        /// make the contract creator as super admin to simplify testing
+        superAdmins = new address[](0);
+        superAdmins.push(msg.sender);
     }
     
     /// @dev register to Registry Center
-    function registerOrganization() public authAddresses(aclAddresses) {
+    function registerOrganization() public authAddresses(superAdmins) {
         register();
     }
     
@@ -87,13 +72,27 @@ contract Company is Organization {
         uint256 amountOrVoucherId, bool isTxinRestrictedToWhitelist, bool isTxoutRestrictedToWhitelist, 
         bytes32 tag)
         public
-        authRoles(aclRoles)
+        authAddresses(superAdmins)
     {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
-        /// 错误信息应该是 asset already existed
-        require(!assetInfo.existed, "asset not exist");
+        require(!assetInfo.existed, "asset already existed");
+        /// check the scope of assetType if match isTxinRestrictedToWhitelist and isTxoutRestrictedToWhitelist
+        if (0 == scopeBits(assetType)) {
+            require(isTxinRestrictedToWhitelist && isTxoutRestrictedToWhitelist);
+        }
+        if (4 == scopeBits(assetType)) {
+            require(isTxoutRestrictedToWhitelist);
+        }
+        if (8 == scopeBits(assetType)) {
+            require(isTxinRestrictedToWhitelist);
+        }
+        if (12 == scopeBits(assetType)) {
+            require(isTxinRestrictedToWhitelist || isTxoutRestrictedToWhitelist);
+        }
+        
+        /// create asset to utxo
+        create(assetType, assetIndex, amountOrVoucherId);
 
-        /// 需要添加验证assetType的信息是否和isTxinRestrictedToWhitelist/isTxoutRestrictedToWhitelist匹配
         assetInfo.name = name;
         assetInfo.symbol = symbol;
         assetInfo.description = description;
@@ -101,47 +100,43 @@ contract Company is Organization {
         assetInfo.isTxinRestrictedToWhitelist = isTxinRestrictedToWhitelist;
         assetInfo.isTxoutRestrictedToWhitelist = isTxoutRestrictedToWhitelist;
         assetInfo.tag.push(tag);
-        /// bit的判断抽象成private方法
-        if (0 == ((assetType & 15) & 1)) {
+        
+        if (0 == isDivisibleBit(assetType)) {
             assetInfo.totalIssued = amountOrVoucherId; 
-        } else if (1 == ((assetType & 15) & 1)) {
+        } else if (1 == isDivisibleBit(assetType)) {
             assetInfo.totalIssued = 1;
-            /// 这样的初始化方式正规嘛？
             Voucher storage voucher = assetInfo.issuedVouchers[amountOrVoucherId];
-            /// 错误信息应该是 voucher already existed
-            require(!voucher.existed, "voucher not exist");
-            // TODO Voucher
+            require(!voucher.existed, "voucher already existed");
+            /// TODO Voucher
         }
         assetInfo.existed = true;
         issuedIndexes.push(assetIndex);
-        
-        /// 这一步调用应该在上面的信息更新前面，同时需要确保调用成功才更新信息
-        /// 详见以太坊合约重放攻击的描述
-        create(assetType, assetIndex, amountOrVoucherId);
     }
 
     /// @dev mint an asset
     /// @param assetIndex asset index in the organization
     /// @param amountOrVoucherId amount or voucherId of asset to mint 
     ///     (or the unique voucher id for an indivisible asset)    
-    function mint(uint32 assetIndex, uint256 amountOrVoucherId, bytes32 tag) public authRoles(aclRoles) {
+    function mint(uint32 assetIndex, uint256 amountOrVoucherId, bytes32 tag)
+        public
+        authAddresses(superAdmins)
+    {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(assetInfo.existed, "asset not exist");
-        uint32 assetType = assetInfo.assetType;
-        /// 方法提取，如上描述
-        uint32 isDivisible = (assetType & 15) & 1;
+        
+        /// mint an asset
+        mint(assetIndex, amountOrVoucherId);
+        
+        uint32 isDivisible = isDivisibleBit(assetInfo.assetType);
         if (0 == isDivisible) {
             assetInfo.totalIssued = assetInfo.totalIssued + amountOrVoucherId;
         } else if (1 == isDivisible) {
             assetInfo.totalIssued++;
             Voucher storage voucher = assetInfo.issuedVouchers[amountOrVoucherId];
-            require(!voucher.existed, "voucher not exist");
+            require(!voucher.existed, "voucher already existed");
             // TODO Voucher
         }
         assetInfo.tag.push(tag);
-        
-        /// 同上，注意重放攻击的可能
-        mint(assetIndex, amountOrVoucherId);
     }
     
     /// @dev transfer an asset 
@@ -151,7 +146,10 @@ contract Company is Organization {
     ///     assetIndex（asset index in the organization）
     /// @param amountOrVoucherId amount or voucherId of asset to transfer
     ///     (or the unique voucher id for an indivisible asset)    
-    function transferAsset(address to, bytes12 asset, uint256 amountOrVoucherId) public authRoles(aclRoles) {
+    function transferAsset(address to, bytes12 asset, uint256 amountOrVoucherId)
+        public
+        authAddresses(superAdmins)
+    {
         transfer(to, asset, amountOrVoucherId);
     }
     
@@ -169,23 +167,19 @@ contract Company is Organization {
         if (!assetInfo.existed) {
             return false;
         }
-        
-        uint32 assetType = assetInfo.assetType;
-        // 拿到作用域、限制性属性、以及是否可分割
-        uint32 lastFourBits = assetType & 15;
-        // 是否限制性属性
-        uint32 isRestricted = lastFourBits & 2;
-        // 必须是限制性流通资产
-        /// require会导致交易失败，这个方法任意地方都应该返回true/false
-        require(isRestricted == 2, "not restricted asset");
+        /// must be restricted asset
+        if (2 != isRestrictedBit(assetInfo.assetType)) {
+            return false;
+        }
+        /// address must be in whitelist
         if (!assetInfo.whitelist[transferAddress]) {
             return false;
         }
         
         bool isTxinRestricted = assetInfo.isTxinRestrictedToWhitelist;
         bool isTxoutRestricted = assetInfo.isTxoutRestrictedToWhitelist;
-        // 拿到作用域
-        uint32 scope = lastFourBits & 12;
+        /// get scope
+        uint32 scope = scopeBits(assetInfo.assetType);
         bool result;
         if (0 == scope) {
             result = (isTxinRestricted && isTxoutRestricted);
@@ -206,10 +200,12 @@ contract Company is Organization {
     /// @dev should be ACLed
     /// @param assetIndex asset index 
     /// @param newAddress the address to add
-    function addAddressToWhitelist(uint32 assetIndex, address newAddress) public authRoles(aclRoles) returns (bool) {
+    function addAddressToWhitelist(uint32 assetIndex, address newAddress)
+        public
+        authAddresses(superAdmins)
+        returns (bool)
+    {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
-        /// 条件错误，少了！
-        /// 信息错误，应该是asset already existed
         require(assetInfo.existed, "asset not exist");
 
         if (!assetInfo.whitelist[newAddress]) {
@@ -222,7 +218,11 @@ contract Company is Organization {
     /// @dev should be ACLed
     /// @param assetIndex asset index 
     /// @param existingAddress the address to remove   
-    function removeAddressFromWhitelist(uint32 assetIndex, address existingAddress) public authRoles(aclRoles) returns (bool) {
+    function removeAddressFromWhitelist(uint32 assetIndex, address existingAddress)
+        public
+        authAddresses(superAdmins)
+        returns (bool)
+    {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(assetInfo.existed, "asset not exist");
         
@@ -236,7 +236,6 @@ contract Company is Organization {
     /// @param assetIndex asset index 
     function getAssetInfo(uint32 assetIndex) public view returns (string, string, string) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
-        /// 同上
         require(assetInfo.existed, "asset not exist");
         
         return (assetInfo.name, assetInfo.symbol, assetInfo.description);
@@ -246,7 +245,6 @@ contract Company is Organization {
     /// @param assetIndex asset index 
     function getAssetType(uint32 assetIndex) public view returns (uint32) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
-        /// 同上
         require(assetInfo.existed, "asset not exist");
         
         return assetInfo.assetType;
@@ -256,7 +254,6 @@ contract Company is Organization {
     /// @param assetIndex asset index 
     function getTotalIssued(uint32 assetIndex) public view returns (uint) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
-        /// 同上
         require(assetInfo.existed, "asset not exist");
         
         return assetInfo.totalIssued;
@@ -267,13 +264,29 @@ contract Company is Organization {
     /// @param voucherId voucher id
     function getVoucherHash(uint32 assetIndex, uint voucherId) public view returns (bytes32) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
-        /// 同上
         require(assetInfo.existed, "asset not exist");
         
         Voucher storage voucher = assetInfo.issuedVouchers[voucherId];
-        /// 同上
         require(voucher.existed, "voucher not exist");
         return voucher.voucherHash;
+    }
+    
+    /// @dev internal method: get property of isDivisible from assetType
+    function isDivisibleBit(uint32 assetType) internal pure returns(uint32) {
+        uint32 lastFourBits = assetType & 15;
+        return lastFourBits & 1;
+    }
+    
+    /// @dev internal method: get property of isRestricted from assetType
+    function isRestrictedBit(uint32 assetType) internal pure returns(uint32) {
+        uint32 lastFourBits = assetType & 15;
+        return lastFourBits & 2;
+    }
+    
+    /// @dev internal method: get property of a\scope from assetType
+    function scopeBits(uint32 assetType) internal pure returns(uint32) {
+        uint32 lastFourBits = assetType & 15;
+        return lastFourBits & 12;
     }
     
 }
