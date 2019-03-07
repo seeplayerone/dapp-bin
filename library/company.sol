@@ -8,6 +8,7 @@ import "./organization.sol";
 ///  the asset issuer (the organization) can determine whether an asset can be transferred depending on the asset properties (asset type, whitelist, tag, etc)
 contract Company is Organization {
     
+    /// Compnay的ACL需要和Organization结合考虑，暂时先去掉
     address[] superAdmins;
     
     /// @dev We define a voucher as an element of an indivisible asset
@@ -34,6 +35,7 @@ contract Company is Organization {
         mapping (address => bool) whitelist;
 
         /// tag: field for each issuer to engrave extra information
+        /// bytes32 而不应该是 bytes32[]
         bytes32[] tag;
 
         /// total amount issued on a divisible asset OR total count issued on an indivisible asset
@@ -58,16 +60,24 @@ contract Company is Organization {
         superAdmins.push(msg.sender);
     }
     
+    /// 这个函数不需要存在
     /// @dev register to Registry Center
     function registerOrganization() public authAddresses(superAdmins) {
         register();
     }
     
     /// @dev create an asset
-    /// @param assetType divisible 0, indivisible 1
+    /// @param name asset name
+    /// @param symbel asset symbol
+    /// @param description asset description
+    /// @param assetType asset properties, divisible, anonymous and restricted circulation
     /// @param assetIndex asset index in the organization
     /// @param amountOrVoucherId amount or voucherId of asset to create
     ///     (or the unique voucher id for an indivisible asset)
+    /// @param isTxinRestrictedToWhitelist whether the whitelist restriction applies to txin
+    /// @param isTxoutRestrictedToWhitelist whether the whitelist restriction applies to txout
+    /// @param tag extra properteis special to an asset
+    /// @param voucherHash hash of an indivisible asset properties to check integrity
     function create(string name, string symbol, string description, uint32 assetType, uint32 assetIndex,
         uint256 amountOrVoucherId, bool isTxinRestrictedToWhitelist, bool isTxoutRestrictedToWhitelist, 
         bytes32 tag, bytes32 voucherHash)
@@ -77,6 +87,7 @@ contract Company is Organization {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(!assetInfo.existed, "asset already existed");
         /// check the scope of assetType if match isTxinRestrictedToWhitelist and isTxoutRestrictedToWhitelist
+        /// 没有完全匹配条件
         if (0 == scopeBits(assetType)) {
             require(isTxinRestrictedToWhitelist && isTxoutRestrictedToWhitelist);
         }
@@ -91,6 +102,7 @@ contract Company is Organization {
         }
         
         /// create asset to utxo
+        /// 需要判断是否执行成功，成功了才有下面的一系列操作
         create(assetType, assetIndex, amountOrVoucherId);
 
         assetInfo.name = name;
@@ -105,6 +117,7 @@ contract Company is Organization {
             assetInfo.totalIssued = amountOrVoucherId; 
         } else if (1 == isDivisibleBit(assetType)) {
             assetInfo.totalIssued = 1;
+            /// 理论上来讲不会出现voucherId已经存在的情况，不然上面的create会失败
             Voucher storage voucher = assetInfo.issuedVouchers[amountOrVoucherId];
             require(!voucher.existed, "voucher already existed");
             voucher.voucherHash = voucherHash;
@@ -126,14 +139,17 @@ contract Company is Organization {
         require(assetInfo.existed, "asset not exist");
         
         /// mint an asset
+        /// 需要判断成功失败，如上
         mint(assetIndex, amountOrVoucherId);
         
         uint32 isDivisible = isDivisibleBit(assetInfo.assetType);
         if (0 == isDivisible) {
+            /// uint的运算全都需要使用safemath
             assetInfo.totalIssued = assetInfo.totalIssued + amountOrVoucherId;
         } else if (1 == isDivisible) {
             assetInfo.totalIssued++;
             Voucher storage voucher = assetInfo.issuedVouchers[amountOrVoucherId];
+            /// 同上，理论上不会运行到这里
             require(!voucher.existed, "voucher already existed");
             voucher.voucherHash = voucherHash;
             voucher.existed = true;
@@ -148,6 +164,7 @@ contract Company is Organization {
     ///     assetIndex（asset index in the organization）
     /// @param amountOrVoucherId amount or voucherId of asset to transfer
     ///     (or the unique voucher id for an indivisible asset)    
+    /// 这个方法不需要
     function transferAsset(address to, bytes12 asset, uint256 amountOrVoucherId)
         public
         authAddresses(superAdmins)
@@ -160,6 +177,7 @@ contract Company is Organization {
     /// @param transferAddress in or out address
     /// @param assetIndex asset index
     /// @return success
+    /// 这个方法整体逻辑判断似乎有问题
     function canTransfer(address transferAddress, uint32 assetIndex)
         public
         view
@@ -170,10 +188,12 @@ contract Company is Organization {
             return false;
         }
         /// must be restricted asset
+        /// 为什么返回false?
         if (2 != isRestrictedBit(assetInfo.assetType)) {
             return false;
         }
         /// address must be in whitelist
+        /// 为什么返回false?
         if (!assetInfo.whitelist[transferAddress]) {
             return false;
         }
@@ -208,6 +228,7 @@ contract Company is Organization {
         returns (bool)
     {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
+        /// 判断条件有问题
         require(assetInfo.existed, "asset not exist");
 
         if (!assetInfo.whitelist[newAddress]) {
@@ -238,6 +259,7 @@ contract Company is Organization {
     /// @param assetIndex asset index 
     function getAssetInfo(uint32 assetIndex) public view returns (string, string, string) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
+        /// view方法内部不需要require
         require(assetInfo.existed, "asset not exist");
         
         return (assetInfo.name, assetInfo.symbol, assetInfo.description);
@@ -247,6 +269,7 @@ contract Company is Organization {
     /// @param assetIndex asset index 
     function getAssetType(uint32 assetIndex) public view returns (uint32) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
+        /// view方法内部不需要require
         require(assetInfo.existed, "asset not exist");
         
         return assetInfo.assetType;
@@ -256,6 +279,7 @@ contract Company is Organization {
     /// @param assetIndex asset index 
     function getTotalIssued(uint32 assetIndex) public view returns (uint) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
+        /// view方法内部不需要require
         require(assetInfo.existed, "asset not exist");
         
         return assetInfo.totalIssued;
@@ -266,13 +290,16 @@ contract Company is Organization {
     /// @param voucherId voucher id
     function getVoucherHash(uint32 assetIndex, uint voucherId) public view returns (bytes32) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
+        /// view方法内部不需要require
         require(assetInfo.existed, "asset not exist");
         
         Voucher storage voucher = assetInfo.issuedVouchers[voucherId];
+        /// view方法内部不需要require
         require(voucher.existed, "voucher not exist");
         return voucher.voucherHash;
     }
-    
+
+    /// is开头的方法应该返回true/false
     /// @dev internal method: get property of isDivisible from assetType
     function isDivisibleBit(uint32 assetType) internal pure returns(uint32) {
         uint32 lastFourBits = assetType & 15;
