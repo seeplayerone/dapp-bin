@@ -58,6 +58,10 @@ contract Company is Organization {
     constructor(string organizationName) Organization(organizationName) public {
     }
     
+    function registryCompany() public {
+        register();
+    }
+    
     /// @dev create an asset
     /// @param name asset name
     /// @param symbol asset symbol
@@ -142,6 +146,10 @@ contract Company is Organization {
         }
     }
     
+    function transferAsset(address to, bytes12 asset, uint amount) public {
+        transfer(to, asset, amount);
+    }
+    
     /// @dev whether an asset can be transferred or not, called when RISTRICTED bit is set
     /// @dev this function can be called by chain code or internal "transfer" implementation
     /// @param transferAddress in or out address
@@ -157,6 +165,10 @@ contract Company is Organization {
             return false;
         }
         
+        bool result;
+        if (2 != getRestrictedBit(assetInfo.assetType)) {
+            result = true;
+        }
         /// restricted asset
         if (2 == getRestrictedBit(assetInfo.assetType)) {
             /// address must be in whitelist
@@ -168,7 +180,6 @@ contract Company is Organization {
             bool isTxoutRestricted = assetInfo.isTxoutRestrictedToWhitelist;
             /// get scope
             uint32 scope = getScopeBits(assetInfo.assetType);
-            bool result;
             if (0 == scope) {
                 result = (isTxinRestricted && isTxoutRestricted);
             }
