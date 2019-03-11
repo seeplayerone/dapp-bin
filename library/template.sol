@@ -12,15 +12,6 @@ interface TemplateWarehouse{
 contract Template {
     uint16 category;
     string templateName;
-    TemplateWarehouse templateWarehouse;
-    
-    event RecordAddress(
-       address addr
-    );
-    
-    constructor() public {
-        templateWarehouse = TemplateWarehouse(0xb11Daac2A8f3f9B8CfAF8be885b583212477e004);
-    }
     
     /// @dev initialize a template
     ///  it was originally the logic inside the constructor
