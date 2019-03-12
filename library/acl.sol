@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity ^0.4.25;
 
 /// @title This is the base contract to support ACL in flow contracts
 ///  Permission control is applied at function level, to the end it is "whether an address can call a function in a contract"
@@ -30,11 +30,11 @@ contract ACL {
     }
     
     /// functionHash -> roles
-    mapping (bytes32 => Roles) internal functionRolesMap; 
+    mapping (bytes32 => Roles) functionRolesMap; 
     /// address -> roles
-    mapping (address => Roles) internal addressRolesMap;
+    mapping (address => Roles) addressRolesMap;
     /// functionHash -> addresses
-    mapping (bytes32 => Addresses) internal functionAddressesMap;
+    mapping (bytes32 => Addresses) functionAddressesMap;
     
     /// @dev function to configure (functionHash -> roles) mapping
     ///  Note that this function itself is guarded by the authFunctionHash() modifier with a unique functionHash
@@ -42,7 +42,7 @@ contract ACL {
     /// @param _function functionHash to configure
     /// @param _role role to configure
     /// @param _opMode either add or remove
-    string constant external CONFIGURE_NORMAL_FUNCTION = "CONFIGURE_NORMAL_FUNCTION";
+    string constant CONFIGURE_NORMAL_FUNCTION = "CONFIGURE_NORMAL_FUNCTION";
     function configureFunctionRole(string _function, string _role, OpMode _opMode) authFunctionHash(CONFIGURE_NORMAL_FUNCTION) public { 
         bytes32 func = keccak256(abi.encodePacked(_function));
         require(func != keccak256(abi.encodePacked(CONFIGURE_NORMAL_FUNCTION)), "not allowed");
@@ -51,14 +51,12 @@ contract ACL {
         configureFunctionRoleInternal(_function, _role, _opMode);
     }
 
-    string constant external CONFIGURE_ADVANCED_FUNCTION = "CONFIGURE_ADVANCED_FUNCTION";
+    string constant CONFIGURE_ADVANCED_FUNCTION = "CONFIGURE_ADVANCED_FUNCTION";
     function configureFunctionRoleAdvanced(string _role, OpMode _opMode) authFunctionHash(CONFIGURE_ADVANCED_FUNCTION) public {
-        require(func != keccak256(abi.encodePacked(CONFIGURE_ADVANCED_FUNCTION)), "not allowed");
-        require(func != keccak256(abi.encodePacked(CONFIGURE_SUPER_FUNCTION)), "not allowed");
         configureFunctionRoleInternal(CONFIGURE_NORMAL_FUNCTION, _role, _opMode);
     }
 
-    string constant external CONFIGURE_SUPER_FUNCTION = "CONFIGURE_SUPER_FUNCTION";
+    string constant CONFIGURE_SUPER_FUNCTION = "CONFIGURE_SUPER_FUNCTION";
     function configureFunctionRoleSuper(string _role, OpMode _opMode) authFunctionHash(CONFIGURE_SUPER_FUNCTION) public {
         configureFunctionRoleInternal(CONFIGURE_ADVANCED_FUNCTION, _role, _opMode);
         configureFunctionRoleInternal(CONFIGURE_SUPER_FUNCTION, _role, _opMode);        
@@ -141,8 +139,6 @@ contract ACL {
     }
 
     function configureFunctionAddressAdvanced(address _address, OpMode _opMode) authFunctionHash(CONFIGURE_ADVANCED_FUNCTION) public {
-        require(func != keccak256(abi.encodePacked(CONFIGURE_ADVANCED_FUNCTION)), "not allowed");
-        require(func != keccak256(abi.encodePacked(CONFIGURE_SUPER_FUNCTION)), "not allowed");        
         configureFunctionAddressInternal(CONFIGURE_NORMAL_FUNCTION, _address, _opMode);
     }
 
