@@ -23,14 +23,13 @@ interface Registry {
 ///  - register to Registry and create/mint assets on Flow chain
 ///  - provide basic permission management through ACL contract
 contract Organization is Template, ACL{
-    string organizationName;
-    Instructions instructions;
-    Registry registry;
-    string constant SUPER_ADMIN = "SUPER_ADMIN";
+    string internal organizationName;
+    Instructions internal instructions;
+    Registry internal registry;
     
     /// @dev initialization function module to support complex business requirements during organization startup
     ///  which contains an initialized state, an initialize() function and a hasInitialized() modifier
-    bool initialized;
+    bool internal initialized;
 
     function initialize() public {
         initialized = true;
@@ -41,6 +40,7 @@ contract Organization is Template, ACL{
         _;
     }
 
+    string constant SUPER_ADMIN = "SUPER_ADMIN";
     /// @dev constructor
     /// @param _organizationName organization name
     constructor(string _organizationName) public {

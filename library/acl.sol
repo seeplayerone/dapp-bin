@@ -1,4 +1,4 @@
-pragma solidity ^0.4.25;
+pragma solidity 0.4.25;
 
 /// @title This is the base contract to support ACL in flow contracts
 ///  Permission control is applied at function level, to the end it is "whether an address can call a function in a contract"
@@ -19,22 +19,26 @@ contract ACL {
     /// add or remove a mapping
     enum OpMode { Add, Remove }
     
+    /// @dev TODO, optimized implementations with the mapping
     struct Roles {
         bool exist;
         bytes32[] value; 
+        mapping (bytes32=>bool) references;
     }
     
+    /// @dev TODO, optimized implementations with the mapping
     struct Addresses {
         bool exist;
         address[] value;
+        mapping (address=>bool) references;
     }
     
     /// functionHash -> roles
-    mapping (bytes32 => Roles) functionRolesMap; 
+    mapping (bytes32 => Roles) internal functionRolesMap; 
     /// address -> roles
-    mapping (address => Roles) addressRolesMap;
+    mapping (address => Roles) internal addressRolesMap;
     /// functionHash -> addresses
-    mapping (bytes32 => Addresses) functionAddressesMap;
+    mapping (bytes32 => Addresses) internal functionAddressesMap;
     
     /// @dev function to configure (functionHash -> roles) mapping
     ///  Note that this function itself is guarded by the authFunctionHash() modifier with a unique functionHash

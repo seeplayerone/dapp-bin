@@ -10,8 +10,8 @@ interface TemplateWarehouse{
 ///  Flow only accepts a template rather than a randomly composed Solidity contract
 ///  A Flow template always belongs to a given category and has a unique template name in the category
 contract Template {
-    uint16 category;
-    string templateName;
+    uint16 internal category;
+    string internal templateName;
     
     /// @dev initialize a template
     ///  it was originally the logic inside the constructor
