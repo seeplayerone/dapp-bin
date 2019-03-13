@@ -77,9 +77,11 @@ contract ACL {
                 funcRole.exist = true;
                 funcRole.value = new bytes32[](0);
                 funcRole.value.push(_role);
+                funcRole.references[_role] = true;
                 functionRolesMap[_function] = funcRole;
             } else {
                 funcRole.value.push(_role);
+                funcRole.references[_role] = true;
             }
         } else if(_opMode == OpMode.Remove) {
             if (funcRole.exist) {
@@ -89,6 +91,7 @@ contract ACL {
                         /// Use Swap & Delete mode when deleting an element in array
                         /// https://stackoverflow.com/questions/49051856/is-there-a-pop-functionality-for-solidity-arrays
                         /// This applies to all array deleting operations in this contract
+                        funcRole.references[_role] = false;                        
                         delete funcRole.value[i];
                         break;
                     }
@@ -114,14 +117,17 @@ contract ACL {
                 addrRole.exist = true;
                 addrRole.value = new bytes32[](0);
                 addrRole.value.push(_role);
+                addrRole.references[_role] = true;
                 addressRolesMap[_address] = addrRole;
             } else {
                 addrRole.value.push(_role);
+                addrRole.references[_role] = true;
             }
         } else if(_opMode == OpMode.Remove) {
             if (addrRole.exist) {
                 for(uint i = 0; i < addrRole.value.length; i++) {
                     if (addrRole.value[i] == _role) {
+                        addrRole.references[_role] = false;
                         delete addrRole.value[i];
                         break;
                     }
@@ -160,14 +166,17 @@ contract ACL {
                 addrFunc.exist = true;
                 addrFunc.value = new address[](0);
                 addrFunc.value.push(_address);
+                addrFunc.references[_address] = true;
                 functionAddressesMap[_function] = addrFunc;
             } else {
+                addrFunc.references[_address] = true;
                 addrFunc.value.push(_address);
             }
         } else if(_opMode == OpMode.Remove) {
              if (addrFunc.exist) {
                 for(uint i = 0; i < addrFunc.value.length; i++) {
                     if (addrFunc.value[i] == _address) {
+                        addrFunc.references[_address] = false;
                         delete addrFunc.value[i];
                         break;
                     }
@@ -199,11 +208,15 @@ contract ACL {
         
         bool authorized =false;
         for(uint i = 0; i < _roles.length; i++) {
-            for(uint j = 0; j < addrRoleMap.value.length; j++) {
+            /*for(uint j = 0; j < addrRoleMap.value.length; j++) {
                 if (keccak256(abi.encodePacked(_roles[i])) == addrRoleMap.value[j]) {
                     authorized = true;
                     break;
                 }
+            }*/
+            if(addrRoleMap.references[keccak256(abi.encodePacked(_roles[i]))]) {
+                authorized = true;
+                break;               
             }
         }
         
@@ -230,11 +243,14 @@ contract ACL {
         bool authorized = false;
         Addresses storage addrFuncMap = functionAddressesMap[_function];
         if (addrFuncMap.exist) {
-            for(uint i = 0; i < addrFuncMap.value.length; i++) {
+            /*for(uint i = 0; i < addrFuncMap.value.length; i++) {
                 if (addrFuncMap.value[i] == _caller) {
                    authorized = true;
                    break;
                 }
+            }*/
+            if(addrFuncMap.references[_caller]) {
+                authorized = true;
             }
         }
         
@@ -247,12 +263,16 @@ contract ACL {
             Roles storage addrRoleMap = addressRolesMap[_caller];
             require(addrRoleMap.exist);
             
-            for(i = 0; i < funcRoleMap.value.length; i++) {
-                for(uint j = 0; j < addrRoleMap.value.length; j++) {
+            for(uint i = 0; i < funcRoleMap.value.length; i++) {
+                /*for(uint j = 0; j < addrRoleMap.value.length; j++) {
                     if (funcRoleMap.value[i] == addrRoleMap.value[j]) {
                         authorized = true;
                         break;
                     }
+                }*/
+                if(addrRoleMap.references[funcRoleMap.value[i]]) {
+                    authorized = true;
+                    break;
                 }
             }
         }
