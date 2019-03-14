@@ -55,14 +55,6 @@ contract Company is Organization {
 
     }
     
-    function registryCompany() public {
-        register();
-    }
-    
-    function transferAsset(address to, bytes12 asset, uint amount) public {
-        transfer(to, asset, amount);
-    }
-    
     /// @dev create an asset
     /// @param name asset name
     /// @param symbol asset symbol
