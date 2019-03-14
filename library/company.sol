@@ -30,9 +30,6 @@ contract Company is Organization {
         /// asset type contains DIVISIBLE + ANONYMOUS + RESTRICTED
         uint32 assetType;
 
-        /// whitelist control, which is the default RISTRICTION type
-        bool isTxinRestrictedToWhitelist;
-        bool isTxoutRestrictedToWhitelist;
         mapping (address => bool) whitelist;
         
         /// tag: field for each issuer to engrave extra information
@@ -58,9 +55,13 @@ contract Company is Organization {
 
     }
     
-    /*function registryCompany() public {
+    function registryCompany() public {
         register();
-    }*/
+    }
+    
+    function transferAsset(address to, bytes12 asset, uint amount) public {
+        transfer(to, asset, amount);
+    }
     
     /// @dev create an asset
     /// @param name asset name
@@ -69,37 +70,14 @@ contract Company is Organization {
     /// @param assetType asset properties, divisible, anonymous and restricted circulation
     /// @param assetIndex asset index in the organization
     /// @param amountOrVoucherId amount or voucherId of asset to create
-    /// @param isTxinRestrictedToWhitelist whether the whitelist restriction applies to txin
-    /// @param isTxoutRestrictedToWhitelist whether the whitelist restriction applies to txout
     /// @param tag extra properteis special to an asset
     /// @param voucherHash hash of an indivisible asset properties to check integrity
     function create(string name, string symbol, string description, uint32 assetType, uint32 assetIndex,
-        uint256 amountOrVoucherId, bool isTxinRestrictedToWhitelist, bool isTxoutRestrictedToWhitelist, 
-        bytes32 tag, bytes32 voucherHash)
+        uint256 amountOrVoucherId, bytes32 tag, bytes32 voucherHash)
         public
     {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(!assetInfo.existed, "asset already existed");
-        
-        /// check whether assetType matches isTxinRestrictedToWhitelist and isTxoutRestrictedToWhitelist
-        if (2 == getRestrictedBit(assetType)) {
-            /// 00 apply to both
-            if (0 == getScopeBits(assetType)) {
-                require(isTxinRestrictedToWhitelist && isTxoutRestrictedToWhitelist);
-            }
-            /// 01 apply to txout but not txin
-            else if (4 == getScopeBits(assetType)) {
-                require(!isTxinRestrictedToWhitelist && isTxoutRestrictedToWhitelist);
-            }
-            /// 10 apply to txin but not out
-            else if (8 == getScopeBits(assetType)) {
-                require(isTxinRestrictedToWhitelist && !isTxoutRestrictedToWhitelist);
-            }
-            /// 11 apply to either
-            else if (12 == getScopeBits(assetType)) {
-                require(isTxinRestrictedToWhitelist || isTxoutRestrictedToWhitelist);
-            }
-        }
         
         /// create the asset
         /// reverts if creation fails
@@ -110,17 +88,14 @@ contract Company is Organization {
         assetInfo.symbol = symbol;
         assetInfo.description = description;
         assetInfo.assetType = assetType;
-        assetInfo.isTxinRestrictedToWhitelist = isTxinRestrictedToWhitelist;
-        assetInfo.isTxoutRestrictedToWhitelist = isTxoutRestrictedToWhitelist;
         assetInfo.tag = tag;
         
         if (0 == getDivisibleBit(assetType)) {
             assetInfo.totalIssued = amountOrVoucherId; 
         } else if (1 == getDivisibleBit(assetType)) {
             assetInfo.totalIssued = 1;
-            Voucher storage voucher = assetInfo.issuedVouchers[amountOrVoucherId];
-            voucher.voucherHash = voucherHash;
-            voucher.existed = true;
+            Voucher memory voucher = Voucher(voucherHash, true);
+            assetInfo.issuedVouchers[amountOrVoucherId] = voucher;
         }
         assetInfo.existed = true;
         issuedIndexes.push(assetIndex);
@@ -145,17 +120,11 @@ contract Company is Organization {
         if (0 == isDivisible) {
             assetInfo.totalIssued = SafeMath.add(assetInfo.totalIssued, amountOrVoucherId);
         } else if (1 == isDivisible) {
-            /// TODO safemath
-            assetInfo.totalIssued++;
-            Voucher storage voucher = assetInfo.issuedVouchers[amountOrVoucherId];
-            voucher.voucherHash = voucherHash;
-            voucher.existed = true;
+            assetInfo.totalIssued = SafeMath.add(assetInfo.totalIssued, 1);
+            Voucher memory voucher = Voucher(voucherHash, true);
+            assetInfo.issuedVouchers[amountOrVoucherId] = voucher;
         }
     }
-    
-    /*function transferAsset(address to, bytes12 asset, uint amount) public {
-        transfer(to, asset, amount);
-    }*/
     
     /// @dev whether an asset can be transferred or not, called when RISTRICTED bit is set
     /// @dev this function can be called by chain code or internal "transfer" implementation
@@ -172,35 +141,14 @@ contract Company is Organization {
             return false;
         }
         
-        bool result;
-        if (2 != getRestrictedBit(assetInfo.assetType)) {
-            result = true;
-        }
         /// restricted asset
         if (2 == getRestrictedBit(assetInfo.assetType)) {
-            /// address must be in whitelist
             if (!assetInfo.whitelist[transferAddress]) {
                 return false;
             }
-            
-            bool isTxinRestricted = assetInfo.isTxinRestrictedToWhitelist;
-            bool isTxoutRestricted = assetInfo.isTxoutRestrictedToWhitelist;
-            /// get scope
-            uint32 scope = getScopeBits(assetInfo.assetType);
-            if (0 == scope) {
-                result = (isTxinRestricted && isTxoutRestricted);
-            }
-            if (4 == scope) {
-                result = isTxoutRestricted && !isTxinRestricted;
-            }
-            if (8 == scope) {
-                result = isTxinRestricted && !isTxoutRestricted;
-            }
-            if (12 == scope) {
-                result = (isTxinRestricted || isTxoutRestricted);
-            }
         }
-        return result;
+        
+        return true;
     }
     
     /// @dev add an address to whitelist
@@ -212,17 +160,9 @@ contract Company is Organization {
         returns (bool)
     {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
-        require(!assetInfo.existed, "address already exist");
-        /*if (!assetInfo.existed) {
-            return false;
-        }*/
-
-        /*if (!assetInfo.whitelist[newAddress]) {
-            assetInfo.whitelist[newAddress] = true;
-        }*/
+        require(assetInfo.existed, "address not exist");
 
         assetInfo.whitelist[newAddress] = true;
-
         return true;
     }
 
@@ -237,12 +177,7 @@ contract Company is Organization {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(assetInfo.existed, "address not exist");
         
-        /*if (assetInfo.whitelist[existingAddress]) {
-            delete assetInfo.whitelist[existingAddress];
-        }*/
-
         assetInfo.whitelist[existingAddress] = false;
-
         return true;
     }
     
@@ -306,12 +241,6 @@ contract Company is Organization {
     function getRestrictedBit(uint32 assetType) internal pure returns(uint32) {
         uint32 lastFourBits = assetType & 15;
         return lastFourBits & 2;
-    }
-    
-    /// @dev internal method: get property of scope from assetType
-    function getScopeBits(uint32 assetType) internal pure returns(uint32) {
-        uint32 lastFourBits = assetType & 15;
-        return lastFourBits & 12;
     }
     
 }
