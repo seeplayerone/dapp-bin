@@ -68,6 +68,8 @@ contract Company is Organization {
         uint256 amountOrVoucherId, bytes32 tag, bytes32 voucherHash)
         public
     {
+        /// "Uninitialized Storage Pointer" issue here?
+        /// https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-109
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(!assetInfo.existed, "asset already existed");
         
@@ -85,6 +87,8 @@ contract Company is Organization {
         if (0 == getDivisibleBit(assetType)) {
             assetInfo.totalIssued = amountOrVoucherId; 
         } else if (1 == getDivisibleBit(assetType)) {
+            /// chain code already did the check, just double check
+            require(!assetInfo.issuedVouchers[amountOrVoucherId].existed, "voucher id already existed");
             assetInfo.totalIssued = 1;
             Voucher memory voucher = Voucher(voucherHash, true);
             assetInfo.issuedVouchers[amountOrVoucherId] = voucher;
@@ -100,6 +104,8 @@ contract Company is Organization {
     function mint(uint32 assetIndex, uint256 amountOrVoucherId, bytes32 tag, bytes32 voucherHash)
         public
     {
+        /// "Uninitialized Storage Pointer" issue here?
+        /// https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-109
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(assetInfo.existed, "asset not exist");
         
@@ -112,6 +118,7 @@ contract Company is Organization {
         if (0 == isDivisible) {
             assetInfo.totalIssued = SafeMath.add(assetInfo.totalIssued, amountOrVoucherId);
         } else if (1 == isDivisible) {
+            require(!assetInfo.issuedVouchers[amountOrVoucherId].existed, "voucher id already existed");
             assetInfo.totalIssued = SafeMath.add(assetInfo.totalIssued, 1);
             Voucher memory voucher = Voucher(voucherHash, true);
             assetInfo.issuedVouchers[amountOrVoucherId] = voucher;
@@ -152,7 +159,7 @@ contract Company is Organization {
         returns (bool)
     {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
-        require(assetInfo.existed, "address not exist");
+        require(assetInfo.existed, "asset not exist");
 
         assetInfo.whitelist[newAddress] = true;
         return true;
@@ -167,7 +174,7 @@ contract Company is Organization {
         returns (bool)
     {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
-        require(assetInfo.existed, "address not exist");
+        require(assetInfo.existed, "asset not exist");
         
         assetInfo.whitelist[existingAddress] = false;
         return true;
