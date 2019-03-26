@@ -61,11 +61,19 @@ contract MarketMaking is Template {
         // exchange(msg.sender, instructions.asset(), msg.value);
     }
     
+    /// @dev exchange can be called by external account directly, 
+    ///  or can be called by the Scheduer system contract. 
+    ///  when called by external account, asset is also sent to the method,
+    ///  as a result we need to check whether the asset/amount are match with the transaction.
+    ///  when called by the Scheduer system contract, asset is transferred beforehand,
+    ///  as a result no asset/amount check is needed.
     function exchange(address destination, bytes12 asset, uint amount)
         public
         payable
         returns (bytes12, uint)
     {
+        /// if it is called by the Scheduer system contract, comment; otherwise, check
+
         // bytes12 instructionAsset = instructions.asset();
         // require(instructionAsset == asset, "not supported asset type");
         // require(asset == assetType1 || asset == assetType2, "not supported asset type");
