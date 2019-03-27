@@ -73,12 +73,13 @@ contract MarketMaking is Template {
         returns (bytes12, uint)
     {
         /// if it is called by the Scheduer system contract, comment; otherwise, check
-
-        // bytes12 instructionAsset = instructions.asset();
-        // require(instructionAsset == asset, "not supported asset type");
-        // require(asset == assetType1 || asset == assetType2, "not supported asset type");
-        // require(msg.value == amount, "amount error");
-        // require(amount > 0, "amount must bigger than zero");
+        if (0xe2f726e84c98e9d14E729d82e78E366EBde056FB != msg.sender) {
+            bytes12 instructionAsset = instructions.asset();
+            require(instructionAsset == asset, "not supported asset type");
+            require(asset == assetType1 || asset == assetType2, "not supported asset type");
+            require(msg.value == amount, "amount error");
+            require(amount > 0, "amount must bigger than zero");
+        }
         
         bytes12 exchangedAsset;
         uint exchangedAmount;
@@ -131,12 +132,14 @@ contract MarketMaking is Template {
         }
     }
     
-    function deposit(bytes12 asset, uint amount)
+    function deposit()
         public
         payable 
         // authFunctionHash(DEPOSIT_FUNCTION)
         returns(bool, string)
     {
+        uint amount = msg.value;
+        bytes12 asset = instructions.asset();
         require(asset == assetType1 || asset == assetType2, "not supported asset type");
         require(amount > 0, "amount must bigger than zero");
         
