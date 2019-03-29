@@ -73,7 +73,7 @@ contract MarketMaking is Template {
         returns (bytes12, uint)
     {
         /// if it is called by the Scheduer system contract, comment; otherwise, check
-        if (0xe2f726e84c98e9d14E729d82e78E366EBde056FB != msg.sender) {
+        if (0x631aaaf018b04f1e9510f36aec8a2b5d05b13e1d1f != msg.sender) {
             bytes12 instructionAsset = instructions.asset();
             require(instructionAsset == asset, "not supported asset type");
             require(asset == assetType1 || asset == assetType2, "not supported asset type");
