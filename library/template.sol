@@ -18,7 +18,7 @@ contract Template {
     ///  it was originally the logic inside the constructor
     ///  it is changed in such way to provide a better user experience in the Flow debugging tool
     function initTemplate(uint16 _category, string _templateName) public {
-        // require(msg.sender == 0x66dbdd2826fb068f2929af065b04c0804d0397b09e);
+        require(msg.sender == 0x66dbdd2826fb068f2929af065b04c0804d0397b09e);
         category = _category;
         templateName = _templateName;
     }
