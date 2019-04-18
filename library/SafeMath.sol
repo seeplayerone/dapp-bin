@@ -62,4 +62,13 @@ library SafeMath {
         require(b != 0);
         return a % b;
     }
+    
+    /**
+     * @dev 给定数值a和百分比参数，返回a乘以百分比后的结果。
+     * 需要注意的是，百分比参数是乘以100以后的值
+     */
+    function getPercentValue(uint a, uint percent) internal pure returns(uint256) {
+        return div(mul(a, percent), 100);
+    }
+    
 }
