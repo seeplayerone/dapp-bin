@@ -3,15 +3,6 @@ pragma solidity 0.4.25;
 import "./template.sol";
 import "./acl.sol";
 
-/// @dev the Instructions interface
-///  Instructions is a system contract
-interface Instructions{
-    function createAsset(uint32 assetType, uint32 assetIndex, uint256 amount) external;
-    function mintAsset (uint32 assetIndex, uint256 amount) external;
-    function transfer(address to, bytes12 asset, uint256 amount) external;
-    function asset() external returns (bytes12);
-}
-
 /// @dev the Registry interface
 ///  Registry is a system contract
 interface Registry {
@@ -24,7 +15,6 @@ interface Registry {
 ///  - provide basic permission management through ACL contract
 contract Organization is Template, ACL{
     string internal organizationName;
-    Instructions internal instructions;
     Registry internal registry;
     
     /// @dev initialization function module to support complex business requirements during organization startup
@@ -45,8 +35,7 @@ contract Organization is Template, ACL{
     /// @param _organizationName organization name
     constructor(string _organizationName) public {
         organizationName = _organizationName;
-        instructions =  Instructions(0x6340b11db33b8ff0e1040af5d297d545ae70036ec3);
-        registry = Registry(0x6364552cbabde79285cc483640d516764f2fb105bd);
+        registry = Registry(0x639ee3bdc8393bc9b3636b57a127dd2e8a0e313e40);
         
         /// default permission management settings, which grants the contract creator the "super admin" role
         configureAddressRoleInternal(msg.sender, SUPER_ADMIN, OpMode.Add);
@@ -65,14 +54,14 @@ contract Organization is Template, ACL{
     /// @param assetIndex asset index in the organization
     /// @param amount amount of asset to create (or the unique voucher id for an indivisible asset)
     function create(uint32 assetType, uint32 assetIndex, uint256 amount) internal {
-        instructions.createAsset(assetType, assetIndex, amount);
+        flow.createAsset(assetType, assetIndex, amount);
     }
 
     /// @dev mint an asset
     /// @param assetIndex asset index in the organization
     /// @param amount amount of asset to mint (or the unique voucher id for an indivisible asset)    
     function mint(uint32 assetIndex, uint256 amount) internal {
-        instructions.mintAsset(assetIndex, amount);
+        flow.mintAsset(assetIndex, amount);
     }
     
     /// @dev transfer an asset
@@ -81,12 +70,12 @@ contract Organization is Template, ACL{
     ///     organizationId（organization id）、
     ///     assetIndex（asset index in the organization）
     /// @param amount amount of asset to transfer (or the unique voucher id for an indivisible asset)    
-    function transfer(address to, bytes12 asset, uint256 amount) internal {
-        instructions.transfer(to, asset, amount);
+    function transfer(address to, uint256 asset, uint256 amount) internal {
+        to.transfer(amount, asset);
     }
     
     /// @dev get the asset id from the transaction
-    function getAsset() internal returns(bytes12) {
-        return instructions.asset();
+    function getAsset() internal returns(uint256) {
+        return msg.assettype;
     }
 }
