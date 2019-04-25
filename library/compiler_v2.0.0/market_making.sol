@@ -4,13 +4,6 @@ import "./string_utils.sol";
 import "./SafeMath.sol";
 import "./template.sol";
 
-/// @dev the Instructions interface
-///  Instructions is a system contract
-interface Instructions {
-    function transfer(address to, bytes12 asset, uint256 amount) external;
-    function asset() external returns (bytes12);
-}
-
 /// @dev ACL interface
 ///  ACL is provided by Flow Kernel
 interface ACL {
@@ -18,17 +11,15 @@ interface ACL {
 }
 
 contract MarketMaking is Template {
-    using SafeMath for uint256;
     
-    bytes12 assetType1;
-    bytes12 assetType2;
+    uint256 assetType1;
+    uint256 assetType2;
     
     uint assetType1Amount;
     uint assetType2Amount;
     
     /// multiple 100
     uint ratio;
-    Instructions instructions;
     /// ACL interface reference
     ACL acl;
     
@@ -36,7 +27,7 @@ contract MarketMaking is Template {
     string constant DEPOSIT_FUNCTION = "DEPOSIT_FUNCTION";
     string constant WITHDRAW_FUNCTION = "WITHDRAW_FUNCTION";
     
-    constructor(bytes12 _asset1, bytes12 _asset2, uint _ratio, address _instructionsAddress, address _organizationContract)
+    constructor(uint256 _asset1, uint256 _asset2, uint _ratio, address _organizationContract)
         public
     {
         assetType1 = _asset1;
@@ -44,7 +35,6 @@ contract MarketMaking is Template {
         assetType1Amount = 0;
         assetType2Amount = 0;
         ratio = _ratio;
-        instructions = Instructions(_instructionsAddress);
         acl = ACL(_organizationContract);
     }
     
@@ -67,21 +57,21 @@ contract MarketMaking is Template {
     ///  as a result we need to check whether the asset/amount are match with the transaction.
     ///  when called by the Scheduer system contract, asset is transferred beforehand,
     ///  as a result no asset/amount check is needed.
-    function exchange(address destination, bytes12 asset, uint amount)
+    function exchange(address destination, uint256 asset, uint amount)
         public
         payable
-        returns (bytes12, uint)
+        returns (uint256, uint)
     {
         /// if it is called by the Scheduer system contract, comment; otherwise, check
-        if (0x631aaaf018b04f1e9510f36aec8a2b5d05b13e1d1f != msg.sender) {
-            bytes12 instructionAsset = instructions.asset();
-            require(instructionAsset == asset, "not supported asset type");
+        if (0x638e8554b23d93eb847c9ae4bdd527c750b8ca05dc != msg.sender) {
+            uint256 assetType = msg.assettype;
+            require(assetType == asset, "not supported asset type");
             require(asset == assetType1 || asset == assetType2, "not supported asset type");
             require(msg.value == amount, "amount error");
             require(amount > 0, "amount must bigger than zero");
         }
         
-        bytes12 exchangedAsset;
+        uint256 exchangedAsset;
         uint exchangedAmount;
         if (asset == assetType1) {
             exchangedAsset = assetType2;
@@ -89,7 +79,7 @@ contract MarketMaking is Template {
             require(exchangedAmount <= assetType2Amount, "not enough amount to exchange");
             
             /// update contract state after successful transfer to prevent re-entry attack
-            instructions.transfer(destination, assetType2, exchangedAmount);
+            destination.transfer(exchangedAmount, assetType2);
             assetType2Amount = SafeMath.sub(assetType2Amount, exchangedAmount);
         }
         if (asset == assetType2) {
@@ -97,13 +87,13 @@ contract MarketMaking is Template {
             exchangedAmount = SafeMath.div(SafeMath.mul(amount, ratio), 100);
             require(exchangedAmount <= assetType1Amount, "not enough amount to exchange");
             
-            instructions.transfer(destination, assetType1, exchangedAmount);
+            destination.transfer(exchangedAmount, assetType1);
             assetType1Amount = SafeMath.sub(assetType2Amount, exchangedAmount);
         }
         return (exchangedAsset, exchangedAmount);
     }
     
-    function estimate(bytes12 asset, uint amount)
+    function estimate(uint256 asset, uint amount)
         public
         view
         returns(bool, uint, string)
@@ -139,7 +129,7 @@ contract MarketMaking is Template {
         returns(bool, string)
     {
         uint amount = msg.value;
-        bytes12 asset = instructions.asset();
+        uint256 asset = msg.assettype;
         require(asset == assetType1 || asset == assetType2, "not supported asset type");
         require(amount > 0, "amount must bigger than zero");
         
@@ -152,7 +142,7 @@ contract MarketMaking is Template {
         return (true, "");
     }
     
-    function withdraw(bytes12 asset, uint amount, address destination)
+    function withdraw(uint256 asset, uint amount, address destination)
         public
         // authFunctionHash(WITHDRAW_FUNCTION)
         returns(bool, string)
@@ -168,14 +158,14 @@ contract MarketMaking is Template {
             if (amount > assetType1Amount) {
                 return (false, "not enough amount to withdraw");
             }
-            instructions.transfer(destination, asset, amount);
+            destination.transfer(amount, asset);
             assetType1Amount = SafeMath.sub(assetType1Amount, amount);
         }
         if (asset == assetType2) {
             if (amount > assetType2Amount) {
                 return (false, "not enough amount to withdraw");
             }
-            instructions.transfer(destination, asset, amount);
+            destination.transfer(amount, asset);
             assetType2Amount = SafeMath.sub(assetType2Amount, amount);
         }
 
