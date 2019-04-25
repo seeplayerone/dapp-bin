@@ -3,14 +3,6 @@ pragma solidity 0.4.25;
 import "./template.sol";
 import "./acl.sol";
 
-/// @dev the Instructions interface
-///  Instructions is a system contract
-interface Instructions{
-    function createAsset(uint32 assetType, uint32 assetIndex, uint256 amount) external;
-    function mintAsset (uint32 assetIndex, uint256 amount) external;
-    function transfer(address to, uint32 assetType, uint32 organizationId ,uint32 assetIndex, uint256 amount) external;
-}
-
 /// @dev the Registry interface
 ///  Registry is a system contract
 interface Registry {
@@ -22,14 +14,12 @@ interface Registry {
 ///  - register to Registry and create/mint assets on Flow chain
 ///  - provide basic permission management through ACL contract
 contract Organization is Template, ACL{
-    string organizationName;
-    Instructions instructions;
-    Registry registry;
-    string constant ROLE_MANAGER = "ROLE_MANAGER";
+    string internal organizationName;
+    Registry internal registry;
     
     /// @dev initialization function module to support complex business requirements during organization startup
     ///  which contains an initialized state, an initialize() function and a hasInitialized() modifier
-    bool initialized;
+    bool internal initialized;
 
     function initialize() public {
         initialized = true;
@@ -40,18 +30,18 @@ contract Organization is Template, ACL{
         _;
     }
 
+    string constant SUPER_ADMIN = "SUPER_ADMIN";
     /// @dev constructor
     /// @param _organizationName organization name
     constructor(string _organizationName) public {
         organizationName = _organizationName;
-        instructions =  Instructions(0x79A961d796afAa37e53c40Aba0eF621Be999697b);
-        registry = Registry(0x227E1900246D8bF85300B2A708027306B0f3C43e);
+        registry = Registry(0x639ee3bdc8393bc9b3636b57a127dd2e8a0e313e40);
         
         /// default permission management settings, which grants the contract creator the "super admin" role
-        configureAddressRoleInternal(msg.sender, ROLE_MANAGER, OpMode.Add);
-        configureFunctionRoleInternal(CONFIGURE_FUNCTION_ROLE, ROLE_MANAGER, OpMode.Add);
-        configureFunctionRoleInternal(CONFIGURE_ADDRESS_ROLE, ROLE_MANAGER, OpMode.Add);
-        configureFunctionRoleInternal(CONFIGURE_FUNCTION_ADDRESS, ROLE_MANAGER, OpMode.Add);
+        configureAddressRoleInternal(msg.sender, SUPER_ADMIN, OpMode.Add);
+        configureFunctionRoleInternal(CONFIGURE_NORMAL_FUNCTION, SUPER_ADMIN, OpMode.Add);
+        configureFunctionRoleInternal(CONFIGURE_ADVANCED_FUNCTION, SUPER_ADMIN, OpMode.Add);
+        configureFunctionRoleInternal(CONFIGURE_SUPER_FUNCTION, SUPER_ADMIN, OpMode.Add);
     }
     
     /// @dev register to Registry Center
@@ -64,23 +54,28 @@ contract Organization is Template, ACL{
     /// @param assetIndex asset index in the organization
     /// @param amount amount of asset to create (or the unique voucher id for an indivisible asset)
     function create(uint32 assetType, uint32 assetIndex, uint256 amount) internal {
-        instructions.createAsset(assetType, assetIndex, amount);
+        flow.createAsset(assetType, assetIndex, amount);
     }
 
     /// @dev mint an asset
     /// @param assetIndex asset index in the organization
     /// @param amount amount of asset to mint (or the unique voucher id for an indivisible asset)    
     function mint(uint32 assetIndex, uint256 amount) internal {
-        instructions.mintAsset(assetIndex, amount);
+        flow.mintAsset(assetIndex, amount);
     }
     
     /// @dev transfer an asset
     /// @param to the destination address
-    /// @param assetType divisible 0, indivisible 1
-    /// @param organizationId organization id
-    /// @param assetIndex asset index in the organization
+    /// @param asset combined of assetType（divisible 0, indivisible 1）、
+    ///     organizationId（organization id）、
+    ///     assetIndex（asset index in the organization）
     /// @param amount amount of asset to transfer (or the unique voucher id for an indivisible asset)    
-    function transfer(address to, uint32 assetType, uint32 organizationId, uint32 assetIndex, uint256 amount) internal {
-        instructions.transfer(to, assetType, organizationId, assetIndex, amount);
+    function transfer(address to, uint256 asset, uint256 amount) internal {
+        to.transfer(amount, asset);
+    }
+    
+    /// @dev get the asset id from the transaction
+    function getAsset() internal returns(uint256) {
+        return msg.assettype;
     }
 }
