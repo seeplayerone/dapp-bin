@@ -80,6 +80,10 @@ contract Organization is Template, ACL, Asset {
         to.transfer(amount, asset);
     }
     
+    function showAssetInfo(uint32 assetIndex) internal {
+        return getAssetInfo(assetIndex);
+    }
+    
     /// @dev get the asset id from the transaction
     function getAsset() internal returns(uint256) {
         return msg.assettype;
