@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "./SafeMath.sol";
+import "github.com/seeplayerone/dapp-bin/library/SafeMath.sol";
 
 contract Asset {
     
@@ -39,7 +39,7 @@ contract Asset {
     /// @param amountOrVoucherId amount or voucherId of asset to create
     function newAsset(string name, string symbol, string description, uint32 assetType, uint32 assetIndex,
         uint256 amountOrVoucherId)
-        public
+        internal
     {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(!assetInfo.existed, "asset already existed");
@@ -64,7 +64,7 @@ contract Asset {
     /// @param amountOrVoucherId amount or voucherId of asset to mint 
     ///     (or the unique voucher id for an indivisible asset)    
     function updateAsset(uint32 assetIndex, uint256 amountOrVoucherId)
-        public
+        internal
     {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         require(assetInfo.existed, "asset not exist");
@@ -83,7 +83,7 @@ contract Asset {
     /// @param assetIndex asset index
     /// @return success
     function canTransfer(address transferAddress, uint32 assetIndex)
-        public
+        internal
         view
         returns(bool)
     {
@@ -107,7 +107,7 @@ contract Asset {
     /// @param assetIndex asset index 
     /// @param newAddress the address to add
     function addAddressToWhitelist(uint32 assetIndex, address newAddress)
-        public
+        internal
         returns (bool)
     {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
@@ -122,7 +122,7 @@ contract Asset {
     /// @param assetIndex asset index 
     /// @param existingAddress the address to remove   
     function removeAddressFromWhitelist(uint32 assetIndex, address existingAddress)
-        public
+        internal
         returns (bool)
     {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
@@ -134,7 +134,7 @@ contract Asset {
     
     /// @dev get asset name by asset index
     /// @param assetIndex asset index 
-    function getAssetInfo(uint32 assetIndex) public view returns (bool, string, string, string) {
+    function getAssetInfo(uint32 assetIndex) internal view returns (bool, string, string, string) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         if (!assetInfo.existed) {
             return (false, "", "", "");
@@ -145,7 +145,7 @@ contract Asset {
     
     /// @dev get asset type by asset index
     /// @param assetIndex asset index 
-    function getAssetType(uint32 assetIndex) public view returns (bool, uint32) {
+    function getAssetType(uint32 assetIndex) internal view returns (bool, uint32) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         if (!assetInfo.existed) {
             return (false, 0);
@@ -156,7 +156,7 @@ contract Asset {
 
     /// @dev get total amount/count issued on an asset
     /// @param assetIndex asset index 
-    function getTotalIssued(uint32 assetIndex) public view returns (bool, uint) {
+    function getTotalIssued(uint32 assetIndex) internal view returns (bool, uint) {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         if (!assetInfo.existed) {
             return (false, 0);
