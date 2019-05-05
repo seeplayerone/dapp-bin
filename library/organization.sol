@@ -2,6 +2,7 @@ pragma solidity 0.4.25;
 
 import "./template.sol";
 import "./acl.sol";
+import "./asset.sol";
 
 /// @dev the Registry interface
 ///  Registry is a system contract
@@ -13,7 +14,7 @@ interface Registry {
 /// @title Simple organization which inherits Template, it has capabilities to:
 ///  - register to Registry and create/mint assets on Flow chain
 ///  - provide basic permission management through ACL contract
-contract Organization is Template, ACL{
+contract Organization is Template, ACL, Asset {
     string internal organizationName;
     Registry internal registry;
     
@@ -52,16 +53,21 @@ contract Organization is Template, ACL{
     /// @dev create an asset
     /// @param assetType divisible 0, indivisible 1
     /// @param assetIndex asset index in the organization
-    /// @param amount amount of asset to create (or the unique voucher id for an indivisible asset)
-    function create(uint32 assetType, uint32 assetIndex, uint256 amount) internal {
-        flow.createAsset(assetType, assetIndex, amount);
+    /// @param amountOrVoucherId amount or the unique voucher id of asset
+    function create(string name, string symbol, string description, uint32 assetType, uint32 assetIndex,
+        uint256 amountOrVoucherId) internal {
+        flow.createAsset(assetType, assetIndex, amountOrVoucherId);
+        
+        newAsset(name, symbol, description, assetType, assetIndex, amountOrVoucherId);
     }
 
     /// @dev mint an asset
     /// @param assetIndex asset index in the organization
-    /// @param amount amount of asset to mint (or the unique voucher id for an indivisible asset)    
-    function mint(uint32 assetIndex, uint256 amount) internal {
-        flow.mintAsset(assetIndex, amount);
+    /// @param amountOrVoucherId amount or the unique voucher id of asset
+    function mint(uint32 assetIndex, uint256 amountOrVoucherId) internal {
+        flow.mintAsset(assetIndex, amountOrVoucherId);
+        
+        updateAsset(assetIndex, amountOrVoucherId);
     }
     
     /// @dev transfer an asset
