@@ -14,7 +14,7 @@ interface Registry {
 /// @title Simple organization which inherits Template, it has capabilities to:
 ///  - register to Registry and create/mint assets on Flow chain
 ///  - provide basic permission management through ACL contract
-contract Organization is Template, ACL, Asset{
+contract Organization is Template, ACL, Asset {
     string internal organizationName;
     Registry internal registry;
     
