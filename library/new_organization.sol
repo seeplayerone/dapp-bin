@@ -80,7 +80,7 @@ contract Organization is Template, ACL, Asset {
         to.transfer(amount, asset);
     }
     
-    function showAssetInfo(uint32 assetIndex) internal {
+    function showAssetInfo(uint32 assetIndex) internal returns(bool, string, string, string) {
         return getAssetInfo(assetIndex);
     }
     
