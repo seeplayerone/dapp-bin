@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/library/SafeMath.sol";
+import "./SafeMath.sol";
 
 contract Asset {
     
