@@ -134,35 +134,18 @@ contract Asset {
     
     /// @dev get asset name by asset index
     /// @param assetIndex asset index 
-    function getAssetInfo(uint32 assetIndex) internal view returns (bool, string, string, string) {
+    function getAssetInfo(uint32 assetIndex)
+        internal
+        view 
+        returns (bool, string, string, string, uint32, uint)
+    {
         AssetInfo storage assetInfo = issuedAssets[assetIndex];
         if (!assetInfo.existed) {
-            return (false, "", "", "");
+            return (false, "", "", "", 0, 0);
         }
         
-        return (true, assetInfo.name, assetInfo.symbol, assetInfo.description);
-    }
-    
-    /// @dev get asset type by asset index
-    /// @param assetIndex asset index 
-    function getAssetType(uint32 assetIndex) internal view returns (bool, uint32) {
-        AssetInfo storage assetInfo = issuedAssets[assetIndex];
-        if (!assetInfo.existed) {
-            return (false, 0);
-        }
-        
-        return (true, assetInfo.assetType);
-    }
-
-    /// @dev get total amount/count issued on an asset
-    /// @param assetIndex asset index 
-    function getTotalIssued(uint32 assetIndex) internal view returns (bool, uint) {
-        AssetInfo storage assetInfo = issuedAssets[assetIndex];
-        if (!assetInfo.existed) {
-            return (false, 0);
-        }
-        
-        return (true, assetInfo.totalIssued);
+        return (true, assetInfo.name, assetInfo.symbol, assetInfo.description,
+        assetInfo.assetType, assetInfo.totalIssued);
     }
 
     /// @dev internal method: get property of isDivisible from assetType
