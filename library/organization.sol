@@ -144,6 +144,7 @@ contract Organization is Template, ACL, Asset {
     /// @return success
     function canTransfer(uint32 assetIndex, address transferAddress)
         internal
+        view
         returns(bool)
     {
         canTransferAsset(assetIndex, transferAddress);
