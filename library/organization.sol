@@ -119,7 +119,7 @@ contract Organization is Template, ACL, Asset {
     }
     
     function getName() internal returns(string, bool) {
-        return getOrganizationName();
+        return registry.getOrganizationName();
     }
     
     /// @dev create an asset
