@@ -8,6 +8,7 @@ import "./asset.sol";
 ///  Registry is a system contract
 interface Registry {
      function registerOrganization(string organizationName, string templateName) external;
+     function renameOrganization(string organizationName) external;
 }
 
 /// @title Simple organization which inherits Template, it has capabilities to:
@@ -108,6 +109,12 @@ contract Organization is Template, ACL, Asset {
     /// @dev register to Registry Center
     function register() internal {
         registry.registerOrganization(organizationName, templateName);
+    }
+    
+    /// @dev rename organization name
+    function rename(string newOrganizationName) internal {
+        organizationName = newOrganizationName;
+        registry.renameOrganization(newOrganizationName);
     }
     
     /// @dev create an asset
