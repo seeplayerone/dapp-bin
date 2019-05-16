@@ -7,7 +7,7 @@ import "./asset.sol";
 /// @dev the Registry interface
 ///  Registry is a system contract
 interface Registry {
-     function registerOrganization(string organizationName, string templateName) external;
+     function registerOrganization(string organizationName, string templateName) external returns(uint32);
      function renameOrganization(string organizationName) external;
 }
 
@@ -16,6 +16,9 @@ interface Registry {
 ///  - provide basic permission management through ACL contract
 contract Organization is Template, ACL, Asset {
     string internal organizationName;
+    /// organizationName => bool
+    mapping (string => bool) organizationNameMap;
+    
     Registry internal registry;
     
     /// organization members related
@@ -45,8 +48,10 @@ contract Organization is Template, ACL, Asset {
     /// @param _organizationName organization name
     /// @param _members initialization members
     constructor(string _organizationName, address[] _members) public {
+        require(!organizationNameMap[_organizationName], "organization name already existed")
         organizationName = _organizationName;
-        registry = Registry(0x63b98215810b12dd85a743b79433b66a2375df19c1);
+        organizationNameMap[_organizationName] = true;
+        registry = Registry(0x6342430e192831936236257760eac63df2eecf72e2);
         
         /// init members and acl control
         memberRoles = new string[](0);
@@ -107,12 +112,14 @@ contract Organization is Template, ACL, Asset {
     }
     
     /// @dev register to Registry Center
-    function register() internal {
-        registry.registerOrganization(organizationName, templateName);
+    function register() internal returns(uint32) {
+        return registry.registerOrganization(organizationName, templateName);
     }
     
     /// @dev rename organization name
     function rename(string newOrganizationName) internal {
+        require(!organizationNameMap[newOrganizationName], "organization name already existed")
+        
         organizationName = newOrganizationName;
         registry.renameOrganization(newOrganizationName);
     }
