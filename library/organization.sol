@@ -48,10 +48,10 @@ contract Organization is Template, ACL, Asset {
     /// @param _organizationName organization name
     /// @param _members initialization members
     constructor(string _organizationName, address[] _members) public {
-        require(!organizationNameMap[_organizationName], "organization name already existed")
+        require(!organizationNameMap[_organizationName], "organization name already existed");
         organizationName = _organizationName;
         organizationNameMap[_organizationName] = true;
-        registry = Registry(0x6342430e192831936236257760eac63df2eecf72e2);
+        registry = Registry(0x632cf8187a45ec31b72bd90dda263cb5eec6eb7fd3);
         
         /// init members and acl control
         memberRoles = new string[](0);
@@ -118,7 +118,7 @@ contract Organization is Template, ACL, Asset {
     
     /// @dev rename organization name
     function rename(string newOrganizationName) internal {
-        require(!organizationNameMap[newOrganizationName], "organization name already existed")
+        require(!organizationNameMap[newOrganizationName], "organization name already existed");
         
         organizationName = newOrganizationName;
         registry.renameOrganization(newOrganizationName);
