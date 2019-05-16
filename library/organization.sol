@@ -117,7 +117,7 @@ contract Organization is Template, ACL, Asset {
         registry.renameOrganization(newOrganizationName);
     }
     
-    function returnName() internal returns(string) {
+    function returnName() view internal returns(string) {
         return organizationName;
     }
     
