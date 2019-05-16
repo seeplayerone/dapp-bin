@@ -117,6 +117,10 @@ contract Organization is Template, ACL, Asset {
         registry.renameOrganization(newOrganizationName);
     }
     
+    function returnName() internal returns(string) {
+        return organizationName;
+    }
+    
     /// @dev create an asset
     /// @param assetType divisible 0, indivisible 1
     /// @param assetIndex asset index in the organization
