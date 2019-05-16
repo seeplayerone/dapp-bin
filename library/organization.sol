@@ -16,9 +16,6 @@ interface Registry {
 ///  - provide basic permission management through ACL contract
 contract Organization is Template, ACL, Asset {
     string internal organizationName;
-    /// organizationName => bool
-    mapping (string => bool) organizationNameMap;
-    
     Registry internal registry;
     
     /// organization members related
@@ -48,9 +45,7 @@ contract Organization is Template, ACL, Asset {
     /// @param _organizationName organization name
     /// @param _members initialization members
     constructor(string _organizationName, address[] _members) public {
-        require(!organizationNameMap[_organizationName], "organization name already existed");
         organizationName = _organizationName;
-        organizationNameMap[_organizationName] = true;
         registry = Registry(0x632cf8187a45ec31b72bd90dda263cb5eec6eb7fd3);
         
         /// init members and acl control
@@ -118,8 +113,6 @@ contract Organization is Template, ACL, Asset {
     
     /// @dev rename organization name
     function rename(string newOrganizationName) internal {
-        require(!organizationNameMap[newOrganizationName], "organization name already existed");
-        
         organizationName = newOrganizationName;
         registry.renameOrganization(newOrganizationName);
     }
