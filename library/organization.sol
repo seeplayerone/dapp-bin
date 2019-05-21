@@ -200,7 +200,7 @@ contract Organization is Template, ACL, Asset {
     /// @param assetIndex asset index in the organization
     /// @return (isSuccess, assetName, assetSymbol, assetDesc, assetType, totalIssued)
     function getAssetDetail(uint32 assetIndex)
-        internal
+        public
         view
         returns (bool, string, string, string, uint32, uint)
     {
