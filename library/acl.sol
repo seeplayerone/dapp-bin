@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-/// @title This is the base contract to support ACL in flow contracts
+/// @title This is the base contract to support ACL in Asimov contracts
 ///  Permission control is applied at function level, to the end it is "whether an address can call a function in a contract"
 ///  This ACL contract provides 3 ways for inheriting contracts to configure access control on the function
 ///   - directly configure addresses, which is exposed by modifier authAddresses()
@@ -13,20 +13,19 @@ pragma solidity 0.4.25;
 ///     once configured, the function can only be called by the addresses which are mapped to this functionHash
 ///     or the addresses which are assigned with the roles which are mapped to this functionHash
 ///     permission manager can configure the (functionHash -> address) mapping by calling configureFunctionAddress() through transaction after the contract is deployed
-///     he can also configure the (functionHash -> role) mapping by calling configureFunctionRole() though transaction after the contract is deployed
+///     she/he can also configure the (functionHash -> role) mapping by calling configureFunctionRole() though transaction after the contract is deployed
+
 contract ACL {
     /// operation mode
     /// add or remove a mapping
     enum OpMode { Add, Remove }
     
-    /// @dev TODO, optimized implementations with the mapping
     struct Roles {
         bool exist;
         bytes32[] value; 
         mapping (bytes32=>bool) references;
     }
     
-    /// @dev TODO, optimized implementations with the mapping
     struct Addresses {
         bool exist;
         address[] value;
@@ -55,6 +54,9 @@ contract ACL {
         configureFunctionRoleInternal(_function, _role, _opMode);
     }
 
+    /// @dev advanced/super functions are used to configure super privileges
+    ///  All these configure functions are guarded by the authFunctionHash() modifier with 
+    ///  "CONFIGURE_ADVANCED_FUNCTION" and "CONFIGURE_SUPER_FUNCTION" function hashes
     string constant CONFIGURE_ADVANCED_FUNCTION = "CONFIGURE_ADVANCED_FUNCTION";
     function configureFunctionRoleAdvanced(string _role, OpMode _opMode) authFunctionHash(CONFIGURE_ADVANCED_FUNCTION) public {
         configureFunctionRoleInternal(CONFIGURE_NORMAL_FUNCTION, _role, _opMode);
@@ -208,12 +210,6 @@ contract ACL {
         
         bool authorized =false;
         for(uint i = 0; i < _roles.length; i++) {
-            /*for(uint j = 0; j < addrRoleMap.value.length; j++) {
-                if (keccak256(abi.encodePacked(_roles[i])) == addrRoleMap.value[j]) {
-                    authorized = true;
-                    break;
-                }
-            }*/
             if(addrRoleMap.references[keccak256(abi.encodePacked(_roles[i]))]) {
                 authorized = true;
                 break;               
@@ -243,12 +239,6 @@ contract ACL {
         bool authorized = false;
         Addresses storage addrFuncMap = functionAddressesMap[_function];
         if (addrFuncMap.exist) {
-            /*for(uint i = 0; i < addrFuncMap.value.length; i++) {
-                if (addrFuncMap.value[i] == _caller) {
-                   authorized = true;
-                   break;
-                }
-            }*/
             if(addrFuncMap.references[_caller]) {
                 authorized = true;
             }
@@ -264,12 +254,6 @@ contract ACL {
             require(addrRoleMap.exist);
             
             for(uint i = 0; i < funcRoleMap.value.length; i++) {
-                /*for(uint j = 0; j < addrRoleMap.value.length; j++) {
-                    if (funcRoleMap.value[i] == addrRoleMap.value[j]) {
-                        authorized = true;
-                        break;
-                    }
-                }*/
                 if(addrRoleMap.references[funcRoleMap.value[i]]) {
                     authorized = true;
                     break;

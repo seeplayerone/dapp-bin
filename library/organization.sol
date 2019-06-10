@@ -5,15 +5,17 @@ import "./acl.sol";
 import "./asset.sol";
 
 /// @dev the Registry interface
-///  Registry is a system contract
+///  Registry is a system contract, an organization needs to register before issuing assets
 interface Registry {
      function registerOrganization(string organizationName, string templateName) external returns(uint32);
      function renameOrganization(string organizationName) external;
 }
 
-/// @title Simple organization which inherits Template, it has capabilities to:
-///  - register to Registry and create/mint assets on Flow chain
-///  - provide basic permission management through ACL contract
+/// @title basic organization which inherits Template, ACL and Asset, it has capabilities to:
+///  - register and create/mint assets on Asimov chain
+///  - implement basic permission framework through ACL contract
+///  - save all information of issued assets through Asset contract
+///  - add new members through invitation
 contract Organization is Template, ACL, Asset {
     string internal organizationName;
     Registry internal registry;
@@ -22,54 +24,41 @@ contract Organization is Template, ACL, Asset {
     address[] members;
     address[] invitees;
     string[] memberRoles;
-    string private constant MEMBER_ROLES = "MEMBER_ROLES";
-    string private constant INVITEES_ROLES = "INVITEES_ROLES";
+    string private constant MEMBER_ROLE = "MEMBER_ROLE";
     string private constant SUPER_ADMIN = "SUPER_ADMIN";
     
-    /// invited members, but have not joined the organization
+    /// invited members, an invitee become a member after accepting the invitation
     mapping(address => bool) inviteesMap;
-    
-    /// @dev initialization function module to support complex business requirements during organization startup
-    ///  which contains an initialized state, an initialize() function and a hasInitialized() modifier
-    bool internal initialized;
-    
-    modifier hasInitialized() {
-        require(initialized);
-        _;
-    }
     
     /// event of invite new member
     event invite(address invitee);
     
     /// @dev constructor
     /// @param _organizationName organization name
-    /// @param _members initialization members
+    /// @param _members initial members
     constructor(string _organizationName, address[] _members) public {
         organizationName = _organizationName;
         registry = Registry(0x65);
         
-        /// init members and acl control
+        /// initial members and acl control
         memberRoles = new string[](0);
-        memberRoles.push(MEMBER_ROLES);
+        memberRoles.push(MEMBER_ROLE);
         invitees = new address[](0);
         members = new address[](0);
         members.push(msg.sender);
+        configureAddressRoleInternal(msg.sender, MEMBER_ROLE, OpMode.Add);
         if (_members.length > 0) {
             for (uint i = 0; i < _members.length; i++) {
                 members.push(_members[i]);
-                configureAddressRoleInternal(_members[i], MEMBER_ROLES, OpMode.Add);
+                configureAddressRoleInternal(_members[i], MEMBER_ROLE, OpMode.Add);
             }
         }
         
-        /// default permission management settings, which grants the contract creator the "super admin" role
+        /// default permission settings, which grants the contract creator the "super admin" role
         configureAddressRoleInternal(msg.sender, SUPER_ADMIN, OpMode.Add);
         configureFunctionRoleInternal(CONFIGURE_NORMAL_FUNCTION, SUPER_ADMIN, OpMode.Add);
         configureFunctionRoleInternal(CONFIGURE_ADVANCED_FUNCTION, SUPER_ADMIN, OpMode.Add);
         configureFunctionRoleInternal(CONFIGURE_SUPER_FUNCTION, SUPER_ADMIN, OpMode.Add);
-    }
-    
-    function initialize() public {
-        initialized = true;
     }
     
     /// @dev invite new member to the organization
@@ -78,19 +67,19 @@ contract Organization is Template, ACL, Asset {
         if (!inviteesMap[memberAddress]) {
             inviteesMap[memberAddress] = true;
             invitees.push(memberAddress);
-            configureAddressRoleInternal(memberAddress, INVITEES_ROLES, OpMode.Add);
             emit invite(memberAddress);
         }
     }
     
-    /// @dev invited member joined the organization
+    /// @dev join the organization
     function join() internal authAddresses(invitees) {
         inviteesMap[msg.sender] = false;
+        /// TODO need to update the invitees array as well
         members.push(msg.sender);
-        configureAddressRoleInternal(msg.sender, MEMBER_ROLES, OpMode.Add);
+        configureAddressRoleInternal(msg.sender, MEMBER_ROLE, OpMode.Add);
     }
     
-    /// @dev existing member exit current organization
+    /// @dev exit the organization
     function exit() internal authAddresses(members) {
         uint length = members.length;
         for (uint i = 0; i < length; i++) {
@@ -107,18 +96,19 @@ contract Organization is Template, ACL, Asset {
     }
     
     /// @dev register to Registry Center
+    ///  organization will get a unique id after registration, which is the prerequisite of issuing assets
     function register() internal returns(uint32) {
         return registry.registerOrganization(organizationName, templateName);
     }
     
-    /// @dev rename organization name
+    /// @dev rename organization
     function rename(string newOrganizationName) internal {
         organizationName = newOrganizationName;
         registry.renameOrganization(newOrganizationName);
     }
     
     /// @dev create an asset
-    /// @param assetType divisible 0, indivisible 1
+    /// @param assetType asset type
     /// @param assetIndex asset index in the organization
     /// @param amountOrVoucherId amount or the unique voucher id of asset
     function create(string name, string symbol, string description, uint32 assetType, uint32 assetIndex,
@@ -137,8 +127,7 @@ contract Organization is Template, ACL, Asset {
     
     /// @dev transfer an asset
     /// @param to the destination address
-    /// @param asset combined of assetType（divisible 0, indivisible 1）、
-    ///     organizationId（organization id）、assetIndex（asset index in the organization）
+    /// @param asset asset type + org id + asset index
     /// @param amount amount of asset to transfer (or the unique voucher id for an indivisible asset)    
     function transfer(address to, uint256 asset, uint256 amount) internal {
         to.transfer(amount, asset);
@@ -157,54 +146,4 @@ contract Organization is Template, ACL, Asset {
         canTransferAsset(assetIndex, transferAddress);
     }
     
-    /// @dev add an address to whitelist
-    /// @param assetIndex asset index 
-    /// @param newAddress the address to add
-    /// @return success
-    function authAddressToWhitelist(uint32 assetIndex, address newAddress)
-        internal
-        returns (bool)
-    {
-        return addAddressToWhitelist(assetIndex, newAddress);
-    }
-    
-    /// @dev remove an address from whitelist
-    /// @param assetIndex asset index 
-    /// @param existingAddress the address to remove 
-    /// @return success
-    function deleteAddressFromWhitelist(uint32 assetIndex, address existingAddress)
-        internal
-        returns (bool)
-    {
-        return removeAddressFromWhitelist(assetIndex, existingAddress);
-    }
-    
-    /// @dev get issued assets indexes
-    /// @return success asset indexes
-    function getTotalIssuedIndexes() internal view returns(bool, uint32[]) {
-        return getIssuedIndexes();
-    }
-    
-     /// @dev show create and mint history of an asset
-     /// @param assetIndex index of an asset
-     /// @return success,name,amount or voucherIds
-    function showCreateAndMintHistoryOfAnAsset(uint32 assetIndex)
-        internal
-        view
-        returns(bool, string, uint[])
-    {
-        return getCreateAndMintHistoryOfAnAsset(assetIndex);
-    }
-    
-    /// @dev show asset info
-    /// @param assetIndex asset index in the organization
-    /// @return (isSuccess, assetName, assetSymbol, assetDesc, assetType, totalIssued)
-    function getAssetDetail(uint32 assetIndex)
-        public
-        view
-        returns (bool, string, string, string, uint32, uint)
-    {
-        return getAssetInfo(assetIndex);
-    }
-
 }
