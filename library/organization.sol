@@ -149,62 +149,62 @@ contract Organization is Template, ACL, Asset {
     /// @param transferAddress in or out address
     /// @param assetIndex asset index
     /// @return success
-    function canTransfer(uint32 assetIndex, address transferAddress)
-        internal
-        view
-        returns(bool)
-    {
-        canTransferAsset(assetIndex, transferAddress);
-    }
+    // function canTransfer(uint32 assetIndex, address transferAddress)
+    //     internal
+    //     view
+    //     returns(bool)
+    // {
+    //     canTransferAsset(assetIndex, transferAddress);
+    // }
     
     /// @dev add an address to whitelist
     /// @param assetIndex asset index 
     /// @param newAddress the address to add
     /// @return success
-    function authAddressToWhitelist(uint32 assetIndex, address newAddress)
-        internal
-        returns (bool)
-    {
-        return addAddressToWhitelist(assetIndex, newAddress);
-    }
+    // function authAddressToWhitelist(uint32 assetIndex, address newAddress)
+    //     internal
+    //     returns (bool)
+    // {
+    //     return addAddressToWhitelist(assetIndex, newAddress);
+    // }
     
     /// @dev remove an address from whitelist
     /// @param assetIndex asset index 
     /// @param existingAddress the address to remove 
     /// @return success
-    function deleteAddressFromWhitelist(uint32 assetIndex, address existingAddress)
-        internal
-        returns (bool)
-    {
-        return removeAddressFromWhitelist(assetIndex, existingAddress);
-    }
+    // function deleteAddressFromWhitelist(uint32 assetIndex, address existingAddress)
+    //     internal
+    //     returns (bool)
+    // {
+    //     return removeAddressFromWhitelist(assetIndex, existingAddress);
+    // }
     
     /// @dev get issued assets indexes
     /// @return success asset indexes
-    function getTotalIssuedIndexes() internal view returns(bool, uint32[]) {
-        return getIssuedIndexes();
-    }
+    // function getTotalIssuedIndexes() internal view returns(bool, uint32[]) {
+    //     return getIssuedIndexes();
+    // }
     
      /// @dev show create and mint history of an asset
      /// @param assetIndex index of an asset
      /// @return success,name,amount or voucherIds
-    function showCreateAndMintHistoryOfAnAsset(uint32 assetIndex)
-        internal
-        view
-        returns(bool, string, uint[])
-    {
-        return getCreateAndMintHistoryOfAnAsset(assetIndex);
-    }
+    // function showCreateAndMintHistoryOfAnAsset(uint32 assetIndex)
+    //     internal
+    //     view
+    //     returns(bool, string, uint[])
+    // {
+    //     return getCreateAndMintHistoryOfAnAsset(assetIndex);
+    // }
     
     /// @dev show asset info
     /// @param assetIndex asset index in the organization
     /// @return (isSuccess, assetName, assetSymbol, assetDesc, assetType, totalIssued)
-    function getAssetDetail(uint32 assetIndex)
-        public
-        view
-        returns (bool, string, string, string, uint32, uint)
-    {
-        return getAssetInfo(assetIndex);
-    }
+    // function getAssetDetail(uint32 assetIndex)
+    //     public
+    //     view
+    //     returns (bool, string, string, string, uint32, uint)
+    // {
+    //     return getAssetInfo(assetIndex);
+    // }
 
 }
