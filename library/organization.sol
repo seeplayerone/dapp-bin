@@ -146,4 +146,15 @@ contract Organization is Template, ACL, Asset {
         canTransferAsset(assetIndex, transferAddress);
     }
     
+    /// @dev show asset info
+    /// @param assetIndex asset index in the organization
+    /// @return (isSuccess, assetName, assetSymbol, assetDesc, assetType, totalIssued)
+    function getAssetDetail(uint32 assetIndex)
+        public
+        view
+        returns (bool, string, string, string, uint32, uint)
+    {
+        return getAssetInfo(assetIndex);
+    }
+    
 }
