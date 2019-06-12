@@ -27,6 +27,8 @@ contract Organization is Template, ACL, Asset {
     string private constant MEMBER_ROLE = "MEMBER_ROLE";
     string private constant SUPER_ADMIN = "SUPER_ADMIN";
     
+    /// existing members, after invited and joined the organization
+    mapping(address => bool) membersMap;
     /// invited members, an invitee become a member after accepting the invitation
     mapping(address => bool) inviteesMap;
     
@@ -64,7 +66,7 @@ contract Organization is Template, ACL, Asset {
     /// @dev invite new member to the organization
     /// @param memberAddress new member address
     function inviteMember(address memberAddress) internal authRoles(memberRoles) {
-        if (!inviteesMap[memberAddress]) {
+        if (!inviteesMap[memberAddress] && !membersMap[memberAddress]) {
             inviteesMap[memberAddress] = true;
             invitees.push(memberAddress);
             emit invite(memberAddress);
@@ -86,6 +88,7 @@ contract Organization is Template, ACL, Asset {
             }
         }
         members.push(msg.sender);
+        membersMap[msg.sender] = true;
         configureAddressRoleInternal(msg.sender, MEMBER_ROLE, OpMode.Add);
     }
     
@@ -98,6 +101,7 @@ contract Organization is Template, ACL, Asset {
                     members[i] = members[length-1];
                 }
                 members.length--;
+                membersMap[msg.sender] = false;
                 break;
             }
         }
