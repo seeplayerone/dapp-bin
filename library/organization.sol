@@ -27,7 +27,7 @@ contract Organization is Template, ACL, Asset {
     string private constant MEMBER_ROLE = "MEMBER_ROLE";
     string private constant SUPER_ADMIN = "SUPER_ADMIN";
     
-    /// existing members, after invited and joined the organization
+    /// existing members, initially there or joined the organization by invitation
     mapping(address => bool) membersMap;
     /// invited members, an invitee become a member after accepting the invitation
     mapping(address => bool) inviteesMap;
@@ -77,13 +77,13 @@ contract Organization is Template, ACL, Asset {
     /// @dev join the organization
     function join() internal authAddresses(invitees) {
         inviteesMap[msg.sender] = false;
-        /// TODO need to update the invitees array as well
         uint length = invitees.length;
         for (uint i = 0; i < length; i++) {
             if (msg.sender == invitees[i]) {
                 if (i != length-1) {
                     invitees[i] = invitees[length-1];
                 }
+                delete invitees[length-1];
                 invitees.length--;
                 break;
             }
@@ -101,6 +101,7 @@ contract Organization is Template, ACL, Asset {
                 if (i != length-1) {
                     members[i] = members[length-1];
                 }
+                delete members[length-1];
                 members.length--;
                 membersMap[msg.sender] = false;
                 break;
