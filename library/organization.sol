@@ -52,6 +52,7 @@ contract Organization is Template, ACL, Asset {
         if (_members.length > 0) {
             for (uint i = 0; i < _members.length; i++) {
                 members.push(_members[i]);
+                membersMap[_members[i]] = true;
                 configureAddressRoleInternal(_members[i], MEMBER_ROLE, OpMode.Add);
             }
         }
