@@ -75,6 +75,16 @@ contract Organization is Template, ACL, Asset {
     function join() internal authAddresses(invitees) {
         inviteesMap[msg.sender] = false;
         /// TODO need to update the invitees array as well
+        uint length = invitees.length;
+        for (uint i = 0; i < length; i++) {
+            if (msg.sender == invitees[i]) {
+                if (i != length-1) {
+                    invitees[i] = invitees[length-1];
+                }
+                invitees.length--;
+                break;
+            }
+        }
         members.push(msg.sender);
         configureAddressRoleInternal(msg.sender, MEMBER_ROLE, OpMode.Add);
     }
@@ -84,10 +94,8 @@ contract Organization is Template, ACL, Asset {
         uint length = members.length;
         for (uint i = 0; i < length; i++) {
             if (msg.sender == members[i]) {
-                delete members[i];
                 if (i != length-1) {
                     members[i] = members[length-1];
-                    delete members[length-1];
                 }
                 members.length--;
                 break;
