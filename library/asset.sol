@@ -99,7 +99,7 @@ contract Asset {
      * @return success
      */
     function canTransferAsset(uint32 assetIndex, address transferAddress)
-        internal
+        public
         view
         returns(bool)
     {
@@ -174,7 +174,7 @@ contract Asset {
      * @return success,name,symbol,description,assetType,totalIssued
      */
     function getAssetInfo(uint32 assetIndex)
-        internal
+        public
         view 
         returns (bool, string, string, string, uint32, uint)
     {
@@ -193,7 +193,7 @@ contract Asset {
      * @return success,name,issuance history
      */
     function getCreateAndMintHistory(uint32 assetIndex)
-        internal
+        public
         view 
         returns(bool, string, uint[])
     {
