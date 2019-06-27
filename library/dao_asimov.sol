@@ -1,6 +1,8 @@
 pragma solidity 0.4.25;
 
+import "github.com/seeplayerone/dapp-bin/library/string_utils.sol";
 import "github.com/seeplayerone/dapp-bin/library/organization.sol";
+
 //import "./organization.sol";
 
 interface SimpleVote {
@@ -57,14 +59,13 @@ contract Association is Organization {
         presidents = new address[](0);
         presidents.push(msg.sender);
 
-        /// president can start a vote and particitipate in a vote
-        configureFunctionAddress(START_VOTE_FUNCTION, msg.sender, OpMode.Add);
-        configureFunctionAddress(VOTE_FUNCTION, msg.sender, OpMode.Add);
-
         /// deploy a vote contract for asset creation
         address deployed =  flow.deployContract(1, voteTemplateName, "");
         assetVoteContract = SimpleVote(deployed); 
         assetVoteContract.setOrganization(this);
+
+        configureFunctionAddress(StringLib.strConcat(StringLib.convertAddrToStr(deployed),START_VOTE_FUNCTION), msg.sender, OpMode.Add);
+        configureFunctionAddress(StringLib.strConcat(StringLib.convertAddrToStr(deployed),VOTE_FUNCTION), msg.sender, OpMode.Add);
 
         configureFunctionAddress(ASSET_VOTE_CONTRACT, deployed, OpMode.Add);
     }
@@ -83,7 +84,7 @@ contract Association is Organization {
         return organizationId;
     }
     
-    function getAssetVoteContractContract() public view returns(address) {
+    function getAssetVoteContract() public view returns(address) {
         return assetVoteContract;
     }
 
@@ -112,7 +113,7 @@ contract Association is Organization {
      */
     function createAsset(string name, string symbol, string description, uint32 assetType,
         uint32 assetIndex, uint amountOrVoucherId)
-    //    authFunctionHash(ASSET_VOTE_CONTRACT)
+        authFunctionHash(ASSET_VOTE_CONTRACT)
         public
     {
         require(bytes(name).length > 0, "asset requires a name");
@@ -192,7 +193,8 @@ contract Association is Organization {
         for (uint i = 0; i < length; i++) {
             if (!existingMembers[newMembers[i]]) {
                 members.push(newMembers[i]);
-                configureFunctionAddress(VOTE_FUNCTION, newMembers[i], OpMode.Add);
+                // TODO
+                // configureFunctionAddress(VOTE_FUNCTION, newMembers[i], OpMode.Add);
                 existingMembers[newMembers[i]] = true;
             }
         }
@@ -213,7 +215,8 @@ contract Association is Organization {
             uint length = members.length;
             for (uint i = 0; i < length; i++) {
                 if (member == members[i]) {
-                    configureFunctionAddress(VOTE_FUNCTION, member, OpMode.Remove);
+                    // TODO
+                    // configureFunctionAddress(VOTE_FUNCTION, member, OpMode.Remove);
                     if (i != length-1) {
                         members[i] = members[length-1];
                     }

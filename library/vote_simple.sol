@@ -98,7 +98,7 @@ contract SimpleVote is Template {
     /// @param param parameters for callback method
     function startVote(string subject, uint voteType, uint totalParticipants, uint percent, uint endTime, bytes4 func, bytes param)
         public 
-    //    authFunctionHash(START_VOTE_FUNCTION)
+        authFunctionHash(START_VOTE_FUNCTION)
         returns(uint)
     {
         require(voteType == 1 || voteType == 2, "unsupported vote type");
@@ -151,7 +151,7 @@ contract SimpleVote is Template {
     /// @param voteId vote id
     /// @param attitude vote for yes/no
     function vote(uint voteId, bool attitude) public 
-    //    authFunctionHash(VOTE_FUNCTION) 
+        authFunctionHash(VOTE_FUNCTION) 
     {
         Vote storage va = votes[voteId];
         require(va.exist && VoteStatus.ONGOING == va.status, "vote not existed or not ongoing");
