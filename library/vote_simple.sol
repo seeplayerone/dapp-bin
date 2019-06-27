@@ -1,7 +1,10 @@
 pragma solidity 0.4.25;
 
-import "./string_utils.sol";
-import "./template.sol";
+import "github.com/seeplayerone/dapp-bin/library/string_utils.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+
+//import "./string_utils.sol";
+//import "./template.sol";
 
 /// @dev ACL interface
 ///  ACL is provided by Flow Kernel
@@ -12,7 +15,7 @@ interface ACL {
 /// @title This is a simple vote contract
 ///  every voter is equal and represents the same voting weight
 /// @dev Note every contract to deploy and run on Flow must directly or indirectly inherits Template
-contract SimpleVote is Template{
+contract SimpleVote is Template {
     using StringLib for string;
     
     uint lastAssignedVoteId = 0;
@@ -62,11 +65,20 @@ contract SimpleVote is Template{
     /// organization contract
     address organizationContract;
  
-    constructor(address _organizationContract) public {
+    /*constructor(address _organizationContract) public {
+        organizationContract = _organizationContract;
+        acl = ACL(_organizationContract);
+    }*/
+    
+    function setOrganization(address _organizationContract) public {
         organizationContract = _organizationContract;
         acl = ACL(_organizationContract);
     }
-    
+
+    function getOrganization() public view returns (address){
+        return organizationContract;
+    }
+
     /// @dev ACL through functionHash
     ///  Note all ACL mappings are kept in the organization contract
     ///  An organization can deploy multiple vote contracts from the same template
@@ -86,7 +98,7 @@ contract SimpleVote is Template{
     /// @param param parameters for callback method
     function startVote(string subject, uint voteType, uint totalParticipants, uint percent, uint endTime, bytes4 func, bytes param)
         public 
-        authFunctionHash(START_VOTE_FUNCTION)
+    //    authFunctionHash(START_VOTE_FUNCTION)
         returns(uint)
     {
         require(voteType == 1 || voteType == 2, "unsupported vote type");
@@ -99,7 +111,7 @@ contract SimpleVote is Template{
         require(endTime > block.timestamp, "invalid vote end time");
         
         /// @dev jack code review: why doing in this way
-        Vote storage va = votes[0];
+        Vote memory va;
         va.subject = subject;
         va.proposer = msg.sender;
         va.voteType = voteType;
@@ -117,19 +129,33 @@ contract SimpleVote is Template{
         uint voteId = lastAssignedVoteId + 1;
         votes[voteId] = va;
     
-        delete votes[0];
+        //delete votes[0];
         lastAssignedVoteId++;
     
         return voteId;
     }
-    
+
+    function getVoteInfo(uint voteId) public view returns (string) {
+        Vote storage va = votes[voteId];
+        if(va.exist) {
+            return (va.subject);
+        }
+        return ("no such vote");
+    }
+
+    function getLastVoteId() public view returns (uint) {
+        return lastAssignedVoteId;
+    }
+
     /// @dev participate in a vote
     /// @param voteId vote id
     /// @param attitude vote for yes/no
-    function vote(uint voteId, bool attitude) public authFunctionHash(VOTE_FUNCTION) {
+    function vote(uint voteId, bool attitude) public 
+    //    authFunctionHash(VOTE_FUNCTION) 
+    {
         Vote storage va = votes[voteId];
         require(va.exist && VoteStatus.ONGOING == va.status, "vote not existed or not ongoing");
-        require(block.timestamp >= va.startTime && block.timestamp <= va.endTime, "not valid voting time");
+        // require(block.timestamp >= va.startTime && block.timestamp <= va.endTime, "not valid voting time");
         
         address voter = msg.sender;
         /// type 1
@@ -138,7 +164,7 @@ contract SimpleVote is Template{
                 va.approvers.push(voter);
                 if (va.approvers.length == va.totalParticipants) {
                     va.status = VoteStatus.APPROVED;
-                    
+
                     invokeOrganizationContract(va.func, va.param);
                 }
             } else {
@@ -179,7 +205,7 @@ contract SimpleVote is Template{
                 mstore(add(p, add(4,i)), mload(add(add(_param, 0x20), i)))
             }
             
-            let success := call(not(0), tempAddress, 0, p, totalLength, 0, 0)
+            let success := call(not(0), tempAddress, 0, 0, p, totalLength, 0, 0)
 
             let size := returndatasize
             returndatacopy(p, 0, size)

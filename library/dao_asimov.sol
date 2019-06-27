@@ -1,6 +1,11 @@
 pragma solidity 0.4.25;
 
-import "./organization.sol";
+import "github.com/seeplayerone/dapp-bin/library/organization.sol";
+//import "./organization.sol";
+
+interface SimpleVote {
+    function setOrganization(address orgAddress) external;
+}
 
 contract Association is Organization {
     /// @dev president of the organization
@@ -28,36 +33,60 @@ contract Association is Organization {
     event RenameOrganizationEvent(bool);
     /// create an asset
     event CreateAssetEvent(bytes12);
+    /// transfer asset
+    event TransferSuccessEvent(bool);
     
     /// @dev fallback function, which is set to payable to accept various Asimov assets
     ///  if you want to restrict the asset type, this is the place to call asi.asset instruction
     function() public payable{}
 
-    constructor(string _organizationName, address[] _members) 
+    string constant START_VOTE_FUNCTION = "START_VOTE_FUNCTION";
+    string constant VOTE_FUNCTION = "VOTE_FUNCTION";
+
+    string constant ASSET_VOTE_CONTRACT = "ASSET_VOTE_CONTRACT";
+
+    SimpleVote private assetVoteContract;
+
+    constructor(string _organizationName, address[] _members, string voteTemplateName) 
         Organization(_organizationName, _members) 
-        public 
+        public payable
     {
         require(bytes(_organizationName).length > 0, "organization name should not be empty");
 
         /// by default, the contract creator becomes the president
         presidents = new address[](0);
         presidents.push(msg.sender);
+
+        /// president can start a vote and particitipate in a vote
+        configureFunctionAddress(START_VOTE_FUNCTION, msg.sender, OpMode.Add);
+        configureFunctionAddress(VOTE_FUNCTION, msg.sender, OpMode.Add);
+
+        /// deploy a vote contract for asset creation
+        address deployed =  flow.deployContract(1, voteTemplateName, "");
+        assetVoteContract = SimpleVote(deployed); 
+        assetVoteContract.setOrganization(this);
+
+        configureFunctionAddress(ASSET_VOTE_CONTRACT, deployed, OpMode.Add);
     }
     
     /**
      * @dev get president
      */
-    function getPresident() public view authAddresses(presidents) returns(address) {
+    function getPresident() public view returns(address) {
         return presidents[0];
     }
     
     /**
      * @dev get organization Id
      */
-    function getOrganizationId() public view authAddresses(presidents) returns(uint32) {
+    function getOrganizationId() public view returns(uint32) {
         return organizationId;
     }
     
+    function getAssetVoteContractContract() public view returns(address) {
+        return assetVoteContract;
+    }
+
     /**
      * @dev rename organization
      *
@@ -83,8 +112,8 @@ contract Association is Organization {
      */
     function createAsset(string name, string symbol, string description, uint32 assetType,
         uint32 assetIndex, uint amountOrVoucherId)
+    //    authFunctionHash(ASSET_VOTE_CONTRACT)
         public
-        authAddresses(presidents)
     {
         require(bytes(name).length > 0, "asset requires a name");
         require(bytes(symbol).length > 0, "asset requires a symbol");
@@ -128,6 +157,8 @@ contract Association is Organization {
         authAddresses(presidents)
     {
         transfer(to, asset, amountOrVoucherId);
+        
+        emit TransferSuccessEvent(true);
     }
     
     /**
@@ -161,6 +192,7 @@ contract Association is Organization {
         for (uint i = 0; i < length; i++) {
             if (!existingMembers[newMembers[i]]) {
                 members.push(newMembers[i]);
+                configureFunctionAddress(VOTE_FUNCTION, newMembers[i], OpMode.Add);
                 existingMembers[newMembers[i]] = true;
             }
         }
@@ -181,6 +213,7 @@ contract Association is Organization {
             uint length = members.length;
             for (uint i = 0; i < length; i++) {
                 if (member == members[i]) {
+                    configureFunctionAddress(VOTE_FUNCTION, member, OpMode.Remove);
                     if (i != length-1) {
                         members[i] = members[length-1];
                     }
