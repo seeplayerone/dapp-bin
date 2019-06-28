@@ -7,14 +7,13 @@ import "github.com/seeplayerone/dapp-bin/library/template.sol";
 //import "./template.sol";
 
 /// @dev ACL interface
-///  ACL is provided by Flow Kernel
+///  ACL is provided by the organization contract
 interface ACL {
     function canPerform(address _caller, string _functionHash) external view returns (bool);
 }
 
-/// @title This is a simple vote contract
-///  every voter is equal and represents the same voting weight
-/// @dev Note every contract to deploy and run on Flow must directly or indirectly inherits Template
+/// @title This is a simple vote contract, everyone has the same vote weights
+/// @dev Every template contract needs to inherit Template contract directly or indirectly
 contract SimpleVote is Template {
     using StringLib for string;
     
@@ -32,11 +31,11 @@ contract SimpleVote is Template {
         string subject;
         /// vote proposer
         address proposer;
-        /// vote type (approved by all 1, approved by certain percentage 2)
+        /// vote type (approved by all - 1, approved by a certain percentage - 2)
         uint voteType;
         /// total number of vote participants
         uint totalParticipants;
-        /// the vote successful percentage when vote type is 2
+        /// required percentage
         uint percent;
         /// addresses voted for approval
         address[] approvers;
@@ -65,16 +64,12 @@ contract SimpleVote is Template {
     /// organization contract
     address organizationContract;
  
-    /*constructor(address _organizationContract) public {
-        organizationContract = _organizationContract;
-        acl = ACL(_organizationContract);
-    }*/
-    
     function setOrganization(address _organizationContract) public {
         organizationContract = _organizationContract;
         acl = ACL(_organizationContract);
     }
 
+    /// get the organization contract address
     function getOrganization() public view returns (address){
         return organizationContract;
     }
@@ -91,8 +86,8 @@ contract SimpleVote is Template {
     /// @dev start a vote
     /// @param subject vote subject
     /// @param voteType vote type
-    /// @param totalParticipants total participant number
-    /// @param percent successful percentage of vote type 2
+    /// @param totalParticipants total participants
+    /// @param percent required participants
     /// @param endTime vote end time
     /// @param func functionHash of callback method
     /// @param param parameters for callback method
@@ -103,14 +98,13 @@ contract SimpleVote is Template {
     {
         require(voteType == 1 || voteType == 2, "unsupported vote type");
         if (1 == voteType) {
-            require(totalParticipants >= 1 && 100 == percent);
+            require(totalParticipants >= 1);
         }
         if (2 == voteType) {
-            require(percent >= 1 && percent <= 99);
+            require(percent >= 1 && percent <= 100);
         }
         require(endTime > block.timestamp, "invalid vote end time");
         
-        /// @dev jack code review: why doing in this way
         Vote memory va;
         va.subject = subject;
         va.proposer = msg.sender;
@@ -129,20 +123,21 @@ contract SimpleVote is Template {
         uint voteId = lastAssignedVoteId + 1;
         votes[voteId] = va;
     
-        //delete votes[0];
         lastAssignedVoteId++;
     
         return voteId;
     }
 
-    function getVoteInfo(uint voteId) public view returns (string) {
+    /// @dev get basic information of a vote
+    function getVoteInfo(uint voteId) public view returns (string, address, uint, uint, uint, VoteStatus) {
         Vote storage va = votes[voteId];
         if(va.exist) {
-            return (va.subject);
+            return (va.subject, va.proposer, va.approvers.length, va.rejecters.length, va.percent, va.status);
         }
-        return ("no such vote");
+        return ("no such vote", 0x0, 0, 0, 0, VoteStatus.REJECTED);
     }
 
+    /// @dev get last vote id
     function getLastVoteId() public view returns (uint) {
         return lastAssignedVoteId;
     }
@@ -154,8 +149,8 @@ contract SimpleVote is Template {
         authFunctionHash(VOTE_FUNCTION) 
     {
         Vote storage va = votes[voteId];
-        require(va.exist && VoteStatus.ONGOING == va.status, "vote not existed or not ongoing");
-        // require(block.timestamp >= va.startTime && block.timestamp <= va.endTime, "not valid voting time");
+        require(va.exist && VoteStatus.ONGOING == va.status, "vote not exist or not ongoing");
+        require(block.timestamp >= va.startTime && block.timestamp <= va.endTime, "not valid vote time");
         
         address voter = msg.sender;
         /// type 1
