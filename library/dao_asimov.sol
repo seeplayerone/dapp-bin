@@ -80,6 +80,10 @@ contract Association is Organization {
         return presidents[0];
     }
     
+    function getMembers() public view returns(address[]) {
+        return members;
+    }
+
     /**
      * @dev get organization Id
      */

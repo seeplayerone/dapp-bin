@@ -53,6 +53,8 @@ contract SimpleVote is Template {
         bytes4 func;
         /// parameters for the callback function
         bytes param;
+
+        mapping(address => bool) votersMap;        
     }
    
     /// all votes in this contract
@@ -153,6 +155,9 @@ contract SimpleVote is Template {
         require(block.timestamp >= va.startTime && block.timestamp <= va.endTime, "not valid vote time");
         
         address voter = msg.sender;
+        require(!va.votersMap[voter], "already voted");
+
+        va.votersMap[voter] = true;
         /// type 1
         if (1 == va.voteType) {
             if (attitude) {
@@ -171,14 +176,14 @@ contract SimpleVote is Template {
         else if (2 == va.voteType) {
             if (attitude) {
                 va.approvers.push(voter);
-                if (va.approvers.length*100/va.totalParticipants >= va.percent) {
+                if (va.approvers.length*100 >= va.percent*va.totalParticipants) {
                     va.status = VoteStatus.APPROVED;
 
                     invokeOrganizationContract(va.func, va.param);
                 }
             } else {
                 va.rejecters.push(voter);
-                if (va.rejecters.length*100/va.totalParticipants > (100-va.percent)) {
+                if (va.rejecters.length*100 > (100-va.percent)*va.totalParticipants) {
                     va.status = VoteStatus.REJECTED;
                 }
             }
