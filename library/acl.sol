@@ -93,8 +93,13 @@ contract ACL {
                         /// Use Swap & Delete mode when deleting an element in array
                         /// https://stackoverflow.com/questions/49051856/is-there-a-pop-functionality-for-solidity-arrays
                         /// This applies to all array deleting operations in this contract
+                        uint len = funcRole.value.length;
+                        if(i != len-1) {
+                            funcRole.value[i] = funcRole.value[len-1];
+                        }
+                        delete funcRole.value[len-1];
+                        funcRole.value.length--;                        
                         funcRole.references[_role] = false;                        
-                        delete funcRole.value[i];
                         break;
                     }
                 }
@@ -129,8 +134,13 @@ contract ACL {
             if (addrRole.exist) {
                 for(uint i = 0; i < addrRole.value.length; i++) {
                     if (addrRole.value[i] == _role) {
+                        uint len = addrRole.value.length;
+                        if(i != len-1) {
+                            addrRole.value[i] = addrRole.value[len-1];
+                        }
+                        delete addrRole.value[len-1];
+                        addrRole.value.length--;                       
                         addrRole.references[_role] = false;
-                        delete addrRole.value[i];
                         break;
                     }
                 }
@@ -178,8 +188,13 @@ contract ACL {
              if (addrFunc.exist) {
                 for(uint i = 0; i < addrFunc.value.length; i++) {
                     if (addrFunc.value[i] == _address) {
+                        uint len = addrFunc.value.length;
+                        if(i != len-1) {
+                            addrFunc.value[i] = addrFunc.value[len-1];
+                        }
+                        delete addrFunc.value[len-1];
+                        addrFunc.value.length--;                       
                         addrFunc.references[_address] = false;
-                        delete addrFunc.value[i];
                         break;
                     }
                 }
