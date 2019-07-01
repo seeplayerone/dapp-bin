@@ -25,6 +25,9 @@ contract SimpleVote is Template {
     /// functionHash - ACL through the organization contract
     string constant START_VOTE_FUNCTION = "START_VOTE_FUNCTION";
     string constant VOTE_FUNCTION = "VOTE_FUNCTION";
+
+    // create vote event
+    event CreateVote(uint);
     
     struct Vote {
         /// vote subject
@@ -126,6 +129,8 @@ contract SimpleVote is Template {
         votes[voteId] = va;
     
         lastAssignedVoteId++;
+
+        emit CreateVote(voteId);
     
         return voteId;
     }

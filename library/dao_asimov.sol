@@ -38,6 +38,8 @@ contract Association is Organization {
     event CreateAssetEvent(bytes12);
     /// transfer asset
     event TransferSuccessEvent(bool);
+    /// create vote contract
+    event CreateVoteContract(address);
     
     /// @dev fallback function, which is set to payable to accept various Asimov assets
     ///  if you want to restrict the asset type, this is the place to call asi.asset instruction
@@ -66,6 +68,8 @@ contract Association is Organization {
         assetVoteContractAddress =  flow.deployContract(1, voteTemplateName, "");
         assetVoteContract = SimpleVote(assetVoteContractAddress); 
         assetVoteContract.setOrganization(this);
+
+        emit CreateVoteContract(assetVoteContractAddress);
 
         configureFunctionAddress(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),START_VOTE_FUNCTION), msg.sender, OpMode.Add);
         configureFunctionAddress(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),VOTE_FUNCTION), msg.sender, OpMode.Add);
