@@ -28,6 +28,8 @@ contract SimpleVote is Template {
 
     // create vote event
     event CreateVote(uint);
+    // vote event
+    event ConductVote(uint, uint, VoteStatus);
     
     struct Vote {
         /// vote subject
@@ -193,6 +195,8 @@ contract SimpleVote is Template {
                 }
             }
         }
+
+        emit ConductVote(va.approvers.length, va.rejecters.length, va.status);
     }
 
     /// @dev callback function to invoke organization contract   
