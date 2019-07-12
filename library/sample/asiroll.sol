@@ -45,8 +45,8 @@ contract AsiRoll is ACL, Template {
         balance = 0;       
     }
 
-    function play(uint emm) public payable {
-        lucky = emm;
+    function play(uint luckyGUESS) public payable {
+        lucky = luckyGUESS;
 
         require(lucky > 0);
         require(lucky < 101);
