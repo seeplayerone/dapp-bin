@@ -177,7 +177,7 @@ contract SimpleVote is Template {
             } else {
                 va.rejecters.push(voter);
                 va.status = VoteStatus.REJECTED;
-                emit ConductVote(va.approvers.length, va.rejecters.length, va.status);
+                /// emit ConductVote(va.approvers.length, va.rejecters.length, va.status);
             }
         }
         /// type 2
@@ -194,11 +194,11 @@ contract SimpleVote is Template {
                 if (va.rejecters.length*100 > (100-va.percent)*va.totalParticipants) {
                     va.status = VoteStatus.REJECTED;
                 }
-                emit ConductVote(va.approvers.length, va.rejecters.length, va.status);
+                /// emit ConductVote(va.approvers.length, va.rejecters.length, va.status);
             }
         }
 
-        /// emit ConductVote(va.approvers.length, va.rejecters.length, va.status);
+        emit ConductVote(va.approvers.length, va.rejecters.length, va.status);
     }
 
     /// @dev callback function to invoke organization contract   
