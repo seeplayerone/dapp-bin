@@ -14,6 +14,8 @@ import "github.com/seeplayerone/dapp-bin/library/template.sol";
 
 contract AsiRoll is ACL, Template {
 
+    using SafeMath for *;
+
     string constant ADMIN_FUNCTIONS = "ADMIN_FUNCTIONS";
 
     uint private balance;
@@ -78,8 +80,20 @@ contract AsiRoll is ACL, Template {
         }
     }
 
+    /// random algorithm from FOMO3D
     function random() private view returns (uint) {
-        return SafeMath.mod(uint(keccak256(block.timestamp)),100);
+        uint256 seed = uint256(keccak256(abi.encodePacked(
+            
+            (block.timestamp).add
+            (block.difficulty).add
+            ((uint256(keccak256(abi.encodePacked(block.coinbase)))) / (now)).add
+            (block.gaslimit).add
+            ((uint256(keccak256(abi.encodePacked(msg.sender)))) / (now)).add
+            (block.number)
+            
+        )));
+
+        return SafeMath.mod(seed, 100);
     }
 
     function getBalance() public view returns (uint) {
@@ -97,4 +111,5 @@ contract AsiRoll is ACL, Template {
     function getLastLucky() public view returns (uint) {
         return lucky;
     }
+
 }
