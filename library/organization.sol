@@ -40,7 +40,7 @@ contract Organization is Template, ACL, Asset {
     /// @param _members initial members
     constructor(string _organizationName, address[] _members) public {
         organizationName = _organizationName;
-        registry = Registry(0x65);
+        registry = Registry(0x630000000000000000000000000000000000000065);
         
         /// initial members and acl control
         memberRoles = new string[](0);
