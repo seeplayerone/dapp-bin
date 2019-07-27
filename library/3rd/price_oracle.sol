@@ -1,10 +1,10 @@
 pragma solidity 0.4.25;
 
-import "../template.sol";
-import "./math.sol";
+//import "../template.sol";
+//import "./math.sol";
 
-//import "github.com/seeplayerone/dapp-bin/library/template.sol";
-//import "github.com/seeplayerone/dapp-bin/library/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/library/3rd/math.sol";
 
 contract PriceOracle is Template {
     /// asset prices against PAI

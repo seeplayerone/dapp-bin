@@ -1,8 +1,12 @@
 pragma solidity 0.4.25;
 
-import "./math.sol";
-import "./note.sol";
-import "./price_oracle.sol";
+//import "./math.sol";
+//import "./note.sol";
+//import "./price_oracle.sol";
+
+import "github.com/seeplayerone/dapp-bin/library/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/library/3rd/note.sol";
+import "github.com/seeplayerone/dapp-bin/library/3rd/price_oracle.sol";
 
 contract Liquidator is DSMath, DSNote {
 
