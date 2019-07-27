@@ -25,6 +25,8 @@ contract AsiRoll is ACL, Template {
 
     uint96 constant ASIM = 0x000000000000; 
 
+    event Played(uint, uint, uint);
+
     constructor() public payable {
         configureFunctionAddressInternal(ADMIN_FUNCTIONS, msg.sender, OpMode.Add);
         deposit();
@@ -78,6 +80,8 @@ contract AsiRoll is ACL, Template {
         } else {
             win = 0;
         }
+
+        emit Played(luckyGUESS, roll, win);
     }
 
     /// random algorithm from FOMO3D
