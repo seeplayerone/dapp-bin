@@ -28,7 +28,8 @@ contract PAIIssuer is Template, DSMath {
     address private hole = 0x000000000000000000000000000000000000000000;
 
     function() public payable {
-        burn(msg.assettype, msg.value);
+        require(msg.assettype == PAI_ASSET_TYPE);
+        burn(msg.value);
     }
 
     function init(string _name) public {
@@ -54,9 +55,9 @@ contract PAIIssuer is Template, DSMath {
         totalSupply = add(totalSupply, amount);
     }
 
-    function burn(uint assettype, uint amount) public {
-        require(assettype == PAI_ASSET_TYPE);
-        hole.transfer(amount, PAI_ASSET_TYPE);
+    function burn(uint amount) public {
+        //require(assettype == PAI_ASSET_TYPE);
+        //hole.transfer(amount, PAI_ASSET_TYPE);
         totalSupply = sub(totalSupply, amount);
     }
 

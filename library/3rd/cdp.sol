@@ -45,6 +45,8 @@ contract CDP is DSMath, DSNote, Template {
 
     mapping (uint => CDPRecord) private CDPRecords; /// all CDP records
 
+    address private hole = 0x000000000000000000000000000000000000000000;
+
     struct CDPRecord {
         address owner; /// owner of the CDP
         uint256 collateral; /// collateral in form of BTC'
@@ -64,7 +66,7 @@ contract CDP is DSMath, DSNote, Template {
 
         lastTimestamp = block.timestamp;
 
-        issuer = PAIIssuer(0x63e20ed4ff221484e5c885281f55f0d03490c83b8b);
+        issuer = PAIIssuer(0x63c34a9a7e8a29c7518f3e07673b906a6e49583e48);
         priceOracle = PriceOracle(0x6335e410f9f69ae52e419b1022de6eae99333d98cd);
 
         BTC_ASSET_TYPE = 0;
@@ -165,7 +167,8 @@ contract CDP is DSMath, DSNote, Template {
         totalNormalizedDebt = sub(totalNormalizedDebt, newRepay1);
 
         /// burn pai
-        msg.sender.transfer(msg.value - change/10**19, PAI_ASSET_TYPE); /// TODO not secure!
+        hole.transfer(msg.value - (change/10**19), PAI_ASSET_TYPE); /// TODO not secure!
+        issuer.burn(msg.value - (change/10**19));
     }
 
     /// debt of CDP, include principal + stability fees
