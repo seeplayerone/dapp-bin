@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-//import "../template.sol";
-//import "./math.sol";
+// import "./infra/template.sol";
+// import "./3rd/math.sol";
 
 import "github.com/seeplayerone/dapp-bin/library/template.sol";
 import "github.com/seeplayerone/dapp-bin/library/3rd/math.sol";
@@ -27,6 +27,10 @@ contract PAIIssuer is Template, DSMath {
 
     address private hole = 0x000000000000000000000000000000000000000000;
 
+    function() public payable {
+        burn(msg.assettype, msg.value);
+    }
+
     function init(string _name) public {
         name = _name;
         Registry registry = Registry(0x630000000000000000000000000000000000000065);
@@ -50,10 +54,10 @@ contract PAIIssuer is Template, DSMath {
         totalSupply = add(totalSupply, amount);
     }
 
-    function burn() public payable {
-        require(msg.assettype == PAI_ASSET_TYPE);
-        hole.transfer(msg.value, PAI_ASSET_TYPE);
-        totalSupply = sub(totalSupply, msg.value);
+    function burn(uint assettype, uint amount) public {
+        require(assettype == PAI_ASSET_TYPE);
+        hole.transfer(amount, PAI_ASSET_TYPE);
+        totalSupply = sub(totalSupply, amount);
     }
 
     function getAssetType() public view returns (uint256) {
