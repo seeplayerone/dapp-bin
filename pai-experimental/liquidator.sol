@@ -114,7 +114,7 @@ contract Liquidator is DSMath, DSNote, Template {
         if(amount > totalCollateralBTC()) {
             // uint change = rmul(amount - totalCollateralBTC(), rmul(collateralPrice(), discount));
             // msg.sender.transfer(rayToSatoshi(change), PAI_ASSET_TYPE);
-            msg.sender.transfer(totalCollateralBTC(), BTC_ASSET_TYPE);
+            msg.sender.transfer(rayToSatoshi(totalCollateralBTC()), BTC_ASSET_TYPE);
         } else {
             msg.sender.transfer(rayToSatoshi(amount), BTC_ASSET_TYPE);
         }
