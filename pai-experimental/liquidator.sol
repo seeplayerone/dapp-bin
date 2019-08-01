@@ -28,7 +28,7 @@ contract Liquidator is DSMath, DSNote, Template {
     PriceOracle private priceOracle;
     PAIIssuer private issuer;
 
-    address private hole = 0x000000000000000000000000000000000000000000;
+    address private hole = 0x660000000000000000000000000000000000000000;
 
     constructor() public {
         priceOracle = PriceOracle(0x6382529fd89effbd5db05404815bde497a4d604e08);
@@ -54,7 +54,7 @@ contract Liquidator is DSMath, DSNote, Template {
     /// total earned PAI 
     /// in the current design, stability fees in CDP are sent to liquidator
     function totalEarnedPAI() public view returns (uint256) {
-        satoshiToRay(flow.balance(this, PAI_ASSET_TYPE));
+        return satoshiToRay(flow.balance(this, PAI_ASSET_TYPE));
     }
 
     /// total debt in PAI
@@ -65,7 +65,7 @@ contract Liquidator is DSMath, DSNote, Template {
 
     /// total collateral in BTC'
     function totalCollateralBTC() public view returns (uint256) {
-        satoshiToRay(flow.balance(this, BTC_ASSET_TYPE));
+        return satoshiToRay(flow.balance(this, BTC_ASSET_TYPE));
     }
 
     function addDebt(uint amount) public {
