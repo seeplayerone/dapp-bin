@@ -4,13 +4,13 @@ pragma solidity 0.4.25;
 // import "./3rd/note.sol";
 // import "./price_oracle.sol";
 // import "./pai_issuer.sol";
-// import "./infra/template.sol";
+// import "../library/template.sol";
 
-import "github.com/seeplayerone/dapp-bin/library/3rd/math.sol";
-import "github.com/seeplayerone/dapp-bin/library/3rd/note.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
 import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/library/3rd/pai_issuer.sol";
-import "github.com/seeplayerone/dapp-bin/library/3rd/price_oracle.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
 
 
 contract Liquidator is DSMath, DSNote, Template {
@@ -31,8 +31,8 @@ contract Liquidator is DSMath, DSNote, Template {
     address private hole = 0x000000000000000000000000000000000000000000;
 
     constructor() public {
-        priceOracle = PriceOracle(0x63bd360bf9f7ca684d4ef2dc4f6a48886521d6dd4a);
-        issuer = PAIIssuer(0x6311aa4aaa3db18313877616ad980b251401445be8);
+        priceOracle = PriceOracle(0x6382529fd89effbd5db05404815bde497a4d604e08);
+        issuer = PAIIssuer(0x637be8293529b525c961c2dcf044db9540a526ae39);
 
         BTC_ASSET_TYPE = 0;
         PAI_ASSET_TYPE = issuer.getAssetType();
