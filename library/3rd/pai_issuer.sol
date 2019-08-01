@@ -32,7 +32,7 @@ contract PAIIssuer is Template, DSMath {
         burn(msg.value);
     }
 
-    constructor(string _name) public {
+    function init(string _name) public {
         name = _name;
         Registry registry = Registry(0x630000000000000000000000000000000000000065);
         orgId = registry.registerOrganization(name, templateName);
