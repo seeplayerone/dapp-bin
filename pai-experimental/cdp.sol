@@ -47,7 +47,7 @@ contract CDP is DSMath, DSNote, Template {
 
     mapping (uint => CDPRecord) private CDPRecords; /// all CDP records
 
-    address private hole = 0x000000000000000000000000000000000000000000;
+    address private hole = 0x660000000000000000000000000000000000000000;
 
     struct CDPRecord {
         address owner; /// owner of the CDP
@@ -72,7 +72,7 @@ contract CDP is DSMath, DSNote, Template {
 
         issuer = PAIIssuer(0x637be8293529b525c961c2dcf044db9540a526ae39);
         priceOracle = PriceOracle(0x6382529fd89effbd5db05404815bde497a4d604e08);
-        liquidator = Liquidator(0x63a1332dc0dc85581b8bda2507749abb22c05644e4);
+        liquidator = Liquidator(0x63fc8fbc0d5ffd30263722acbb27ed359e67d64c39);
 
         BTC_ASSET_TYPE = 0;
         PAI_ASSET_TYPE = issuer.getAssetType();
@@ -320,10 +320,10 @@ contract CDP is DSMath, DSNote, Template {
     }
 
     function liquidate(uint record) public note {
-        require(!safe(record) || settlement);
+        //require(!safe(record) || settlement);
 
         uint256 debt = debtOfCDP(record);
-        liquidator.addDebt(debt);
+        liquidator.addDebt(rayToSatoshi(debt));
         totalNormalizedDebt = sub(totalNormalizedDebt, CDPRecords[record].accumulatedDebt1);
         CDPRecords[record].accumulatedDebt1 = 0;
         CDPRecords[record].accumulatedDebt2 = 0;
