@@ -18,17 +18,15 @@ contract CDP is DSMath, DSNote, Template {
 
     uint256 private CDPIndex = 0;
 
-    /// 1000000000158153903837946257 => 0.5% ARP
-    /// RAY + 0000000000158153903837946257*60*60*24*365 = 1004987541390500000..00
-    uint private stabilityFee;
-    uint private governanceFee;
+    /// usually we only set one of them
+    uint private stabilityFee; /// stability fee is calculated for liquidation, the fee is pre issued and sent to liquidator whenever rates change
+    uint private governanceFee; /// governance fee is not calculated for liquidation, the fee is deducted whenever users repay the borrows
 
     uint private lastTimestamp;
     uint private accumulatedRates1; /// accumulated rates of stability fees
     uint private accumulatedRates2; /// accumulated rates of stability fees + governance fees
 
     uint private totalNormalizedDebt; /// total debts of the CDP, calculated on accumulatedRates1
-    uint private totalCollateralRecorded; /// TODO this should be replaced by flow.balanceOf()
 
     uint private liquidationRatio; /// liquidation ratio
     uint private liquidationPenalty; /// liquidation penalty
@@ -42,8 +40,8 @@ contract CDP is DSMath, DSNote, Template {
     PriceOracle private priceOracle; /// price oracle of BTC'/PAI and PIS/PAI
     PAIIssuer private issuer; /// contract to mint/burn PAI stable coin
 
-    uint private BTC_ASSET_TYPE;
-    uint private PAI_ASSET_TYPE;
+    uint private ASSET_BTC;
+    uint private ASSET_PAI;
 
     mapping (uint => CDPRecord) private CDPRecords; /// all CDP records
 
@@ -61,8 +59,8 @@ contract CDP is DSMath, DSNote, Template {
     }
 
     constructor() public {
-        stabilityFee = 1000100000000000000000000000;
-        governanceFee = 1000000000000000000000000000;
+        stabilityFee = 1000000000000000000000000000;
+        governanceFee = 1000100000000000000000000000;
         accumulatedRates1 = 1000000000000000000000000000;
         accumulatedRates2 = 1000000000000000000000000000;
         liquidationRatio = 1500000000000000000000000000;
@@ -74,16 +72,16 @@ contract CDP is DSMath, DSNote, Template {
         priceOracle = PriceOracle(0x6382529fd89effbd5db05404815bde497a4d604e08);
         liquidator = Liquidator(0x63fc8fbc0d5ffd30263722acbb27ed359e67d64c39);
 
-        BTC_ASSET_TYPE = 0;
-        PAI_ASSET_TYPE = issuer.getAssetType();
+        ASSET_BTC = 0;
+        ASSET_PAI = issuer.getAssetType();
     }
 
     function readDebugParams() public view returns(uint, uint, uint, uint, uint, uint) {
-        return (CDPIndex, lastTimestamp, accumulatedRates1, accumulatedRates2, totalNormalizedDebt, totalCollateralRecorded);
+        return (CDPIndex, lastTimestamp, accumulatedRates1, accumulatedRates2, totalNormalizedDebt, flow.balance(this, 0));
     }
 
     function readAssetTypes() public view returns(uint, uint) {
-        return (BTC_ASSET_TYPE, PAI_ASSET_TYPE);
+        return (ASSET_BTC, ASSET_PAI);
     }
 
     function createCDP() public note returns(uint record) {
@@ -102,49 +100,32 @@ contract CDP is DSMath, DSNote, Template {
 
     function deposit(uint record) public payable note {
         require(!settlement);
-        require(msg.assettype == BTC_ASSET_TYPE);
+        require(msg.assettype == ASSET_BTC);
         require(CDPRecords[record].owner == msg.sender);
 
-        uint rayAmount = satoshiToRay(msg.value);
-
-        uint256 oldCollateral = CDPRecords[record].collateral;
-        CDPRecords[record].collateral = add(oldCollateral, rayAmount);
-
-        totalCollateralRecorded = add(totalCollateralRecorded, rayAmount);
-        /// TODO only accept some amount range - DAI requires 0.005 ether at least
+        CDPRecords[record].collateral = add(CDPRecords[record].collateral, msg.value);
     }
 
     function withdraw(uint record, uint amount) public note {
         require(CDPRecords[record].owner == msg.sender);
         
-        uint rayAmount = satoshiToRay(amount);
-
-        uint256 oldCollateral = CDPRecords[record].collateral;
-        CDPRecords[record].collateral = sub(oldCollateral, rayAmount);
-        totalCollateralRecorded = sub(totalCollateralRecorded, rayAmount);
+        CDPRecords[record].collateral = sub(CDPRecords[record].collateral, amount);
 
         require(safe(record));
-
-        msg.sender.transfer(amount, BTC_ASSET_TYPE);
-        /// TODO only accept some amount range - DAI requires 0.005 ether at least
+        msg.sender.transfer(amount, ASSET_BTC);
     }
 
     function borrow(uint record, uint amount) public note {
         require(!settlement);
         require(CDPRecords[record].owner == msg.sender);
 
-        /// new debt calculated on latest accumulatedRates1
-        /// should be larger than the least allowed unit to calculate fees
-
-        uint rayAmount = satoshiToRay(amount);
-
-        uint newDebt1 = rdiv(rayAmount, updateAndFetchRates1());
+        uint newDebt1 = rdiv(amount, updateAndFetchRates1());
         require(newDebt1 > 0);
 
         CDPRecords[record].accumulatedDebt1 = add(CDPRecords[record].accumulatedDebt1, newDebt1);
         totalNormalizedDebt = add(totalNormalizedDebt, newDebt1);
 
-        uint newDebt2 = rdiv(rayAmount, updateAndFetchRates2());
+        uint newDebt2 = rdiv(amount, updateAndFetchRates2());
         CDPRecords[record].accumulatedDebt2 = add(CDPRecords[record].accumulatedDebt2, newDebt2);
 
         require(safe(record));
@@ -155,29 +136,28 @@ contract CDP is DSMath, DSNote, Template {
 
     function repay(uint record) public payable note {
         require(!settlement);
-        require(msg.assettype == PAI_ASSET_TYPE);
+        require(msg.assettype == ASSET_PAI);
        
-        uint rayAmount = satoshiToRay(msg.value);
         uint change;
-
         uint newRepay1;
-
-        uint newRepay2 = rdiv(rayAmount, updateAndFetchRates2());
+        uint newRepay2 = rdiv(msg.value, updateAndFetchRates2());
         require(newRepay2 > 0);
+
+        uint repay1Ratio = rdiv(debtOfCDP(record), debtOfCDPwithGovernanceFee(record));
 
         if(newRepay2 > CDPRecords[record].accumulatedDebt2) {
             /// note change is calculated in rates2
             change = rmul(sub(newRepay2, CDPRecords[record].accumulatedDebt2), updateAndFetchRates2());
-            /// msg.sender.transfer(change / 10**19, PAI_ASSET_TYPE); /// TODO not secure!
+            msg.sender.transfer(change, ASSET_PAI);
             newRepay1 = CDPRecords[record].accumulatedDebt1;     
             newRepay2 = CDPRecords[record].accumulatedDebt2;       
         } else {
-            uint debtRayAmount = rdiv(rmul(rayAmount, debtOfCDP(record)), debtOfCDPwithGovernanceFee(record));
-            newRepay1 = rdiv(debtRayAmount, updateAndFetchRates1());
+            uint debtAmount = rmul(msg.value, repay1Ratio);
+            newRepay1 = rdiv(debtAmount, updateAndFetchRates1());
         }
 
-        uint rayAmount1 = rdiv(rmul(sub(rayAmount, change), debtOfCDP(record)), debtOfCDPwithGovernanceFee(record));
-        uint rayAmount2 = sub(sub(rayAmount, change), rayAmount1);
+        uint amount1 = rmul(sub(msg.value, change), repay1Ratio);
+        uint amount2 = sub(sub(msg.value, change), amount1);
         
         CDPRecords[record].accumulatedDebt1 = sub(CDPRecords[record].accumulatedDebt1, newRepay1);
         totalNormalizedDebt = sub(totalNormalizedDebt, newRepay1);
@@ -185,14 +165,14 @@ contract CDP is DSMath, DSNote, Template {
         CDPRecords[record].accumulatedDebt2 = sub(CDPRecords[record].accumulatedDebt2, newRepay2);
         
         /// burn pai
-        if(rayAmount1 > 0) {
-            // hole.transfer(rayAmount1/10**19, PAI_ASSET_TYPE); /// TODO not secure!
-            issuer.burn(rayToSatoshi(rayAmount1));
+        if(amount1 > 0) {
+            hole.transfer(amount1, ASSET_PAI);
+            issuer.burn(amount1);
         }
 
-        if(rayAmount2 > 0) {
-            /// collect governance fee
-            address(liquidator).transfer(rayToSatoshi(rayAmount2), PAI_ASSET_TYPE); /// TODO not secure!
+        /// governance fee to liquidator
+        if(amount2 > 0) {
+            address(liquidator).transfer(amount2, ASSET_PAI);
         }
 
     }
@@ -225,7 +205,7 @@ contract CDP is DSMath, DSNote, Template {
     }
 
     function totalCollateral() public view returns (uint256) {
-        return totalCollateralRecorded;
+        return flow.balance(this, 0);
     }
 
     function setPriceOracle(PriceOracle newPriceOracle) public {
@@ -233,7 +213,7 @@ contract CDP is DSMath, DSNote, Template {
     }
 
     function getCollateralPrice() public view returns (uint256 wad){
-        return settlement ? collateralSettlementPrice : priceOracle.getPrice(BTC_ASSET_TYPE);
+        return settlement ? collateralSettlementPrice : priceOracle.getPrice(ASSET_BTC);
     }
 
     function setLiquidator(Liquidator newLiquidator) public {
@@ -244,29 +224,19 @@ contract CDP is DSMath, DSNote, Template {
         CDPRecord storage data = CDPRecords[record];
         require(data.owner != 0x0);
 
-        uint256 collateralValue = rmul(data.collateral, priceOracle.getPrice(BTC_ASSET_TYPE));
+        uint256 collateralValue = rmul(data.collateral, priceOracle.getPrice(ASSET_BTC));
         uint256 debtValue = rmul(debtOfCDP(record), liquidationRatio);
 
         return collateralValue >= debtValue;
     }
 
-    function satoshiToRay(uint amount) public pure returns (uint) {
-        return mul(amount, 10**19);
-    }
-
-    function rayToSatoshi(uint rayAmount) public pure returns (uint) {
-        return rayAmount / 10**19;
-    }
-
-    /// it is different in PAI to close a CDP compared with DAI
-    /// we need to repay all debts before calling this function
     function closeCDPRecord(uint record) public note {
         require(!settlement);
         require(CDPRecords[record].owner == msg.sender);
         require(debtOfCDP(record) == 0 && debtOfCDPwithGovernanceFee(record) == 0);
 
         if(collateralOfCDP(record) > 0) {
-            withdraw(record, rayToSatoshi(collateralOfCDP(record)));
+            withdraw(record, collateralOfCDP(record));
         }
         delete CDPRecords[record];
     }
@@ -286,7 +256,6 @@ contract CDP is DSMath, DSNote, Template {
         return accumulatedRates2;
     }
 
-
     /// update `accumulatedRates1` and `accumulatedRates2` when borrow or repay happens
     function updateRates() public note {
         if(settlement) return;
@@ -304,8 +273,8 @@ contract CDP is DSMath, DSNote, Template {
             temp = rpow(stabilityFee, deltaSeconds);
             accumulatedRates1 = rmul(accumulatedRates1, temp);
             if(temp > 0 && totalNormalizedDebt > 0) {
-                /// TODO not safe
-                issuer.mint(rayToSatoshi(rmul(sub(accumulatedRates1,previousAccumulatedRates1), totalNormalizedDebt)), address(liquidator));
+                issuer.mint(rmul(sub(accumulatedRates1,previousAccumulatedRates1), totalNormalizedDebt), address(liquidator));
+                liquidator.cancelDebt();
             }
         }
 
@@ -320,21 +289,21 @@ contract CDP is DSMath, DSNote, Template {
     }
 
     function liquidate(uint record) public note {
-        //require(!safe(record) || settlement);
+        require(!safe(record) || settlement);
 
         uint256 debt = debtOfCDP(record);
-        liquidator.addDebt(rayToSatoshi(debt));
+        liquidator.addDebt(debt);
         totalNormalizedDebt = sub(totalNormalizedDebt, CDPRecords[record].accumulatedDebt1);
         CDPRecords[record].accumulatedDebt1 = 0;
         CDPRecords[record].accumulatedDebt2 = 0;
 
-        uint256 collateralToLiquidator = rdiv(rmul(debt, liquidationPenalty), priceOracle.getPrice(BTC_ASSET_TYPE));
+        uint256 collateralToLiquidator = rdiv(rmul(debt, liquidationPenalty), priceOracle.getPrice(ASSET_BTC));
         if(collateralToLiquidator > CDPRecords[record].collateral) {
             collateralToLiquidator = CDPRecords[record].collateral;
         }
         
         CDPRecords[record].collateral = sub(CDPRecords[record].collateral, collateralToLiquidator);
-        address(liquidator).transfer(rayToSatoshi(collateralToLiquidator), BTC_ASSET_TYPE);
+        address(liquidator).transfer(collateralToLiquidator, ASSET_BTC);
     }
 
     function terminateBusiness(uint price) public note {
