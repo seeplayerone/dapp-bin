@@ -68,9 +68,9 @@ contract CDP is DSMath, DSNote, Template {
 
         lastTimestamp = block.timestamp;
 
-        issuer = PAIIssuer(0x637be8293529b525c961c2dcf044db9540a526ae39);
-        priceOracle = PriceOracle(0x6382529fd89effbd5db05404815bde497a4d604e08);
-        liquidator = Liquidator(0x63fc8fbc0d5ffd30263722acbb27ed359e67d64c39);
+        issuer = PAIIssuer(0x63111faa176622057b618a981a9054f39ea0d7d4f2);
+        priceOracle = PriceOracle(0x63a8568d1ab84bcfce45170b4fe70d523b7ef40a94);
+        liquidator = Liquidator(0x638758f2377c5c82bc572ce5c2f9c67478917509be);
 
         ASSET_BTC = 0;
         ASSET_PAI = issuer.getAssetType();

@@ -11,58 +11,54 @@ import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
 ///  Registry is a system contract, an organization needs to register before issuing assets
 interface Registry {
      function registerOrganization(string organizationName, string templateName) external returns(uint32);
-     function renameOrganization(string organizationName) external;
 }
 
 contract PAIIssuer is Template, DSMath {
     string private name = "PAI_ISSUER";
-    uint32 private orgId;
-    uint32 private index;
+    uint32 private orgnizationID;
+    uint32 private assetIndex;
     uint32 private assetType;
-    uint256 private PAI_ASSET_TYPE;
+    uint256 private ASSET_PAI;
     
     uint private totalSupply = 0;
 
     bool private firstTry;
-
-    address private hole = 0x000000000000000000000000000000000000000000;
+    address private hole = 0x660000000000000000000000000000000000000000;
 
     function() public payable {
-        require(msg.assettype == PAI_ASSET_TYPE);
-        burn(msg.value);
+        require(msg.assettype == ASSET_PAI);
     }
 
     function init(string _name) public {
         name = _name;
+        /// TODO organization registration should be done in DAO
         Registry registry = Registry(0x630000000000000000000000000000000000000065);
-        orgId = registry.registerOrganization(name, templateName);
-        index = 1;
+        orgnizationID = registry.registerOrganization(name, templateName);
+        assetIndex = 1;
         assetType = 0;
-        uint64 assetId = uint64(assetType) << 32 | uint64(orgId);
-        uint96 asset = uint96(assetId) << 32 | uint96(index);
-        PAI_ASSET_TYPE = asset;
+        uint64 assetId = uint64(assetType) << 32 | uint64(orgnizationID);
+        uint96 asset = uint96(assetId) << 32 | uint96(assetIndex);
+        ASSET_PAI = asset;
         firstTry = true;
     }
 
     function mint(uint amount, address dest) public {
         if(firstTry) {
             firstTry = false;
-            flow.createAsset(assetType, index, amount);
+            flow.createAsset(assetType, assetIndex, amount);
         } else {
-            flow.mintAsset(index, amount);
+            flow.mintAsset(assetIndex, amount);
         }
-        dest.transfer(amount, PAI_ASSET_TYPE);
+        dest.transfer(amount, ASSET_PAI);
         totalSupply = add(totalSupply, amount);
     }
 
     function burn(uint amount) public {
-        //require(assettype == PAI_ASSET_TYPE);
-        //hole.transfer(amount, PAI_ASSET_TYPE);
         totalSupply = sub(totalSupply, amount);
     }
 
     function getAssetType() public view returns (uint256) {
-        return PAI_ASSET_TYPE;
+        return ASSET_PAI;
     }
 
     function getAssetInfo(uint32 assetIndex)

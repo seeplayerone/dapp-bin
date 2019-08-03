@@ -30,8 +30,8 @@ contract Liquidator is DSMath, DSNote, Template {
     address private hole = 0x660000000000000000000000000000000000000000;
 
     constructor() public {
-        oracle = PriceOracle(0x6382529fd89effbd5db05404815bde497a4d604e08);
-        issuer = PAIIssuer(0x637be8293529b525c961c2dcf044db9540a526ae39);
+        oracle = PriceOracle(0x63a8568d1ab84bcfce45170b4fe70d523b7ef40a94);
+        issuer = PAIIssuer(0x63111faa176622057b618a981a9054f39ea0d7d4f2);
 
         ASSET_BTC = 0; /// using ASIM asset for test purpose
         ASSET_PAI = issuer.getAssetType();
@@ -76,6 +76,7 @@ contract Liquidator is DSMath, DSNote, Template {
         totalDebt = sub(totalDebt, amount);
 
         hole.transfer(amount, ASSET_PAI);
+        issuer.burn(amount);
     }
 
     /// BTC' price against PAI
