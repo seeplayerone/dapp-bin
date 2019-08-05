@@ -15,27 +15,26 @@ import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
 
 contract Liquidator is DSMath, DSNote, Template {
 
-    uint private BTC_ASSET_TYPE;
-    uint private PAI_ASSET_TYPE;
+    uint private ASSET_BTC;
+    uint private ASSET_PAI;
 
-    /// all are calculated in RAY
-    uint private totalDebt;
-    uint private discount;
+    uint private totalDebt; /// total debt of the liquidator
+    uint private discount; /// collateral selling discount
 
     bool private settlement; /// the business is in settlement stage
     uint private collateralSettlementPrice; /// collateral settlement price
 
-    PriceOracle private priceOracle;
-    PAIIssuer private issuer;
+    PriceOracle private oracle; /// price oracle
+    PAIIssuer private issuer; /// PAI issuer
 
     address private hole = 0x660000000000000000000000000000000000000000;
 
     constructor() public {
-        priceOracle = PriceOracle(0x6382529fd89effbd5db05404815bde497a4d604e08);
-        issuer = PAIIssuer(0x637be8293529b525c961c2dcf044db9540a526ae39);
+        oracle = PriceOracle(0x63a8568d1ab84bcfce45170b4fe70d523b7ef40a94);
+        issuer = PAIIssuer(0x63111faa176622057b618a981a9054f39ea0d7d4f2);
 
-        BTC_ASSET_TYPE = 0;
-        PAI_ASSET_TYPE = issuer.getAssetType();
+        ASSET_BTC = 0; /// using ASIM asset for test purpose
+        ASSET_PAI = issuer.getAssetType();
 
         discount = 970000000000000000000000000;
     }
@@ -43,18 +42,13 @@ contract Liquidator is DSMath, DSNote, Template {
     /// payable fallback function
     /// the liquidator can accept all types of assets issued on Asimov
     function() public payable {
-        /// cancel debt whenever PAI comes to the liquidator
-        if(msg.assettype == PAI_ASSET_TYPE) {
-            cancelDebt();
-        } else if(msg.assettype == BTC_ASSET_TYPE) {
 
-        }
     }
 
     /// total earned PAI 
     /// in the current design, stability fees in CDP are sent to liquidator
-    function totalEarnedPAI() public view returns (uint256) {
-        return satoshiToRay(flow.balance(this, PAI_ASSET_TYPE));
+    function totalAssetPAI() public view returns (uint256) {
+        return flow.balance(this, ASSET_PAI);
     }
 
     /// total debt in PAI
@@ -65,7 +59,58 @@ contract Liquidator is DSMath, DSNote, Template {
 
     /// total collateral in BTC'
     function totalCollateralBTC() public view returns (uint256) {
-        return satoshiToRay(flow.balance(this, BTC_ASSET_TYPE));
+        return flow.balance(this, ASSET_BTC);
+    }
+
+    function debugAllValues() public view returns (uint, uint, uint) {
+        return (totalAssetPAI(), totalDebtPAI(), totalCollateralBTC());
+    }
+
+    /// the liquidator needs to continuous neutralize debt with earned PAI 
+    function cancelDebt() public note {
+        if(totalAssetPAI() == 0 || totalDebtPAI() == 0) {
+            return;
+        }
+
+        uint256 amount = min(totalAssetPAI(), totalDebtPAI());
+        totalDebt = sub(totalDebt, amount);
+
+        hole.transfer(amount, ASSET_PAI);
+        issuer.burn(amount);
+    }
+
+    /// BTC' price against PAI
+    function collateralPrice() public view returns (uint256){
+        return oracle.getPrice(ASSET_BTC);
+    }
+
+    /// the liquidator sells BTC'
+    function buyColleteral() public payable note {
+        require(!settlement);
+        require(msg.assettype == ASSET_PAI);
+
+        uint amount = rdiv(msg.value, rmul(collateralPrice(), discount));
+        require(amount > 0);
+
+        if(amount > totalCollateralBTC()) {
+            uint change = rmul(amount - totalCollateralBTC(), rmul(collateralPrice(), discount));
+            msg.sender.transfer(change, ASSET_PAI);
+            msg.sender.transfer(totalCollateralBTC(), ASSET_BTC);
+        } else {
+            msg.sender.transfer(amount, ASSET_BTC);
+        }
+
+        /// cancel debt with newly coming in PAI
+        cancelDebt();
+    }
+
+    function addBTC() public payable note {
+        require(msg.assettype == ASSET_BTC);
+    }
+
+    function addPAI() public payable note {
+        require(msg.assettype == ASSET_PAI);
+        cancelDebt();
     }
 
     function addDebt(uint amount) public {
@@ -73,76 +118,9 @@ contract Liquidator is DSMath, DSNote, Template {
         cancelDebt();
     }
 
-    function debugAllValues() public view returns (uint, uint, uint) {
-        return (totalEarnedPAI(), totalDebtPAI(), totalCollateralBTC());
-    }
-
-    /// the liquidator needs to continuous neutralize debt with earned PAI 
-    /// it is invoked whenever selling collateral or PIS
-    function cancelDebt() public note {
-        if(totalEarnedPAI() == 0 || totalDebtPAI() == 0) {
-            return;
-        }
-
-        uint256 amount = min(totalEarnedPAI(), totalDebtPAI());
-        totalDebt = sub(totalDebt, amount);
-
-        hole.transfer(rayToSatoshi(amount), PAI_ASSET_TYPE);
-    }
-
-    /// BTC' price against PAI
-    function collateralPrice() public view returns (uint256){
-        return priceOracle.getPrice(BTC_ASSET_TYPE);
-    }
-
-    /// PIS price against PAI
-    function PISPrice() public view returns (uint256) {
-        return priceOracle.getPrice(PAI_ASSET_TYPE);
-    }
-
-    /// the liquidator sells BTC'
-    /// the liquidator can sell all the BTC'
-    function buyColleteral() public payable note {
-        require(!settlement);
-        require(msg.assettype == PAI_ASSET_TYPE);
-
-        /// TODO need to consider the case where amount > totalCollateral()
-        /// in which we should transfer the changes to msg.sender as we deal with repay in cdp
-        uint amount = rdiv(satoshiToRay(msg.value), rmul(collateralPrice(), discount));
-        require(amount > 0);
-
-        if(amount > totalCollateralBTC()) {
-            // uint change = rmul(amount - totalCollateralBTC(), rmul(collateralPrice(), discount));
-            // msg.sender.transfer(rayToSatoshi(change), PAI_ASSET_TYPE);
-            msg.sender.transfer(rayToSatoshi(totalCollateralBTC()), BTC_ASSET_TYPE);
-        } else {
-            msg.sender.transfer(rayToSatoshi(amount), BTC_ASSET_TYPE);
-        }
-
-        /// cancel debt with newly coming in PAI
-        cancelDebt();
-    }
-
-    function deposit() public payable note {
-        if(msg.assettype == PAI_ASSET_TYPE) {
-            cancelDebt();
-        } else if(msg.assettype == BTC_ASSET_TYPE) {
-
-        }
-    }
-
     function settle(uint price) public {
         require(!settlement);
         settlement = true;
         collateralSettlementPrice = price;
-    }
-
-    function satoshiToRay(uint amount) public pure returns (uint) {
-        return mul(amount, 10**19);
-    }
-
-    function rayToSatoshi(uint rayAmount) public pure returns (uint) {
-        return rayAmount / 10**19;
-    }
-    
+    }    
 }
