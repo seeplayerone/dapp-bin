@@ -101,6 +101,10 @@ contract CDP is DSMath, DSNote, Template {
     /// @dev CDP base operations
     /// create a CDP
     function createCDP() public note returns(uint record) {
+        return createCDPInternal();
+    }
+
+    function createCDPInternal() internal returns (uint record) {
         require(!settlement);
         CDPIndex = add(CDPIndex, 1);
         record = CDPIndex;
@@ -117,11 +121,15 @@ contract CDP is DSMath, DSNote, Template {
 
     /// deposit BTC
     function deposit(uint record) public payable note {
+        depositInternal(record);
+    }
+
+    function depositInternal(uint record) internal {
         require(!settlement);
         require(msg.assettype == ASSET_BTC);
         require(CDPRecords[record].owner == msg.sender);
 
-        CDPRecords[record].collateral = add(CDPRecords[record].collateral, msg.value);
+        CDPRecords[record].collateral = add(CDPRecords[record].collateral, msg.value);        
     }
 
     /// withdraw BTC
@@ -136,6 +144,10 @@ contract CDP is DSMath, DSNote, Template {
 
     /// borrow PAI
     function borrow(uint record, uint amount) public note {
+        borrowInternal(record, amount);
+    }
+
+    function borrowInternal(uint record, uint amount) internal {
         require(!settlement);
         require(CDPRecords[record].owner == msg.sender);
 
@@ -152,6 +164,14 @@ contract CDP is DSMath, DSNote, Template {
         /// TODO check the total mint PAI has not exceed system limit - should be checked in issuer
 
         issuer.mint(amount, msg.sender);
+        
+    }
+
+    /// create CDP + deposit BTC + borrow PAI
+    function createDepositBorrow(uint amount) public payable note {
+        uint id = createCDPInternal();
+        depositInternal(id);
+        borrowInternal(id, amount);
     }
 
     /// repay PAI
