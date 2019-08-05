@@ -348,5 +348,7 @@ contract CDP is DSMath, DSNote, Template {
         CDPRecord storage data = CDPRecords[record];
         return (data.collateral, data.accumulatedDebt1, rmul(data.accumulatedDebt1, accumulatedRates1), data.accumulatedDebt2, rmul(data.accumulatedDebt2, accumulatedRates2));
     }
+
+    ////just for test
     
 }
