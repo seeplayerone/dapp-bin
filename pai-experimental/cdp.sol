@@ -60,7 +60,7 @@ contract CDP is DSMath, DSNote, Template {
 
     constructor() public {
         stabilityFee = 1000000000000000000000000000;
-        governanceFee = 1000100000000000000000000000;
+        governanceFee = 1000000000000000000000000000;
         accumulatedRates1 = 1000000000000000000000000000;
         accumulatedRates2 = 1000000000000000000000000000;
         liquidationRatio = 1500000000000000000000000000;
@@ -74,6 +74,28 @@ contract CDP is DSMath, DSNote, Template {
 
         ASSET_BTC = 0;
         ASSET_PAI = issuer.getAssetType();
+    }
+
+    function updateStabilityFee(uint newFee) public {
+        require(newFee >= RAY);
+        updateRates();
+        stabilityFee = newFee;
+    }
+
+    function updateGovernanceFee(uint newFee) public {
+        require(newFee >= RAY);
+        updateRates();
+        governanceFee = newFee;
+    }
+
+    function updateLiquidationRatio(uint newRatio) public {
+        require(newRatio >= RAY);
+        liquidationRatio = newRatio;
+    }
+
+    function updateLiquidationPenalty(uint newPenalty) public {
+        require(newPenalty >= RAY);
+        liquidationPenalty = newPenalty;
     }
 
     /// @dev CDP base operations
@@ -143,6 +165,10 @@ contract CDP is DSMath, DSNote, Template {
         require(newRepay2 > 0);
 
         uint repay1Ratio = rdiv(debtOfCDP(record), debtOfCDPwithGovernanceFee(record));
+        /// there could be precision loss
+        if(repay1Ratio > RAY) {
+            repay1Ratio = RAY; 
+        }
 
         if(newRepay2 > CDPRecords[record].accumulatedDebt2) {
             /// note change is calculated in rates2
