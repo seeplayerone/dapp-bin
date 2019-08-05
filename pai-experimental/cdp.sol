@@ -1,20 +1,32 @@
 pragma solidity 0.4.25;
 
-// import "./3rd/math.sol";
-// import "./3rd/note.sol";
-// import "../library/template.sol";
-// import "./liquidator.sol";
-// import "./price_oracle.sol";
-// import "./pai_issuer.sol";
+import "./3rd/math.sol";
+import "./3rd/note.sol";
+import "../library/template.sol";
+import "./liquidator.sol";
+import "./price_oracle.sol";
+import "./pai_issuer.sol";
 
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
+// import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+// import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
+// import "github.com/seeplayerone/dapp-bin/library/template.sol";
+// import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
+// import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
+// import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
 
 contract CDP is DSMath, DSNote, Template {
+
+    event CreateCDP(uint _index);
+    event DepositBTC(uint _amount);
+    event WithdrawBTC(uint _amount);
+    event BorrowPAI(uint _amount);
+    event RepayPAI(uint _amount1, uint amount2);
+    event CloseCDP(uint _index);
+    event DebtOfCDP(uint _debt);
+    event DebtOfCDPWithGovernanceFee(uint _debt);
+    event TotalDebt(uint _debt);
+    event Safe(bool _safe);
+    event Liquidate(uint _index, uint debt, uint collateral);
 
     uint256 private CDPIndex = 0;
 
@@ -109,6 +121,7 @@ contract CDP is DSMath, DSNote, Template {
         CDPIndex = add(CDPIndex, 1);
         record = CDPIndex;
         CDPRecords[record].owner = msg.sender;
+        emit CreateCDP(record);
     }
 
     /// transfer ownership of a CDP
@@ -129,7 +142,8 @@ contract CDP is DSMath, DSNote, Template {
         require(msg.assettype == ASSET_BTC);
         require(CDPRecords[record].owner == msg.sender);
 
-        CDPRecords[record].collateral = add(CDPRecords[record].collateral, msg.value);        
+        CDPRecords[record].collateral = add(CDPRecords[record].collateral, msg.value);
+        emit DepositBTC(msg.value);        
     }
 
     /// withdraw BTC
@@ -140,6 +154,7 @@ contract CDP is DSMath, DSNote, Template {
 
         require(safe(record));
         msg.sender.transfer(amount, ASSET_BTC);
+        emit WithdrawBTC(amount);
     }
 
     /// borrow PAI
@@ -164,7 +179,7 @@ contract CDP is DSMath, DSNote, Template {
         /// TODO check the total mint PAI has not exceed system limit - should be checked in issuer
 
         issuer.mint(amount, msg.sender);
-        
+        emit BorrowPAI(amount);
     }
 
     /// create CDP + deposit BTC + borrow PAI
@@ -220,6 +235,8 @@ contract CDP is DSMath, DSNote, Template {
             address(liquidator).transfer(amount2, ASSET_PAI);
         }
 
+        emit RepayPAI(amount1, amount2);
+
     }
 
     /// close CDP
@@ -232,20 +249,26 @@ contract CDP is DSMath, DSNote, Template {
             withdraw(record, collateralOfCDP(record));
         }
         delete CDPRecords[record];
+
+        emit CloseCDP(record);
     }
 
     /// debt of CDP, include principal + stability fees
     function debtOfCDP(uint record) public returns (uint256) {
         CDPRecord storage data = CDPRecords[record];
         require(data.owner != 0x0);
-        return rmul(data.accumulatedDebt1, updateAndFetchRates1());
+        uint debt = rmul(data.accumulatedDebt1, updateAndFetchRates1());
+        emit DebtOfCDP(debt);
+        return debt;
     }
 
     /// debt of CDP, include principal + stability fees + governance fees
     function debtOfCDPwithGovernanceFee(uint record) public returns (uint256) {
         CDPRecord storage data = CDPRecords[record];
         require(data.owner != 0x0);
-        return rmul(data.accumulatedDebt2, updateAndFetchRates2());
+        uint debt = rmul(data.accumulatedDebt2, updateAndFetchRates2());
+        emit DebtOfCDPWithGovernanceFee(debt);
+        return debt;
     }
 
     function ownerOfCDP(uint record) public view returns (address) {
@@ -287,6 +310,7 @@ contract CDP is DSMath, DSNote, Template {
         uint256 collateralValue = rmul(data.collateral, priceOracle.getPrice(ASSET_BTC));
         uint256 debtValue = rmul(debtOfCDP(record), liquidationRatio);
 
+        emit Safe(collateralValue >= debtValue);
         return collateralValue >= debtValue;
     }
 
@@ -349,6 +373,8 @@ contract CDP is DSMath, DSNote, Template {
         
         CDPRecords[record].collateral = sub(CDPRecords[record].collateral, collateralToLiquidator);
         address(liquidator).transfer(collateralToLiquidator, ASSET_BTC);
+
+        emit Liquidate(record, debt, collateralToLiquidator);
     }
 
     function terminateBusiness(uint price) public note {
