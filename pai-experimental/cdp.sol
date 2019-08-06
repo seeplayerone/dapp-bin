@@ -338,6 +338,16 @@ contract CDP is DSMath, DSNote, Template {
         liquidationPenalty = RAY;
         //collateralSettlementPrice = price;
         priceOracle.terminate(ASSET_BTC, price);
+        liquidator.settlePhaseOne();
+    }
+
+    function liquidateAll() public note {
+        //考虑到可能cdp数量非常多，难以在一条交易体内清算完毕，因此此处需要优化
+        for(uint i = 0; i<=CDPIndex;i++){
+            if(CDPRecords[i].collateral > 0)
+                liquidate(i);
+        }
+        liquidator.settlePhaseTwo();
     }
 
     /// @dev debug functions
