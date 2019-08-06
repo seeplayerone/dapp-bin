@@ -29,9 +29,9 @@ contract Liquidator is DSMath, DSNote, Template {
 
     address private hole = 0x660000000000000000000000000000000000000000;
 
-    constructor() public {
-        oracle = PriceOracle(0x63a8568d1ab84bcfce45170b4fe70d523b7ef40a94);
-        issuer = PAIIssuer(0x63111faa176622057b618a981a9054f39ea0d7d4f2);
+    constructor(address _oracle, address _issuer) public {
+        oracle = PriceOracle(_oracle);
+        issuer = PAIIssuer(_issuer);
 
         ASSET_BTC = 0; /// using ASIM asset for test purpose
         ASSET_PAI = issuer.getAssetType();
@@ -81,6 +81,7 @@ contract Liquidator is DSMath, DSNote, Template {
 
     /// BTC' price against PAI
     function collateralPrice() public view returns (uint256){
+        ///不规范？view函数调用了一个不知道会不会需要消耗gas的方法
         return oracle.getPrice(ASSET_BTC);
     }
 
@@ -88,8 +89,13 @@ contract Liquidator is DSMath, DSNote, Template {
     function buyColleteral() public payable note {
         require(!settlement);
         require(msg.assettype == ASSET_PAI);
+        buyColleteralNormal(msg.value);
+    }
 
-        uint amount = rdiv(msg.value, rmul(collateralPrice(), discount));
+    function buyColleteralNormal(uint _money) internal {
+
+
+        uint amount = rdiv(_money, rmul(collateralPrice(), discount));
         require(amount > 0);
 
         if(amount > totalCollateralBTC()) {
