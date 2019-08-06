@@ -22,6 +22,7 @@ contract Liquidator is DSMath, DSNote, Template {
     uint private discount; /// collateral selling discount
 
     bool private settlement; /// the business is in settlement stage
+    bool private allLiquidated; /// the business is in settlement stage and all CDPs have been liquidated
     uint private collateralSettlementPrice; /// collateral settlement price
 
     PriceOracle private oracle; /// price oracle
@@ -82,24 +83,44 @@ contract Liquidator is DSMath, DSNote, Template {
     /// BTC' price against PAI
     function collateralPrice() public view returns (uint256){
         ///不规范？view函数调用了一个不知道会不会需要消耗gas的方法
-        return oracle.getPrice(ASSET_BTC);
+        return settlement ? collateralSettlementPrice : oracle.getPrice(ASSET_BTC);
     }
 
     /// the liquidator sells BTC'
     function buyColleteral() public payable note {
-        require(!settlement);
         require(msg.assettype == ASSET_PAI);
+        require(!settlement||allLiquidated);
+        if(!settlement){       
         buyColleteralNormal(msg.value);
+        }
+        else if(allLiquidated){
+        buyColleteralSpecial(msg.value); 
+        }
     }
 
     function buyColleteralNormal(uint _money) internal {
-
-
         uint amount = rdiv(_money, rmul(collateralPrice(), discount));
         require(amount > 0);
 
         if(amount > totalCollateralBTC()) {
             uint change = rmul(amount - totalCollateralBTC(), rmul(collateralPrice(), discount));
+            msg.sender.transfer(change, ASSET_PAI);
+            msg.sender.transfer(totalCollateralBTC(), ASSET_BTC);
+        } else {
+            msg.sender.transfer(amount, ASSET_BTC);
+        }
+
+        /// cancel debt with newly coming in PAI
+        cancelDebt();
+    }
+
+    function buyColleteralSpecial(uint _money) internal {
+        require(collateralSettlementPrice > 0);
+        uint amount = rdiv(_money, collateralSettlementPrice);
+        require(amount > 0);
+
+        if(amount > totalCollateralBTC()) {
+            uint change = rmul(amount - totalCollateralBTC(), collateralSettlementPrice);
             msg.sender.transfer(change, ASSET_PAI);
             msg.sender.transfer(totalCollateralBTC(), ASSET_BTC);
         } else {
@@ -124,9 +145,28 @@ contract Liquidator is DSMath, DSNote, Template {
         cancelDebt();
     }
 
-    function settle(uint price) public {
+    function settlePhaseOne() public {
         require(!settlement);
         settlement = true;
-        collateralSettlementPrice = price;
+    }
+
+    function settlePhaseTwo() public {
+        require(settlement);
+        require(!allLiquidated);
+        ///下一语句需要改写为safemath的形式
+        collateralSettlementPrice = (totalDebt * (10**27) / flow.balance(this, ASSET_BTC));
+        allLiquidated = true;
+    }
+
+
+    /// only for debug
+    function States() public view returns(bool,bool){
+        return (settlement,allLiquidated);
+    }
+
+
+    function reOpen() public {
+       settlement = false;
+       allLiquidated = false;
     }    
 }
