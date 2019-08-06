@@ -61,7 +61,7 @@ contract PAIIssuer is Template, DSMath {
         return ASSET_PAI;
     }
 
-    function getAssetInfo(uint32 assetIndex)
+    function getAssetInfo(uint32 index)
         public
         view 
         returns (bool, string, string, string, uint32, uint)
