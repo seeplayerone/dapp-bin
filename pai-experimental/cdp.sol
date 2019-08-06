@@ -1,32 +1,32 @@
 pragma solidity 0.4.25;
 
-import "./3rd/math.sol";
-import "./3rd/note.sol";
-import "../library/template.sol";
-import "./liquidator.sol";
-import "./price_oracle.sol";
-import "./pai_issuer.sol";
+// import "./3rd/math.sol";
+// import "./3rd/note.sol";
+// import "../library/template.sol";
+// import "./liquidator.sol";
+// import "./price_oracle.sol";
+// import "./pai_issuer.sol";
 
-// import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
-// import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
-// import "github.com/seeplayerone/dapp-bin/library/template.sol";
-// import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
-// import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
-// import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
 
 contract CDP is DSMath, DSNote, Template {
 
     event CreateCDP(uint _index);
-    event DepositBTC(uint _amount);
-    event WithdrawBTC(uint _amount);
-    event BorrowPAI(uint _amount);
-    event RepayPAI(uint _amount1, uint amount2);
+    event DepositBTC(uint collateral, uint debt1, uint debt2, uint _index, uint depositAmount);
+    event WithdrawBTC(uint collateral, uint debt1, uint debt2, uint _index, uint withdrawAmount);
+    event BorrowPAI(uint collateral, uint debt1, uint debt2, uint _index, uint borrowAmount);
+    event RepayPAI(uint collateral, uint debt1, uint debt2, uint _index, uint repayAmount, uint repayAmount1, uint repayAmount2);
     event CloseCDP(uint _index);
     event DebtOfCDP(uint _debt);
     event DebtOfCDPWithGovernanceFee(uint _debt);
     event TotalDebt(uint _debt);
     event Safe(bool _safe);
-    event Liquidate(uint _index, uint debt, uint collateral);
+    event Liquidate(uint collateral, uint debt1, uint debt2, uint _index, uint debtToLiquidator, uint collateralToLiquidator);
 
     uint256 private CDPIndex = 0;
 
@@ -143,7 +143,9 @@ contract CDP is DSMath, DSNote, Template {
         require(CDPRecords[record].owner == msg.sender);
 
         CDPRecords[record].collateral = add(CDPRecords[record].collateral, msg.value);
-        emit DepositBTC(msg.value);        
+
+        CDPRecord storage data = CDPRecords[record];
+        emit DepositBTC(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, msg.value);        
     }
 
     /// withdraw BTC
@@ -154,7 +156,9 @@ contract CDP is DSMath, DSNote, Template {
 
         require(safe(record));
         msg.sender.transfer(amount, ASSET_BTC);
-        emit WithdrawBTC(amount);
+
+        CDPRecord storage data = CDPRecords[record];
+        emit WithdrawBTC(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, amount);
     }
 
     /// borrow PAI
@@ -179,7 +183,9 @@ contract CDP is DSMath, DSNote, Template {
         /// TODO check the total mint PAI has not exceed system limit - should be checked in issuer
 
         issuer.mint(amount, msg.sender);
-        emit BorrowPAI(amount);
+
+        CDPRecord storage data = CDPRecords[record];
+        emit BorrowPAI(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, amount);
     }
 
     /// create CDP + deposit BTC + borrow PAI
@@ -212,8 +218,8 @@ contract CDP is DSMath, DSNote, Template {
             newRepay1 = CDPRecords[record].accumulatedDebt1;     
             newRepay2 = CDPRecords[record].accumulatedDebt2;       
         } else {
-            uint debtAmount = rmul(msg.value, repay1Ratio);
-            newRepay1 = rdiv(debtAmount, updateAndFetchRates1());
+            //uint debtAmount = rmul(msg.value, repay1Ratio);
+            newRepay1 = rdiv(rmul(msg.value, repay1Ratio), updateAndFetchRates1());
         }
 
         uint amount1 = rmul(sub(msg.value, change), repay1Ratio);
@@ -235,7 +241,8 @@ contract CDP is DSMath, DSNote, Template {
             address(liquidator).transfer(amount2, ASSET_PAI);
         }
 
-        emit RepayPAI(amount1, amount2);
+        CDPRecord storage data = CDPRecords[record];
+        emit RepayPAI(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, msg.value, amount1, amount2);
 
     }
 
@@ -374,7 +381,8 @@ contract CDP is DSMath, DSNote, Template {
         CDPRecords[record].collateral = sub(CDPRecords[record].collateral, collateralToLiquidator);
         address(liquidator).transfer(collateralToLiquidator, ASSET_BTC);
 
-        emit Liquidate(record, debt, collateralToLiquidator);
+        CDPRecord storage data = CDPRecords[record];
+        emit Liquidate(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, debt, collateralToLiquidator);
     }
 
     function terminateBusiness(uint price) public note {
