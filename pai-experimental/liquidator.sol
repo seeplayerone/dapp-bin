@@ -6,11 +6,11 @@ pragma solidity 0.4.25;
 // import "./pai_issuer.sol";
 // import "../library/template.sol";
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
 
 
 contract Liquidator is DSMath, DSNote, Template {
@@ -136,9 +136,8 @@ contract Liquidator is DSMath, DSNote, Template {
     function settlePhaseTwo() public {
         require(settlement);
         require(!allLiquidated);
-        ///下一语句需要改写为safemath的形式
         if(flow.balance(this, ASSET_BTC) > 0)
-            collateralSettlementPrice = (totalDebt * (10**27) / flow.balance(this, ASSET_BTC));
+            collateralSettlementPrice = mul(totalDebt, RAY) / flow.balance(this, ASSET_BTC);
         allLiquidated = true;
     }
 

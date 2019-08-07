@@ -7,12 +7,12 @@ pragma solidity 0.4.25;
 // import "./price_oracle.sol";
 // import "./pai_issuer.sol";
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/liquidator.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
 
 contract CDP is DSMath, DSNote, Template {
 
@@ -348,8 +348,8 @@ contract CDP is DSMath, DSNote, Template {
         require(liquidatedCDP != CDPIndex);
         require(block.timestamp > add(closeTime, bufferPeriod));
         uint upperLimit = min(add(liquidatedCDP, _num), CDPIndex);
-        for(uint i = add(liquidatedCDP,1); i <= upperLimit; add(i,1)) {
-            if(CDPRecords[i].collateral > 0)
+        for(uint i = add(liquidatedCDP,1); i <= upperLimit; i = add(i,1)) {
+            if(CDPRecords[i].accumulatedDebt1 > 0)
                 liquidate(i);
         }
         liquidatedCDP = upperLimit;
