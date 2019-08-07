@@ -347,7 +347,7 @@ contract CDP is DSMath, DSNote, Template {
         liquidator.settlePhaseOne();
     }
 
-    function quickliquidate(uint _num) public note {
+    function quickLiquidate(uint _num) public note {
         require(settlement);
         require(liquidatedCDP != CDPIndex);
         require(block.timestamp > closeTime + bufferPeriod );
@@ -394,7 +394,7 @@ contract CDP is DSMath, DSNote, Template {
         priceOracle.reOpen();
     }
 
-    function showCloseTime() public view returns (uint) {
-        return closeTime;
+    function liquidateProgress() public view returns (uint, uint) {
+        return (liquidatedCDP, CDPIndex);
     }
 }

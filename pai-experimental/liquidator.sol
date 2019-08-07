@@ -153,7 +153,8 @@ contract Liquidator is DSMath, DSNote, Template {
         require(settlement);
         require(!allLiquidated);
         ///下一语句需要改写为safemath的形式
-        collateralSettlementPrice = (totalDebt * (10**27) / flow.balance(this, ASSET_BTC));
+        if(flow.balance(this, ASSET_BTC) > 0)
+            collateralSettlementPrice = (totalDebt * (10**27) / flow.balance(this, ASSET_BTC));
         allLiquidated = true;
     }
 
