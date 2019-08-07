@@ -81,7 +81,7 @@ contract Liquidator is DSMath, DSNote, Template {
     }
 
     /// BTC' price against PAI
-    function collateralPrice() public view returns (uint256){
+    function collateralPrice() public view returns (uint256) {
         ///不规范？view函数调用了一个不知道会不会需要消耗gas的方法
         return settlement ? collateralSettlementPrice : oracle.getPrice(ASSET_BTC);
     }
@@ -91,10 +91,9 @@ contract Liquidator is DSMath, DSNote, Template {
         require(msg.assettype == ASSET_PAI);
         require(!settlement||allLiquidated);
         if(!settlement){       
-        buyColleteralNormal(msg.value);
-        }
-        else if(allLiquidated){
-        buyColleteralSpecial(msg.value); 
+            buyColleteralNormal(msg.value);
+        }else if(allLiquidated){
+            buyColleteralSpecial(msg.value); 
         }
     }
 
@@ -160,10 +159,9 @@ contract Liquidator is DSMath, DSNote, Template {
 
 
     /// only for debug
-    function States() public view returns(bool,bool){
+    function States() public view returns(bool,bool) {
         return (settlement,allLiquidated);
     }
-
 
     function reOpen() public {
        settlement = false;
