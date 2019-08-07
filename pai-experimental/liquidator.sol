@@ -6,11 +6,11 @@ pragma solidity 0.4.25;
 // import "./pai_issuer.sol";
 // import "../library/template.sol";
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
 
 
 contract Liquidator is DSMath, DSNote, Template {
@@ -82,7 +82,6 @@ contract Liquidator is DSMath, DSNote, Template {
 
     /// BTC' price against PAI
     function collateralPrice() public view returns (uint256) {
-        ///不规范？view函数调用了一个不知道会不会需要消耗gas的方法
         return settlement ? collateralSettlementPrice : oracle.getPrice(ASSET_BTC);
     }
 
@@ -90,36 +89,21 @@ contract Liquidator is DSMath, DSNote, Template {
     function buyColleteral() public payable note {
         require(msg.assettype == ASSET_PAI);
         require(!settlement||allLiquidated);
-        if(!settlement){       
-            buyColleteralNormal(msg.value);
+        if(!settlement){
+            uint referencePrice = rmul(collateralPrice(), discount);
+            buyColleteralInternal(msg.value, referencePrice);
         }else if(allLiquidated){
-            buyColleteralSpecial(msg.value); 
+            require(collateralSettlementPrice > 0);
+            buyColleteralInternal(msg.value, collateralSettlementPrice);
         }
     }
 
-    function buyColleteralNormal(uint _money) internal {
-        uint amount = rdiv(_money, rmul(collateralPrice(), discount));
+    function buyColleteralInternal(uint _money, uint _refPrice) internal {
+        uint amount = rdiv(_money, _refPrice);
         require(amount > 0);
 
         if(amount > totalCollateralBTC()) {
-            uint change = rmul(amount - totalCollateralBTC(), rmul(collateralPrice(), discount));
-            msg.sender.transfer(change, ASSET_PAI);
-            msg.sender.transfer(totalCollateralBTC(), ASSET_BTC);
-        } else {
-            msg.sender.transfer(amount, ASSET_BTC);
-        }
-
-        /// cancel debt with newly coming in PAI
-        cancelDebt();
-    }
-
-    function buyColleteralSpecial(uint _money) internal {
-        require(collateralSettlementPrice > 0);
-        uint amount = rdiv(_money, collateralSettlementPrice);
-        require(amount > 0);
-
-        if(amount > totalCollateralBTC()) {
-            uint change = rmul(amount - totalCollateralBTC(), collateralSettlementPrice);
+            uint change = rmul(sub(amount, totalCollateralBTC()), _refPrice);
             msg.sender.transfer(change, ASSET_PAI);
             msg.sender.transfer(totalCollateralBTC(), ASSET_BTC);
         } else {

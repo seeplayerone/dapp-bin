@@ -7,12 +7,12 @@ pragma solidity 0.4.25;
 // import "./price_oracle.sol";
 // import "./pai_issuer.sol";
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/liquidator.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
 
 contract CDP is DSMath, DSNote, Template {
 
@@ -316,12 +316,8 @@ contract CDP is DSMath, DSNote, Template {
 
     /// liquidate a CDP
     function liquidate(uint record) public note {
-        require(!safe(record));
-        require(!settlement);
-        liquidateInternal(record);
-    }
+        require(!safe(record)||settlement);
 
-    function liquidateInternal(uint record) internal {
         uint256 debt = debtOfCDP(record);
         liquidator.addDebt(debt);
         totalNormalizedDebt = sub(totalNormalizedDebt, CDPRecords[record].accumulatedDebt1);
@@ -350,11 +346,11 @@ contract CDP is DSMath, DSNote, Template {
     function quickLiquidate(uint _num) public note {
         require(settlement);
         require(liquidatedCDP != CDPIndex);
-        require(block.timestamp > closeTime + bufferPeriod );
-        uint upperLimit = min(liquidatedCDP + _num, CDPIndex);
-        for(uint i = liquidatedCDP + 1; i <= upperLimit; i++) {
+        require(block.timestamp > add(closeTime, bufferPeriod));
+        uint upperLimit = min(add(liquidatedCDP, _num), CDPIndex);
+        for(uint i = add(liquidatedCDP,1); i <= upperLimit; add(i,1)) {
             if(CDPRecords[i].collateral > 0)
-                liquidateInternal(i);
+                liquidate(i);
         }
         liquidatedCDP = upperLimit;
         if(liquidatedCDP == CDPIndex)
@@ -376,13 +372,6 @@ contract CDP is DSMath, DSNote, Template {
         return (CDPRecords[record].owner,CDPRecords[record].collateral,CDPRecords[record].accumulatedDebt1,CDPRecords[record].accumulatedDebt2);
     }
 
-    function getFee() public view returns(uint){
-        return stabilityFee;
-    }
-
-    function getTax() public view returns(uint){
-        return governanceFee;
-    }
     function checkSafe(uint record) public view returns (bool) {
         return safe(record);
     }
@@ -390,6 +379,7 @@ contract CDP is DSMath, DSNote, Template {
     function reOpen() public {
         settlement = false;
         liquidationPenalty = 1130000000000000000000000000;
+        liquidatedCDP = 0;
         liquidator.reOpen();
         priceOracle.reOpen();
     }
