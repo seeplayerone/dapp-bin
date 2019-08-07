@@ -17,6 +17,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
 contract CDP is DSMath, DSNote, Template {
 
     uint256 private CDPIndex = 0;
+    uint256 private liquidatedCDP = 0;
 
     /// usually we only set one of them
     uint private stabilityFee; /// stability fee is calculated for liquidation, the fee is pre issued and sent to liquidator whenever rates change
@@ -34,7 +35,8 @@ contract CDP is DSMath, DSNote, Template {
     uint private debtCeiling; /// debt ceiling
 
     bool private settlement; /// the business is in settlement stage
-    //uint private collateralSettlementPrice; /// collateral settlement price
+    uint private closeTime; /// the time when business is settled
+    uint private bufferPeriod = 2 minutes; /// the time left for users to manage their CDPs last chance
 
     Liquidator private liquidator; /// address of the liquidator;
     PriceOracle private priceOracle; /// price oracle of BTC'/PAI and PIS/PAI
@@ -249,7 +251,6 @@ contract CDP is DSMath, DSNote, Template {
     }
 
     function getCollateralPrice() public view returns (uint256 wad){
-        //return settlement ? collateralSettlementPrice : priceOracle.getPrice(ASSET_BTC);
         return priceOracle.getPrice(ASSET_BTC);
     }
 
@@ -315,8 +316,12 @@ contract CDP is DSMath, DSNote, Template {
 
     /// liquidate a CDP
     function liquidate(uint record) public note {
-        require(!safe(record) || settlement);
+        require(!safe(record));
+        require(!settlement);
+        liquidateInternal(record);
+    }
 
+    function liquidateInternal(uint record) internal {
         uint256 debt = debtOfCDP(record);
         liquidator.addDebt(debt);
         totalNormalizedDebt = sub(totalNormalizedDebt, CDPRecords[record].accumulatedDebt1);
@@ -334,20 +339,26 @@ contract CDP is DSMath, DSNote, Template {
 
     function terminateBusiness(uint price) public note {
         require(!settlement && price != 0);
+        updateRates();
         settlement = true;
         liquidationPenalty = RAY;
-        //collateralSettlementPrice = price;
+        closeTime = block.timestamp;
         priceOracle.terminate(ASSET_BTC, price);
         liquidator.settlePhaseOne();
     }
 
-    function liquidateAll() public note {
-        //考虑到可能cdp数量非常多，难以在一条交易体内清算完毕，因此此处需要优化
-        for(uint i = 0; i<=CDPIndex;i++){
+    function quickliquidate(uint _num) public note {
+        require(settlement);
+        require(liquidatedCDP != CDPIndex);
+        require(block.timestamp > closeTime + bufferPeriod );
+        uint upperLimit = min(liquidatedCDP + _num, CDPIndex);
+        for(uint i = liquidatedCDP + 1; i <= upperLimit; i++) {
             if(CDPRecords[i].collateral > 0)
-                liquidate(i);
+                liquidateInternal(i);
         }
-        liquidator.settlePhaseTwo();
+        liquidatedCDP = upperLimit;
+        if(liquidatedCDP == CDPIndex)
+            liquidator.settlePhaseTwo();
     }
 
     /// @dev debug functions
@@ -378,6 +389,12 @@ contract CDP is DSMath, DSNote, Template {
 
     function reOpen() public {
         settlement = false;
+        liquidationPenalty = 1130000000000000000000000000;
+        liquidator.reOpen();
+        priceOracle.reOpen();
     }
 
+    function showCloseTime() public view returns (uint) {
+        return closeTime;
+    }
 }

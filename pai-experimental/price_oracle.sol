@@ -30,7 +30,7 @@ contract PriceOracle is Template {
     }
 
     ///only for debug
-    function reopen() public {
+    function reOpen() public {
         settlement = false;
     }
 
