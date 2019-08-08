@@ -29,6 +29,7 @@ contract CDP is DSMath, DSNote, Template {
     event Liquidate(uint collateral, uint debt1, uint debt2, uint _index, uint debtToLiquidator, uint collateralToLiquidator);
 
     uint256 private CDPIndex = 0;
+    uint256 private liquidatedCDP = 0;
 
     /// usually we only set one of them
     uint private stabilityFee; /// stability fee is calculated for liquidation, the fee is pre issued and sent to liquidator whenever rates change
@@ -46,7 +47,8 @@ contract CDP is DSMath, DSNote, Template {
     uint private debtCeiling; /// debt ceiling
 
     bool private settlement; /// the business is in settlement stage
-    uint private collateralSettlementPrice; /// collateral settlement price
+    uint private closeTime; /// the time when business is settled
+    uint private bufferPeriod = 2 minutes; /// the time left for users to manage their CDPs last chance
 
     Liquidator private liquidator; /// address of the liquidator;
     PriceOracle private priceOracle; /// price oracle of BTC'/PAI and PIS/PAI
@@ -70,7 +72,7 @@ contract CDP is DSMath, DSNote, Template {
         uint256 accumulatedDebt2; 
     }
 
-    constructor() public {
+    constructor(address _issuer, address _oracle, address _liquidator) public {
         stabilityFee = 1000000000000000000000000000;
         governanceFee = 1000000000000000000000000000;
         accumulatedRates1 = 1000000000000000000000000000;
@@ -80,9 +82,9 @@ contract CDP is DSMath, DSNote, Template {
 
         lastTimestamp = block.timestamp;
 
-        issuer = PAIIssuer(0x63111faa176622057b618a981a9054f39ea0d7d4f2);
-        priceOracle = PriceOracle(0x63a8568d1ab84bcfce45170b4fe70d523b7ef40a94);
-        liquidator = Liquidator(0x638758f2377c5c82bc572ce5c2f9c67478917509be);
+        issuer = PAIIssuer(_issuer);
+        priceOracle = PriceOracle(_oracle);
+        liquidator = Liquidator(_liquidator);
 
         ASSET_BTC = 0;
         ASSET_PAI = issuer.getAssetType();
@@ -299,7 +301,7 @@ contract CDP is DSMath, DSNote, Template {
     }
 
     function getCollateralPrice() public view returns (uint256 wad){
-        return settlement ? collateralSettlementPrice : priceOracle.getPrice(ASSET_BTC);
+        return priceOracle.getPrice(ASSET_BTC);
     }
 
     function setLiquidator(Liquidator newLiquidator) public {
@@ -365,7 +367,7 @@ contract CDP is DSMath, DSNote, Template {
 
     /// liquidate a CDP
     function liquidate(uint record) public note {
-        require(!safe(record) || settlement);
+        require(!safe(record)||settlement);
 
         uint256 debt = debtOfCDP(record);
         liquidator.addDebt(debt);
@@ -387,9 +389,26 @@ contract CDP is DSMath, DSNote, Template {
 
     function terminateBusiness(uint price) public note {
         require(!settlement && price != 0);
+        updateRates();
         settlement = true;
         liquidationPenalty = RAY;
-        collateralSettlementPrice = price;
+        closeTime = block.timestamp;
+        priceOracle.terminate(ASSET_BTC, price);
+        liquidator.settlePhaseOne();
+    }
+
+    function quickLiquidate(uint _num) public note {
+        require(settlement);
+        require(liquidatedCDP != CDPIndex);
+        require(block.timestamp > add(closeTime, bufferPeriod));
+        uint upperLimit = min(add(liquidatedCDP, _num), CDPIndex);
+        for(uint i = add(liquidatedCDP,1); i <= upperLimit; i = add(i,1)) {
+            if(CDPRecords[i].accumulatedDebt1 > 0)
+                liquidate(i);
+        }
+        liquidatedCDP = upperLimit;
+        if(liquidatedCDP == CDPIndex)
+            liquidator.settlePhaseTwo();
     }
 
     /// @dev debug functions
@@ -402,5 +421,24 @@ contract CDP is DSMath, DSNote, Template {
         CDPRecord storage data = CDPRecords[record];
         return (data.collateral, data.accumulatedDebt1, rmul(data.accumulatedDebt1, accumulatedRates1), data.accumulatedDebt2, rmul(data.accumulatedDebt2, accumulatedRates2));
     }
-    
+
+    function readCDP(uint record) public view returns(address, uint, uint, uint){
+        return (CDPRecords[record].owner,CDPRecords[record].collateral,CDPRecords[record].accumulatedDebt1,CDPRecords[record].accumulatedDebt2);
+    }
+
+    function checkSafe(uint record) public view returns (bool) {
+        return safe(record);
+    }
+
+    function reOpen() public {
+        settlement = false;
+        liquidationPenalty = 1130000000000000000000000000;
+        liquidatedCDP = 0;
+        liquidator.reOpen();
+        priceOracle.reOpen();
+    }
+
+    function liquidateProgress() public view returns (uint, uint) {
+        return (liquidatedCDP, CDPIndex);
+    }
 }
