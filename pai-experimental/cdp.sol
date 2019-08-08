@@ -6,6 +6,7 @@ pragma solidity 0.4.25;
 // import "./liquidator.sol";
 // import "./price_oracle.sol";
 // import "./pai_issuer.sol";
+// for test
 
 import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
