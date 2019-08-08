@@ -28,8 +28,8 @@ contract CDP is DSMath, DSNote, Template {
     event Safe(bool _safe);
     event Liquidate(uint collateral, uint debt1, uint debt2, uint _index, uint debtToLiquidator, uint collateralToLiquidator);
 
-    uint256 private CDPIndex = 0;
-    uint256 private liquidatedCDP = 0;
+    uint256 private CDPIndex = 0; /// how many CDPs have been created
+    uint256 private liquidatedCDPIndex = 0; /// how many CDPs have been liquidated, only happens when the business is in settlement process 
 
     /// usually we only set one of them
     uint private stabilityFee; /// stability fee is calculated for liquidation, the fee is pre issued and sent to liquidator whenever rates change
@@ -47,8 +47,8 @@ contract CDP is DSMath, DSNote, Template {
     uint private debtCeiling; /// debt ceiling
 
     bool private settlement; /// the business is in settlement stage
-    uint private closeTime; /// the time when business is settled
-    uint private bufferPeriod = 2 minutes; /// the time left for users to manage their CDPs last chance
+    uint private settlementTime; /// time when the settlement process starts
+    uint private bufferPeriod = 2 minutes; /// the time left for users to manage their CDPs as last chance after settlement starts
 
     Liquidator private liquidator; /// address of the liquidator;
     PriceOracle private priceOracle; /// price oracle of BTC'/PAI and PIS/PAI
@@ -387,31 +387,40 @@ contract CDP is DSMath, DSNote, Template {
         emit Liquidate(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, debt, collateralToLiquidator);
     }
 
+    /// terminate business => settlement process starts
+    /// there are two phases of settlement
+    ///     1. User/system can liquidate all CDPs using the given price without any penalty; only withdraw operation is allowed.
+    ///        Liquidator can not sell collateral at this phase.
+    ///     2. All CDPs are liquidated, withdraw operation is still allowed if more collaterals are left in CDPs.
+    ///        A final collateral price is calculated for users to redeem PAI for collateral from Liquidator.
     function terminateBusiness(uint price) public note {
         require(!settlement && price != 0);
         updateRates();
         settlement = true;
         liquidationPenalty = RAY;
-        closeTime = block.timestamp;
+        settlementTime = block.timestamp;
         priceOracle.terminate(ASSET_BTC, price);
         liquidator.settlePhaseOne();
     }
 
+    /// liquidate all CDPs after buffer period
+    /// the settlement process turns to phase 2 after all CDPs are liquidated
     function quickLiquidate(uint _num) public note {
         require(settlement);
-        require(liquidatedCDP != CDPIndex);
-        require(block.timestamp > add(closeTime, bufferPeriod));
-        uint upperLimit = min(add(liquidatedCDP, _num), CDPIndex);
-        for(uint i = add(liquidatedCDP,1); i <= upperLimit; i = add(i,1)) {
+        require(liquidatedCDPIndex != CDPIndex);
+        require(block.timestamp > add(settlementTime, bufferPeriod));
+        uint upperLimit = min(add(liquidatedCDPIndex, _num), CDPIndex);
+        for(uint i = add(liquidatedCDPIndex,1); i <= upperLimit; i = add(i,1)) {
             if(CDPRecords[i].accumulatedDebt1 > 0)
                 liquidate(i);
         }
-        liquidatedCDP = upperLimit;
-        if(liquidatedCDP == CDPIndex)
+        liquidatedCDPIndex = upperLimit;
+        if(liquidatedCDPIndex == CDPIndex)
             liquidator.settlePhaseTwo();
     }
 
     /// @dev debug functions
+    /// TODO should be removed
 
     function debug() public view returns(uint, uint, uint, uint, uint, uint) {
         return (CDPIndex, lastTimestamp, accumulatedRates1, accumulatedRates2, totalNormalizedDebt, flow.balance(this, ASSET_BTC));
@@ -433,12 +442,12 @@ contract CDP is DSMath, DSNote, Template {
     function reOpen() public {
         settlement = false;
         liquidationPenalty = 1130000000000000000000000000;
-        liquidatedCDP = 0;
+        liquidatedCDPIndex = 0;
         liquidator.reOpen();
         priceOracle.reOpen();
     }
 
     function liquidateProgress() public view returns (uint, uint) {
-        return (liquidatedCDP, CDPIndex);
+        return (liquidatedCDPIndex, CDPIndex);
     }
 }

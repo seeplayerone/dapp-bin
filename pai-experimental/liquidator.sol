@@ -23,7 +23,7 @@ contract Liquidator is DSMath, DSNote, Template {
 
     bool private settlement; /// the business is in settlement stage
     bool private allLiquidated; /// the business is in settlement stage and all CDPs have been liquidated
-    uint private collateralSettlementPrice; /// collateral settlement price
+    uint private collateralSettlementPrice; /// collateral settlement price, avaliable on settlememnt phase 2
 
     PriceOracle private oracle; /// price oracle
     PAIIssuer private issuer; /// PAI issuer
@@ -86,13 +86,17 @@ contract Liquidator is DSMath, DSNote, Template {
     }
 
     /// the liquidator sells BTC'
+    /// users can buy collateral from the liquidator either before settlement or in settlement phase 2, with different prices
     function buyColleteral() public payable note {
         require(msg.assettype == ASSET_PAI);
         require(!settlement||allLiquidated);
+        /// before settlement
         if(!settlement){
             uint referencePrice = rmul(collateralPrice(), discount);
             buyColleteralInternal(msg.value, referencePrice);
-        }else if(allLiquidated){
+        }
+        /// settlement phase 2
+        else if(allLiquidated){
             require(collateralSettlementPrice > 0);
             buyColleteralInternal(msg.value, collateralSettlementPrice);
         }
@@ -143,7 +147,7 @@ contract Liquidator is DSMath, DSNote, Template {
 
 
     /// only for debug
-    function States() public view returns(bool,bool) {
+    function states() public view returns(bool,bool) {
         return (settlement,allLiquidated);
     }
 
