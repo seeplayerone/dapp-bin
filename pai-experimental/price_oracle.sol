@@ -23,9 +23,8 @@ contract PriceOracle is Template {
         prices[asset] = price;
     }
 
-    function terminate(uint256 asset, uint256 finalPrice) public {
+    function terminate() public {
         require(!settlement);
-        prices[asset] = finalPrice;
         settlement = true;
     }
 
