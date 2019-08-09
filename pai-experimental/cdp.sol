@@ -386,7 +386,7 @@ contract CDP is DSMath, DSNote, Template {
     }
 
     function terminateBusiness() public note {
-        require(!settlement && price != 0);
+        require(!settlement);
         updateRates();
         settlement = true;
         liquidationPenalty = RAY;
