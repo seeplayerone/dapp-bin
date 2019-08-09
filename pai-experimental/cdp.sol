@@ -7,12 +7,12 @@ pragma solidity 0.4.25;
 // import "./price_oracle.sol";
 // import "./pai_issuer.sol";
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/liquidator.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
 
 contract CDP is DSMath, DSNote, Template {
 
@@ -47,11 +47,6 @@ contract CDP is DSMath, DSNote, Template {
     uint private debtCeiling; /// debt ceiling
 
     bool private settlement; /// the business is in settlement stage
-<<<<<<< HEAD
-=======
-    uint private settlementTime; /// time when the settlement process starts
-    uint private bufferPeriod = 2 minutes; /// the time left for users to manage their CDPs as last chance after settlement starts
->>>>>>> 07d935b57fb2f1c8572eb045266514e89c8017ea
 
     Liquidator private liquidator; /// address of the liquidator;
     PriceOracle private priceOracle; /// price oracle of BTC'/PAI and PIS/PAI
@@ -390,28 +385,18 @@ contract CDP is DSMath, DSNote, Template {
         emit Liquidate(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, debt, collateralToLiquidator);
     }
 
-<<<<<<< HEAD
-    function terminateBusiness() public note {
-        require(!settlement);
-        updateRates();
-        settlement = true;
-        liquidationPenalty = RAY;
-        priceOracle.terminate();
-=======
     /// terminate business => settlement process starts
     /// there are two phases of settlement
     ///     1. User/system can liquidate all CDPs using the given price without any penalty; only withdraw operation is allowed.
     ///        Liquidator can not sell collateral at this phase.
     ///     2. All CDPs are liquidated, withdraw operation is still allowed if more collaterals are left in CDPs.
     ///        A final collateral price is calculated for users to redeem PAI for collateral from Liquidator.
-    function terminateBusiness(uint price) public note {
-        require(!settlement && price != 0);
+    function terminateBusiness() public note {
+        require(!settlement);
         updateRates();
         settlement = true;
         liquidationPenalty = RAY;
-        settlementTime = block.timestamp;
-        priceOracle.terminate(ASSET_BTC, price);
->>>>>>> 07d935b57fb2f1c8572eb045266514e89c8017ea
+        priceOracle.terminate();
         liquidator.settlePhaseOne();
     }
 
@@ -419,16 +404,9 @@ contract CDP is DSMath, DSNote, Template {
     /// the settlement process turns to phase 2 after all CDPs are liquidated
     function quickLiquidate(uint _num) public note {
         require(settlement);
-<<<<<<< HEAD
-        require(liquidatedCDP != CDPIndex);
-        uint upperLimit = min(add(liquidatedCDP, _num), CDPIndex);
-        for(uint i = add(liquidatedCDP,1); i <= upperLimit; i = add(i,1)) {
-=======
         require(liquidatedCDPIndex != CDPIndex);
-        require(block.timestamp > add(settlementTime, bufferPeriod));
         uint upperLimit = min(add(liquidatedCDPIndex, _num), CDPIndex);
         for(uint i = add(liquidatedCDPIndex,1); i <= upperLimit; i = add(i,1)) {
->>>>>>> 07d935b57fb2f1c8572eb045266514e89c8017ea
             if(CDPRecords[i].accumulatedDebt1 > 0)
                 liquidate(i);
         }

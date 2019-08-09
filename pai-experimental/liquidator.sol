@@ -6,19 +6,11 @@ import "./price_oracle.sol";
 import "./pai_issuer.sol";
 import "../library/template.sol";
 
-<<<<<<< HEAD
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-=======
 // import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
 // import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
 // import "github.com/seeplayerone/dapp-bin/library/template.sol";
 // import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
 // import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
->>>>>>> 07d935b57fb2f1c8572eb045266514e89c8017ea
 
 
 contract Liquidator is DSMath, DSNote, Template {
