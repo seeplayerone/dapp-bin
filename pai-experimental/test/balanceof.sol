@@ -1,18 +1,25 @@
 pragma solidity 0.4.25;
 
-contract BalanceOf {
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+
+contract BalanceOf is Template {
     uint amount;
     uint assettype;
 
     address private hole = 0x660000000000000000000000000000000000000000;    
 
-    function test() public payable {
-        amount = msg.value / 2;
-        assettype = msg.assettype;
-        hole.transfer(amount, msg.assettype);
-    }
+    event Balance(uint);
 
-    function check() public view returns (uint, uint){
-        return (amount, flow.balance(this, assettype));
+    function test() public payable {
+        amount = msg.value;
+
+        emit Balance(amount);
+        emit Balance(flow.balance(this, msg.assettype));
+
+        hole.transfer(msg.value/2, msg.assettype);
+        amount = msg.value/2;
+
+        emit Balance(amount);
+        emit Balance(flow.balance(this, msg.assettype));        
     }
 }
