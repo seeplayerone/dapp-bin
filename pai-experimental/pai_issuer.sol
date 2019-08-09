@@ -1,10 +1,15 @@
 pragma solidity 0.4.25;
 
-// import "../library/template.sol";
-// import "./3rd/math.sol";
+import "../library/template.sol";
+import "./3rd/math.sol";
 
+<<<<<<< HEAD
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
+=======
+// import "github.com/seeplayerone/dapp-bin/library/template.sol";
+// import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+>>>>>>> 07d935b57fb2f1c8572eb045266514e89c8017ea
 
 
 /// @dev the Registry interface
