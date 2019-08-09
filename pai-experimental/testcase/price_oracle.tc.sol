@@ -1,18 +1,18 @@
 pragma solidity 0.4.25;
 
-import "../../library/template.sol";
-import "../price_oracle.sol";
-import "../3rd/test.sol";
+// import "../../library/template.sol";
+// import "../price_oracle.sol";
+// import "../3rd/test.sol";
 
-// import "github.com/seeplayerone/dapp-bin/library/template.sol";
-// import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol"
-// import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
 
 contract PriceOracleTest is Template, DSTest {
     PriceOracle private oracle;
 
-    constructor(string _templateName) public {
-        oracle =  PriceOracle(flow.deployContract(1, _templateName, ""));        
+    constructor(address addr) public {
+        oracle =  PriceOracle(addr);        
     }
 
     function testUpdatePriceSuccess() public {

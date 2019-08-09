@@ -1,20 +1,20 @@
 pragma solidity 0.4.25;
 
-import "../../library/template.sol";
-import "../pai_issuer.sol";
-import "../3rd/test.sol";
+// import "../../library/template.sol";
+// import "../pai_issuer.sol";
+// import "../3rd/test.sol";
 
-// import "github.com/seeplayerone/dapp-bin/library/template.sol";
-// import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol"
-// import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
 
 contract PAIIssuerTest is Template, DSTest {
     PAIIssuer private issuer;
 
     address private dest = 0x668eb397ce8ccc9caec9fec1b019a31f931725ca94;
 
-    constructor(string _templateName) public {
-        issuer = PAIIssuer(flow.deployContract(1, _templateName, ""));
+    constructor(address addr) public {
+        issuer = PAIIssuer(addr);
     }
 
     function testCreate() public {
