@@ -26,9 +26,8 @@ contract PriceOracle is Template {
     /// terminate the business and provide a final collateral price
     /// note this `price` is used for liquidation CDPs in settlement process
     /// the final price used to redeem PAI for collateral in the liquidator is calculated later by the liquidator itself
-    function terminate(uint256 asset, uint256 finalPrice) public {
+    function terminate() public {
         require(!settlement);
-        prices[asset] = finalPrice;
         settlement = true;
     }
 

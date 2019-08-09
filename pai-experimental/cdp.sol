@@ -47,8 +47,6 @@ contract CDP is DSMath, DSNote, Template {
     uint private debtCeiling; /// debt ceiling
 
     bool private settlement; /// the business is in settlement stage
-    uint private settlementTime; /// time when the settlement process starts
-    uint private bufferPeriod = 2 minutes; /// the time left for users to manage their CDPs as last chance after settlement starts
 
     Liquidator private liquidator; /// address of the liquidator;
     PriceOracle private priceOracle; /// price oracle of BTC'/PAI and PIS/PAI
@@ -393,13 +391,12 @@ contract CDP is DSMath, DSNote, Template {
     ///        Liquidator can not sell collateral at this phase.
     ///     2. All CDPs are liquidated, withdraw operation is still allowed if more collaterals are left in CDPs.
     ///        A final collateral price is calculated for users to redeem PAI for collateral from Liquidator.
-    function terminateBusiness(uint price) public note {
-        require(!settlement && price != 0);
+    function terminateBusiness() public note {
+        require(!settlement);
         updateRates();
         settlement = true;
         liquidationPenalty = RAY;
-        settlementTime = block.timestamp;
-        priceOracle.terminate(ASSET_BTC, price);
+        priceOracle.terminate();
         liquidator.settlePhaseOne();
     }
 
@@ -408,7 +405,6 @@ contract CDP is DSMath, DSNote, Template {
     function quickLiquidate(uint _num) public note {
         require(settlement);
         require(liquidatedCDPIndex != CDPIndex);
-        require(block.timestamp > add(settlementTime, bufferPeriod));
         uint upperLimit = min(add(liquidatedCDPIndex, _num), CDPIndex);
         for(uint i = add(liquidatedCDPIndex,1); i <= upperLimit; i = add(i,1)) {
             if(CDPRecords[i].accumulatedDebt1 > 0)
