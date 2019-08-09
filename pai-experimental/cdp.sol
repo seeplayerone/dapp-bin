@@ -7,12 +7,12 @@ pragma solidity 0.4.25;
 // import "./price_oracle.sol";
 // import "./pai_issuer.sol";
 
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
+import "github.com/evilcc2018/dapp-bin/library/template.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/liquidator.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
 
 contract CDP is DSMath, DSNote, Template {
 
@@ -47,8 +47,6 @@ contract CDP is DSMath, DSNote, Template {
     uint private debtCeiling; /// debt ceiling
 
     bool private settlement; /// the business is in settlement stage
-    uint private closeTime; /// the time when business is settled
-    uint private bufferPeriod = 2 minutes; /// the time left for users to manage their CDPs last chance
 
     Liquidator private liquidator; /// address of the liquidator;
     PriceOracle private priceOracle; /// price oracle of BTC'/PAI and PIS/PAI
@@ -387,20 +385,18 @@ contract CDP is DSMath, DSNote, Template {
         emit Liquidate(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, debt, collateralToLiquidator);
     }
 
-    function terminateBusiness(uint price) public note {
+    function terminateBusiness() public note {
         require(!settlement && price != 0);
         updateRates();
         settlement = true;
         liquidationPenalty = RAY;
-        closeTime = block.timestamp;
-        priceOracle.terminate(ASSET_BTC, price);
+        priceOracle.terminate();
         liquidator.settlePhaseOne();
     }
 
     function quickLiquidate(uint _num) public note {
         require(settlement);
         require(liquidatedCDP != CDPIndex);
-        require(block.timestamp > add(closeTime, bufferPeriod));
         uint upperLimit = min(add(liquidatedCDP, _num), CDPIndex);
         for(uint i = add(liquidatedCDP,1); i <= upperLimit; i = add(i,1)) {
             if(CDPRecords[i].accumulatedDebt1 > 0)
