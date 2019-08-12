@@ -18,15 +18,11 @@ contract PAIIssuerTest is Template, DSTest {
     }
 
     function testCreate() public {
-        issuer.init("pai-issuer");
-
         issuer.mint(100000000, dest);
         assertEq(100000000, flow.balance(dest, issuer.getAssetType()));
     }
 
     function testCreateAndMint() public {
-        issuer.init("pai-issuer");
-
         issuer.mint(100000000, dest);
         issuer.mint(100000000, dest);
         assertEq(200000000, flow.balance(dest,issuer.getAssetType()));
