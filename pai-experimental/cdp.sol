@@ -172,7 +172,8 @@ contract CDP is DSMath, DSNote, Template {
 
     function borrowInternal(uint record, uint amount) internal {
         require(!settlement);
-        require(CDPRecords[record].owner == msg.sender);
+        /// TEST ONLY, SHOULD BE REVERTED
+        /// require(CDPRecords[record].owner == msg.sender);
 
         uint newDebt1 = rdiv(amount, updateAndFetchRates1());
         require(newDebt1 > 0);
