@@ -19,6 +19,10 @@ contract LiquidatorTest is Template, DSTest, DSMath {
     uint private ASSET_BTC;
     uint private ASSET_PAI;
 
+    function() public payable {
+
+    }
+
     constructor(address liq, address ora, address iss) public {
         liquidator = Liquidator(liq);
         oracle = PriceOracle(ora);
@@ -37,36 +41,36 @@ contract LiquidatorTest is Template, DSTest, DSMath {
         assertEq(100000000, liquidator.totalDebtPAI());
     }
 
-    function testAddPAI() public payable {
-        require(msg.assettype == ASSET_PAI);
-        liquidator.addPAI();
-        assertEq(msg.value, liquidator.totalAssetPAI());
+    function testAddPAI() public {
+        uint value = 1000000000;
+        liquidator.addPAI.value(value, ASSET_PAI)();
+        assertEq(value, liquidator.totalAssetPAI());
     }
 
-    function testAddBTC() public payable {
-        require(msg.assettype == ASSET_BTC);
-        liquidator.addBTC();
-        assertEq(msg.value, liquidator.totalCollateralBTC());
+    function testAddBTC() public {
+        uint value = 1000000000;
+        liquidator.addBTC.value(value, ASSET_BTC)();
+        assertEq(value, liquidator.totalCollateralBTC());
     }
 
-    function testCancelDebtWithPAIRemaining() public payable {
-        require(msg.assettype == ASSET_PAI);
-        liquidator.addPAI();
-        liquidator.addDebt(msg.value/2);
-        assertEq(msg.value/2, liquidator.totalAssetPAI());
+    function testCancelDebtWithPAIRemaining() public {
+        uint value = 1000000000;
+        liquidator.addPAI.value(value, ASSET_PAI)();
+        liquidator.addDebt(value/2);
+        assertEq(value/2, liquidator.totalAssetPAI());
     }
 
-    function testCancelDebtWithDebtRemaining() public payable {
-        require(msg.assettype == ASSET_PAI);
-        liquidator.addPAI();
-        liquidator.addDebt(msg.value*2);
-        assertEq(msg.value, liquidator.totalDebtPAI());
+    function testCancelDebtWithDebtRemaining() public {
+        uint value = 1000000000;
+        liquidator.addPAI.value(value, ASSET_PAI)();
+        liquidator.addDebt(value*2);
+        assertEq(value, liquidator.totalDebtPAI());
     }
 
-    function testAddDebtAndBTC() public payable {
-        require(msg.assettype == ASSET_BTC);
-        liquidator.addBTC();
-        assertEq(msg.value, liquidator.totalCollateralBTC());
+    function testAddDebtAndBTC() public {
+        uint value = 1000000000;
+        liquidator.addBTC.value(value, ASSET_BTC)();
+        assertEq(value, liquidator.totalCollateralBTC());
         liquidator.addDebt(100000000);
         assertEq(100000000, liquidator.totalDebtPAI());
     }
@@ -78,32 +82,36 @@ contract LiquidatorTest is Template, DSTest, DSMath {
 
     //// should be tested when there is BTC in Liquidator
     //// let's say 10 BTC
-    function testBuyCollateralNormal() public payable {
-        require(msg.assettype == ASSET_PAI);
+    function testBuyCollateralNormal() public {
+
+        liquidator.addBTC.value(1000000000, ASSET_BTC)();
 
         assertEq(1000000000, liquidator.totalCollateralBTC());
 
         oracle.updatePrice(0, 10*(10**27));
         assertEq(10*(10**27), liquidator.collateralPrice());
 
+        uint value = 2000000000;
+
         uint originalBTC = liquidator.totalCollateralBTC();
 
-        liquidator.buyColleteral();
+        liquidator.buyColleteral.value(value, ASSET_PAI)();
 
-        uint amount = rdiv(msg.value, rmul(liquidator.collateralPrice(), discount));
+        uint amount = rdiv(value, rmul(liquidator.collateralPrice(), discount));
         if(amount > originalBTC) {
             assertEq(0, liquidator.totalCollateralBTC());
             assertEq(rmul(originalBTC, rmul(liquidator.collateralPrice(), discount)), liquidator.totalAssetPAI());
         } else {
             assertEq(originalBTC - amount, liquidator.totalCollateralBTC());
-            assertEq(rmul(amount, rmul(liquidator.collateralPrice(), discount)), liquidator.totalAssetPAI());
+            assertEq(0, liquidator.totalAssetPAI());
         }
     }  
 
     //// should be tested when there is BTC and -PAI in Liquidator
     //// let's say 10 BTC and -500 PAI
-    function testBuyCollateralSettlement() public payable {
-        require(msg.assettype == ASSET_PAI);
+    function testBuyCollateralSettlement() public {
+        liquidator.addBTC.value(1000000000, ASSET_BTC)();
+        liquidator.addDebt(50000000000);
 
         assertEq(1000000000, liquidator.totalCollateralBTC());
         assertEq(50000000000, liquidator.totalDebtPAI());
@@ -111,22 +119,24 @@ contract LiquidatorTest is Template, DSTest, DSMath {
         oracle.updatePrice(0, 10**27 * 10);
         assertEq(10**27 * 10, liquidator.collateralPrice());
 
+        uint value = 2000000000;
+
         uint originalBTC = liquidator.totalCollateralBTC();
 
         liquidator.settlePhaseOne();
         liquidator.settlePhaseTwo();
 
-        assertEq(10**27 * 10 / 500, liquidator.collateralPrice());
+        assertEq(10**27 * 500 / 10, liquidator.collateralPrice());
 
-        liquidator.buyColleteral();
+        liquidator.buyColleteral.value(value, ASSET_PAI)();
 
-        uint amount = rdiv(msg.value, rmul(liquidator.collateralPrice(), discount));
+        uint amount = rdiv(value, liquidator.collateralPrice());
         if(amount > originalBTC) {
             assertEq(0, liquidator.totalCollateralBTC());
-            assertEq(rmul(originalBTC, rmul(liquidator.collateralPrice(), discount)), liquidator.totalAssetPAI());
+            assertEq(rmul(originalBTC, liquidator.collateralPrice()), liquidator.totalAssetPAI());
         } else {
             assertEq(originalBTC - amount, liquidator.totalCollateralBTC());
-            assertEq(rmul(amount, rmul(liquidator.collateralPrice(), discount)), liquidator.totalAssetPAI());
+            assertEq(0, liquidator.totalAssetPAI());
         }        
     }
 }
