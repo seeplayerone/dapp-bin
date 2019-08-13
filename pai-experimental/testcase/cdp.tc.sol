@@ -29,9 +29,31 @@ contract TestTimeflies is DSNote {
 }
 
 contract TimefliesCDP is CDP, TestTimeflies {
+    constructor(address _issuer, address _oracle, address _liquidator)
+        CDP(_issuer, _oracle, _liquidator)
+        public 
+    {
+
+    }
     
 }
 
 contract CDPTest is Template, DSTest, DSMath {
+    TimefliesCDP private cdp;
+    constructor(address _cdp) public {
+        cdp = TimefliesCDP(_cdp);
+    }
+
+    function() public payable {
+
+    }
+
+    //// test when there is enough BTC deposit
+    function testBorrowGovernanceFee() public {
+        cdp.updateGovernanceFee(1000000003000000000000000000);
+        cdp.borrow(1, 100000000);
+        cdp.fly(1 days);
+        assertEq(100025920, cdp.debtOfCDPwithGovernanceFee(1));
+    }
     
 }
