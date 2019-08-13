@@ -78,7 +78,7 @@ contract CDP is DSMath, DSNote, Template {
         liquidationRatio = 1500000000000000000000000000;
         liquidationPenalty = 1130000000000000000000000000;
 
-        lastTimestamp = block.timestamp;
+        lastTimestamp = era();
 
         issuer = PAIIssuer(_issuer);
         priceOracle = PriceOracle(_oracle);
@@ -86,6 +86,10 @@ contract CDP is DSMath, DSNote, Template {
 
         ASSET_BTC = 0;
         ASSET_PAI = issuer.getAssetType();
+    }
+
+    function era() public view returns (uint) {
+        return block.timestamp;
     }
 
     function updateStabilityFee(uint newFee) public {
@@ -335,7 +339,7 @@ contract CDP is DSMath, DSNote, Template {
     function updateRates() public note {
         if(settlement) return;
 
-        uint256 currentTimestamp = block.timestamp;
+        uint256 currentTimestamp = era();
         uint256 deltaSeconds = currentTimestamp - lastTimestamp;
         if (deltaSeconds == 0) return; 
         lastTimestamp = currentTimestamp;
