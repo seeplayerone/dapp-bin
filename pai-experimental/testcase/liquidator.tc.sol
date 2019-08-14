@@ -31,15 +31,8 @@ contract LiquidatorTest is Template, DSTest, DSMath {
 
     }
 
-    constructor() public payable {
-        /// Please send me 100 BTC
-    }
-
     function setup() public {
-        ASSET_BTC = 0; /// using ASIM asset for test purpose
-        
         oracle = new PriceOracle();
-        oracle.updatePrice(ASSET_BTC, RAY * 10);
 
         paiIssuer = new FakePAIIssuer();
         paiIssuer.init("sb");
@@ -52,6 +45,8 @@ contract LiquidatorTest is Template, DSTest, DSMath {
         liquidator = new Liquidator(oracle, paiIssuer);
         liquidator.setAssetPAI(ASSET_PAI);
         liquidator.setAssetBTC(ASSET_BTC);
+
+        oracle.updatePrice(ASSET_BTC, RAY * 10);
 
         paiIssuer.mint(100000000000, this);
         btcIssuer.mint(10000000000, this);
@@ -108,8 +103,6 @@ contract LiquidatorTest is Template, DSTest, DSMath {
         assertEq(10*(10**27), liquidator.collateralPrice());
     }
 
-    //// should be tested when there is BTC in Liquidator
-    //// let's say 10 BTC
     function testBuyCollateralNormal() public {
         setup();
         liquidator.addBTC.value(1000000000, ASSET_BTC)();
@@ -137,8 +130,6 @@ contract LiquidatorTest is Template, DSTest, DSMath {
         }
     }  
 
-    //// should be tested when there is BTC and -PAI in Liquidator
-    //// let's say 10 BTC and -500 PAI
     function testBuyCollateralSettlement() public {
         setup();
         liquidator.addBTC.value(1000000000, ASSET_BTC)();
