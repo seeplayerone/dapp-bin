@@ -39,6 +39,14 @@ contract Liquidator is DSMath, DSNote, Template {
         discount = 970000000000000000000000000;
     }
 
+    function setAssetPAI(uint assetType) public {
+        ASSET_PAI = assetType;
+    } 
+
+    function setAssetBTC(uint assetType) public {
+        ASSET_BTC = assetType;
+    }
+
     /// payable fallback function
     /// the liquidator can accept all types of assets issued on Asimov
     function() public payable {

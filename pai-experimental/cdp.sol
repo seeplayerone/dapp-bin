@@ -88,6 +88,14 @@ contract CDP is DSMath, DSNote, Template {
         ASSET_PAI = issuer.getAssetType();
     }
 
+    function setAssetPAI(uint assetType) public {
+        ASSET_PAI = assetType;
+    } 
+
+    function setAssetBTC(uint assetType) public {
+        ASSET_BTC = assetType;
+    }
+
     function era() public view returns (uint) {
         return block.timestamp;
     }
