@@ -10,19 +10,21 @@ import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
 
 contract PAIIssuerTest is Template, DSTest {
     PAIIssuer private issuer;
-
     address private dest = 0x668eb397ce8ccc9caec9fec1b019a31f931725ca94;
 
-    constructor(address addr) public {
-        issuer = PAIIssuer(addr);
+    function setup() public {
+        issuer = new PAIIssuer();
+        issuer.init("sb");
     }
 
     function testCreate() public {
+        setup();
         issuer.mint(100000000, dest);
         assertEq(100000000, flow.balance(dest, issuer.getAssetType()));
     }
 
     function testCreateAndMint() public {
+        setup();
         issuer.mint(100000000, dest);
         issuer.mint(100000000, dest);
         assertEq(200000000, flow.balance(dest,issuer.getAssetType()));
