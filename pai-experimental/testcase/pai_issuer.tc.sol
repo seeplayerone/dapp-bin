@@ -5,15 +5,21 @@ pragma solidity 0.4.25;
 // import "../3rd/test.sol";
 
 import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer_t.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
 
+contract FakeTemplateNamePAIIssuer is PAIIssuer {
+    constructor() public {
+        templateName = "Fake-Template-Name-For-Test";
+    }
+}
+
 contract PAIIssuerTest is Template, DSTest {
-    PAIIssuer private issuer;
+    FakeTemplateNamePAIIssuer private issuer;
     address private dest = 0x668eb397ce8ccc9caec9fec1b019a31f931725ca94;
 
     function setup() public {
-        issuer = new PAIIssuer();
+        issuer = new FakeTemplateNamePAIIssuer();
         issuer.init("sb");
     }
 
