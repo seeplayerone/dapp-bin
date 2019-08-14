@@ -33,7 +33,7 @@ contract PAIIssuer is Template, DSMath {
         name = _name;
         /// TODO organization registration should be done in DAO
         Registry registry = Registry(0x630000000000000000000000000000000000000065);
-        orgnizationID = registry.registerOrganization(name, "TEST-TEMPLATE-SHOULD-BE-REMOVED");
+        orgnizationID = registry.registerOrganization(name, templateName);
         assetIndex = 1;
         assetType = 0;
         uint64 assetId = uint64(assetType) << 32 | uint64(orgnizationID);
