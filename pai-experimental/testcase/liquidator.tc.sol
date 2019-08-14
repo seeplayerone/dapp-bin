@@ -9,8 +9,9 @@ import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/seeplayerone/dapp-bin/library/template.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/fake_btc_issuer.sol";
 
-contract FakeTemplateNamePAIIssuer is PAIIssuer {
+contract FakePAIIssuer is PAIIssuer {
     constructor() public {
         templateName = "Fake-Template-Name-For-Test";
     }
@@ -19,7 +20,8 @@ contract FakeTemplateNamePAIIssuer is PAIIssuer {
 contract LiquidatorTest is Template, DSTest, DSMath {
     Liquidator private liquidator;
     PriceOracle private oracle;
-    FakeTemplateNamePAIIssuer private issuer;
+    FakePAIIssuer private paiIssuer;
+    FakeBTCIssuer private btcIssuer;
 
     uint private discount = 970000000000000000000000000;
     uint private ASSET_BTC;
@@ -39,17 +41,20 @@ contract LiquidatorTest is Template, DSTest, DSMath {
         oracle = new PriceOracle();
         oracle.updatePrice(ASSET_BTC, RAY * 10);
 
-        issuer = new FakeTemplateNamePAIIssuer();
-        issuer.init("sb");
-        ASSET_PAI = issuer.getAssetType();
+        paiIssuer = new FakePAIIssuer();
+        paiIssuer.init("sb");
+        ASSET_PAI = paiIssuer.getAssetType();
 
-        liquidator = new Liquidator(oracle, issuer);
+        btcIssuer = new FakeBTCIssuer();
+        btcIssuer.init("sb2");
+        ASSET_BTC = btcIssuer.getAssetType();
 
-        issuer.mint(100000000000, this);
-    }
+        liquidator = new Liquidator(oracle, paiIssuer);
+        liquidator.setAssetPAI(ASSET_PAI);
+        liquidator.setAssetBTC(ASSET_BTC);
 
-    function debug() public view returns(uint) {
-        return issuer.getAssetType();
+        paiIssuer.mint(100000000000, this);
+        btcIssuer.mint(10000000000, this);
     }
 
     function testAddDebt() public {
@@ -99,7 +104,7 @@ contract LiquidatorTest is Template, DSTest, DSMath {
 
     function testCollateralPrice() public {
         setup();
-        oracle.updatePrice(0, 10*(10**27));
+        oracle.updatePrice(ASSET_BTC, 10*(10**27));
         assertEq(10*(10**27), liquidator.collateralPrice());
     }
 
@@ -108,9 +113,12 @@ contract LiquidatorTest is Template, DSTest, DSMath {
     function testBuyCollateralNormal() public {
         setup();
         liquidator.addBTC.value(1000000000, ASSET_BTC)();
+        liquidator.addDebt(50000000000);
+    
         assertEq(1000000000, liquidator.totalCollateralBTC());
+        assertEq(50000000000, liquidator.totalDebtPAI());
 
-        oracle.updatePrice(0, 10*(10**27));
+        oracle.updatePrice(ASSET_BTC, 10*(10**27));
         assertEq(10*(10**27), liquidator.collateralPrice());
 
         uint value = 2000000000;
@@ -139,7 +147,7 @@ contract LiquidatorTest is Template, DSTest, DSMath {
         assertEq(1000000000, liquidator.totalCollateralBTC());
         assertEq(50000000000, liquidator.totalDebtPAI());
 
-        oracle.updatePrice(0, 10**27 * 10);
+        oracle.updatePrice(ASSET_BTC, 10**27 * 10);
         assertEq(10**27 * 10, liquidator.collateralPrice());
 
         uint value = 2000000000;
