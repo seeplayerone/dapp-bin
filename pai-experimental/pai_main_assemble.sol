@@ -1,0 +1,80 @@
+pragma solidity 0.4.25;
+
+// import "./3rd/math.sol";
+// import "../library/organization.sol";
+
+import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/evilcc2018/dapp-bin/library/organization.sol";
+
+contract PAIDAO is Organization, DSMath {
+    ///params for organization
+    uint32 private organizationId;
+    bool registed = false;
+
+    ///params for assets;
+    uint32 private constant PIS = 0;
+    uint32 private constant PAI = 1;
+    struct AdditionalAssetInfo {
+        uint64 assetLocalId;
+        uint96 assetGlobalId;
+    }
+    mapping (uint32 => AdditionalAssetInfo) private Token; //name needs to be optimized；
+
+    ///params for burn
+    address private hole = 0x660000000000000000000000000000000000000000;
+    
+    constructor(string _organizationName, address[] _members)
+        Organization(_organizationName, _members)
+        public
+    {
+    }
+
+    function init() public {
+        require(!registed);
+        organizationId = registry.registerOrganization(organizationName, templateName);
+        registed = true;
+    }
+
+    function mintPIS(uint amount, address dest) public {
+        if(issuedAssets[PIS].existed) {
+            mint(PIS, amount);
+        } else {
+            create("PIS", "PIS", "Share of PAIDAO", 0, PIS, amount);
+            Token[PIS].assetLocalId = uint64(issuedAssets[PIS].assetType) << 32 | uint64(organizationId);
+            Token[PIS].assetGlobalId = uint96(Token[PIS].assetLocalId) << 32 | uint96(PIS);
+        }
+        dest.transfer(amount, Token[PIS].assetGlobalId);
+    }
+
+    function mintPAI(uint amount, address dest) public {
+        if(issuedAssets[PAI].existed) {
+            mint(PAI, amount);
+        } else {
+            create("PAI", "PAI", "PAI Stable Coin", 0, PAI, amount);
+            Token[PAI].assetLocalId = uint64(issuedAssets[PAI].assetType) << 32 | uint64(organizationId);
+            Token[PAI].assetGlobalId = uint96(Token[PAI].assetLocalId) << 32 | uint96(PAI);
+        }
+        dest.transfer(amount, Token[PAI].assetGlobalId);
+    }
+
+    function burn() public payable{
+        require(msg.assettype == Token[PIS].assetGlobalId 
+             || msg.assettype == Token[PAI].assetGlobalId,
+             "Only PAI or PIS can be burned!");
+        if(msg.assettype == Token[PIS].assetGlobalId){
+            issuedAssets[PIS].totalIssued = sub(issuedAssets[PIS].totalIssued, msg.value);
+        }else{
+            issuedAssets[PAI].totalIssued = sub(issuedAssets[PAI].totalIssued, msg.value);
+        }
+        hole.transfer(msg.value, msg.assettype);
+    }
+
+    /// only for debug
+    function getOrganizationId() public view returns(uint32) {
+        return organizationId;
+    }
+
+    function getAdditionalAssetInfo(uint32 _assetIndex) public view returns (uint, uint) {
+        return (Token[_assetIndex].assetLocalId,Token[_assetIndex].assetGlobalId);
+    }
+}

@@ -113,6 +113,9 @@ contract ACL {
     /// @param _opMode either add or remove
     function configureAddressRole(address _address, string _role, OpMode _opMode) authFunctionHash(CONFIGURE_NORMAL_FUNCTION) public {
         configureAddressRoleInternal(_address, _role, _opMode);
+        ///这里有个漏洞，如果"董事长"把"ceo"设置成最高权限，这个时候，普通主管确实无法将任意一个“角色”设置成“最高权限”，
+        ///但是普通主管可以将任意一个“地址”设置成CEO，从而使得任意一个地址可以操纵最高权限。
+        ///建议重构时直接去掉与“角色”的所有逻辑。
     }
 
     /// @dev internal function of configureAddressRole()
