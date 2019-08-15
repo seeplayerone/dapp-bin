@@ -556,7 +556,7 @@ contract GovernanceFeeTest is TestBase {
         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 512500000);
     }
 
-    function testFeeWipeAll() public {
+    function testFeeRepayAll() public {
         uint idx = feeSetup(); 
 
         cdp.fly(1 days);
@@ -571,7 +571,18 @@ contract GovernanceFeeTest is TestBase {
         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 0);
     }
 
-    
+    function testFeeCloseCDP() public {
+        uint idx = feeSetup(); 
 
+        cdp.fly(1 days);
+        assertEq(cdp.debtOfCDP(idx), 10000000000);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 500000000);
 
+        uint emm1 = flow.balance(this, ASSET_PAI);
+        uint emm2 = flow.balance(this, ASSET_BTC);
+
+        cdp.closeCDPRecord.value(20000000000, ASSET_PAI)(idx);
+        assertEq(emm1 - flow.balance(this, ASSET_PAI), 10500000000);
+        assertEq(flow.balance(this, ASSET_BTC) - emm2, 10000000000);        
+    }
 }
