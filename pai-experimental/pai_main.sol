@@ -84,6 +84,10 @@ contract PAIDAO is Organization, DSMath {
         hole.transfer(msg.value, msg.assettype);
     }
 
+    function getAdditionalAssetInfo(uint32 _assetIndex) public view returns (uint64, uint96) {
+        return (Token[_assetIndex].assetLocalId,Token[_assetIndex].assetGlobalId);
+    }
+
     /// only for debug
     function getOrganizationId() public view returns(uint32) {
         return organizationId;
@@ -92,7 +96,7 @@ contract PAIDAO is Organization, DSMath {
     function deposit() public payable {
     }
 
-    function getAdditionalAssetInfo(uint32 _assetIndex) public view returns (uint, uint) {
+    function getExtralAssetInfo(uint32 _assetIndex) public view returns (uint, uint) {
         return (Token[_assetIndex].assetLocalId,Token[_assetIndex].assetGlobalId);
     }
 

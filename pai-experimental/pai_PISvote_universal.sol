@@ -10,19 +10,14 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 // import "./template.sol";
 // import "./pai_main.sol";
 
-/// @dev ACL interface
-///  ACL is provided by the organization contract
-interface ACL {
-    function canPerform(address _caller, string _functionHash) external view returns (bool);
-}
 
 /// @title This is a simple vote contract, everyone has the same vote weights
 /// @dev Every template contract needs to inherit Template contract directly or indirectly
-contract PISVoteUniversal is Template,DSMath {
+contract PISVoteUniversal is Template, DSMath {
     using StringLib for string;
     
     /// params to be init
-    ACL acl;
+    PAIDAO paiDAO;
     address organizationContract;
     uint96 voteAssetGlobalId;
     uint lastAssignedVoteId = 0;
@@ -72,8 +67,8 @@ contract PISVoteUniversal is Template,DSMath {
  
     function setOrganization(address _organizationContract) public {
         organizationContract = _organizationContract;
-        acl = ACL(_organizationContract);
-        (,voteAssetGlobalId) = organizationContract.getAdditionalAssetInfo(0);
+        paiDAO = PAIDAO(_organizationContract);
+        (,voteAssetGlobalId) = paiDAO.getAdditionalAssetInfo(0);
     }
 
     /// get the organization contract address
@@ -90,7 +85,7 @@ contract PISVoteUniversal is Template,DSMath {
     ///  An organization can deploy multiple vote contracts from the same template
     ///  As a result, the functionHash is generated combining contract address and functionHash string
     modifier authFunctionHash(string func) {
-        require(acl.canPerform(msg.sender, StringLib.strConcat(StringLib.convertAddrToStr(this),func)));
+        require(paiDAO.canPerform(msg.sender, StringLib.strConcat(StringLib.convertAddrToStr(this),func)));
         _;
     }
  
@@ -104,7 +99,7 @@ contract PISVoteUniversal is Template,DSMath {
     /// @param param parameters for callback method
     function startVote(string subject, uint voteType, uint totalParticipants, uint percent, uint endTime, bytes4 func, bytes param)
         public 
-        authFunctionHash(START_VOTE_FUNCTION)
+        authFunctionHash("START_VOTE_FUNCTION")
         returns(uint)
     {
         require(voteType == 1 || voteType == 2, "unsupported vote type");
@@ -159,7 +154,7 @@ contract PISVoteUniversal is Template,DSMath {
     /// @param voteId vote id
     /// @param attitude vote for yes/no
     function vote(uint voteId, bool attitude) public 
-        authFunctionHash(VOTE_FUNCTION) 
+        authFunctionHash("VOTE_FUNCTION") 
     {
         Vote storage va = votes[voteId];
         require(va.exist && VoteStatus.ONGOING == va.status, "vote not exist or not ongoing");
