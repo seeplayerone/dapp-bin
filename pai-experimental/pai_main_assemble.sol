@@ -10,6 +10,9 @@ contract PAIDAO is Organization, DSMath {
     ///params for organization
     uint32 private organizationId;
     bool registed = false;
+    string constant Cashier = "CASHIER";
+    string constant Director = "DIRECTOR";
+    string constant VoteContract = "VOTE";
 
     ///params for assets;
     uint32 private constant PIS = 0;
@@ -21,7 +24,7 @@ contract PAIDAO is Organization, DSMath {
     mapping (uint32 => AdditionalAssetInfo) private Token; //name needs to be optimized；
 
     ///params for burn
-    address private hole = 0x660000000000000000000000000000000000000000;
+    address private constant hole = 0x660000000000000000000000000000000000000000;
     
     constructor(string _organizationName, address[] _members)
         Organization(_organizationName, _members)
@@ -32,6 +35,14 @@ contract PAIDAO is Organization, DSMath {
     function init() public {
         require(!registed);
         organizationId = registry.registerOrganization(organizationName, templateName);
+        configureFunctionAddressInternal(Cashier, 0x66b7bd27d59dd91d6c78b8402b90c820ab24cd073b, OpMode.Add);
+        configureFunctionAddressInternal(Director, 0x666162077d9b76c1df3dd22dff1b3a9bc25348ea39, OpMode.Add);
+        configureFunctionAddressInternal(VoteContract, 0x66da67bf3462da51f083b5fed4662973a62701a687, OpMode.Add);
+        ///TODO the correct way of following three lines should be modifying the "organization.sol"
+        configureFunctionRoleInternal(CONFIGURE_NORMAL_FUNCTION, SUPER_ADMIN, OpMode.Remove);
+        configureFunctionRoleInternal(CONFIGURE_ADVANCED_FUNCTION, SUPER_ADMIN, OpMode.Remove);
+        configureFunctionRoleInternal(CONFIGURE_SUPER_FUNCTION, SUPER_ADMIN, OpMode.Remove);
+        
         registed = true;
     }
 
@@ -58,9 +69,9 @@ contract PAIDAO is Organization, DSMath {
     }
 
     function burn() public payable{
-        require(msg.assettype == Token[PIS].assetGlobalId 
-             || msg.assettype == Token[PAI].assetGlobalId,
-             "Only PAI or PIS can be burned!");
+        require(msg.assettype == Token[PIS].assetGlobalId ||
+                msg.assettype == Token[PAI].assetGlobalId,
+                "Only PAI or PIS can be burned!");
         if(msg.assettype == Token[PIS].assetGlobalId){
             issuedAssets[PIS].totalIssued = sub(issuedAssets[PIS].totalIssued, msg.value);
         }else{
@@ -74,7 +85,27 @@ contract PAIDAO is Organization, DSMath {
         return organizationId;
     }
 
+    function deposit() public payable {
+    }
+
     function getAdditionalAssetInfo(uint32 _assetIndex) public view returns (uint, uint) {
         return (Token[_assetIndex].assetLocalId,Token[_assetIndex].assetGlobalId);
+    }
+
+    uint256 private state = 0;
+    function plusOne() public authFunctionHash(Cashier) {
+        state = state + 1;
+    }
+
+    function plusTen() public authFunctionHash(Director) {
+        state = state + 10;
+    }
+
+    function plusHundred() public authFunctionHash(VoteContract) {
+        state = state + 100;
+    }
+
+    function getStates() public view returns (uint256) {
+        return state;
     }
 }
