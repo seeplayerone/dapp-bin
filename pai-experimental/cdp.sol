@@ -71,12 +71,14 @@ contract CDP is DSMath, DSNote, Template {
     }
 
     constructor(address _issuer, address _oracle, address _liquidator) public {
-        stabilityFee = 1000000000000000000000000000;
-        governanceFee = 1000000000000000000000000000;
-        accumulatedRates1 = 1000000000000000000000000000;
-        accumulatedRates2 = 1000000000000000000000000000;
+        stabilityFee = RAY;
+        governanceFee = RAY;
+        accumulatedRates1 = RAY;
+        accumulatedRates2 = RAY;
         liquidationRatio = 1500000000000000000000000000;
         liquidationPenalty = 1130000000000000000000000000;
+
+        debtCeiling = 0;
 
         lastTimestamp = era();
 
@@ -106,10 +108,18 @@ contract CDP is DSMath, DSNote, Template {
         stabilityFee = newFee;
     }
 
+    function getStabilityFee() public view returns (uint) {
+        return stabilityFee;
+    }
+
     function updateGovernanceFee(uint newFee) public {
         require(newFee >= RAY);
         updateRates();
         governanceFee = newFee;
+    }
+
+    function getGovernanceFee() public view returns (uint) {
+        return governanceFee;
     }
 
     function updateLiquidationRatio(uint newRatio) public {
@@ -117,9 +127,25 @@ contract CDP is DSMath, DSNote, Template {
         liquidationRatio = newRatio;
     }
 
+    function getLiquidationRatio() public view returns (uint) {
+        return liquidationRatio;
+    }
+
     function updateLiquidationPenalty(uint newPenalty) public {
         require(newPenalty >= RAY);
         liquidationPenalty = newPenalty;
+    }
+
+    function getLiquidationPenalty() public view returns (uint) {
+        return liquidationPenalty;
+    }
+
+    function updateDebtCeiling(uint newCeiling) public {
+        debtCeiling = newCeiling;
+    }
+
+    function getDebtCeiling() public view returns (uint) {
+        return debtCeiling;
     }
 
     /// @dev CDP base operations
@@ -192,7 +218,7 @@ contract CDP is DSMath, DSNote, Template {
         CDPRecords[record].accumulatedDebt2 = add(CDPRecords[record].accumulatedDebt2, newDebt2);
 
         require(safe(record));
-        /// TODO check the total mint PAI has not exceed system limit - should be checked in issuer
+        /// TODO debt ceiling check
 
         issuer.mint(amount, msg.sender);
 
@@ -259,9 +285,14 @@ contract CDP is DSMath, DSNote, Template {
     }
 
     /// close CDP
-    function closeCDPRecord(uint record) public note {
+    function closeCDPRecord(uint record) public payable note {
         require(!settlement);
         require(CDPRecords[record].owner == msg.sender);
+
+        if(CDPRecords[record].accumulatedDebt2 > 0) {
+            repay(record);
+        }
+
         require(debtOfCDP(record) == 0 && debtOfCDPwithGovernanceFee(record) == 0);
 
         if(collateralOfCDP(record) > 0) {
@@ -310,6 +341,10 @@ contract CDP is DSMath, DSNote, Template {
         priceOracle = newPriceOracle;
     }
 
+    function getPriceOracle() public view returns (address) {
+        return priceOracle;
+    }
+
     function getCollateralPrice() public view returns (uint256 wad){
         return priceOracle.getPrice(ASSET_BTC);
     }
@@ -318,8 +353,16 @@ contract CDP is DSMath, DSNote, Template {
         liquidator = newLiquidator;
     }
 
+    function getLiquidator() public view returns (address) {
+        return liquidator;
+    }
+
     function setPAIIssuer(PAIIssuer newIssuer) public {
         issuer = newIssuer;
+    }
+
+    function getPAIIssuer() public view returns (address) {
+        return issuer;
     }
 
     function safe(uint record) public returns (bool) {
@@ -377,7 +420,7 @@ contract CDP is DSMath, DSNote, Template {
 
     /// liquidate a CDP
     function liquidate(uint record) public note {
-        require(!safe(record)||settlement);
+        require(!safe(record) || settlement);
 
         uint256 debt = debtOfCDP(record);
         liquidator.addDebt(debt);
