@@ -1,10 +1,14 @@
 pragma solidity 0.4.25;
 
+import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/library/string_utils.sol";
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 
-//import "./string_utils.sol";
-//import "./template.sol";
+// import "./3rd/math.sol";
+// import "./string_utils.sol";
+// import "./template.sol";
+// import "./pai_main.sol";
 
 /// @dev ACL interface
 ///  ACL is provided by the organization contract
@@ -14,21 +18,20 @@ interface ACL {
 
 /// @title This is a simple vote contract, everyone has the same vote weights
 /// @dev Every template contract needs to inherit Template contract directly or indirectly
-contract SimpleVote is Template {
+contract PISVoteUniversal is Template,DSMath {
     using StringLib for string;
     
+    /// params to be init
+    ACL acl;
+    address organizationContract;
+    uint96 voteAssetGlobalId;
     uint lastAssignedVoteId = 0;
-    
+ 
     /// vote status enumeration
     enum VoteStatus {ONGOING, APPROVED, REJECTED}
-    
-    /// functionHash - ACL through the organization contract
-    string constant START_VOTE_FUNCTION = "START_VOTE_FUNCTION";
-    string constant VOTE_FUNCTION = "VOTE_FUNCTION";
 
-    // create vote event
-    event CreateVote(uint);
     // vote event
+    event CreateVote(uint);
     event ConductVote(uint, uint, VoteStatus);
     
     struct Vote {
@@ -40,7 +43,7 @@ contract SimpleVote is Template {
         uint voteType;
         /// total number of vote participants
         uint totalParticipants;
-        /// required percentage
+        /// required percentage (in RAY )
         uint percent;
         /// addresses voted for approval
         address[] approvers;
@@ -65,20 +68,21 @@ contract SimpleVote is Template {
     /// all votes in this contract
     mapping(uint => Vote) votes;
     
-    /// ACL interface reference
-    ACL acl;
-    
-    /// organization contract
-    address organizationContract;
+
  
     function setOrganization(address _organizationContract) public {
         organizationContract = _organizationContract;
         acl = ACL(_organizationContract);
+        (,voteAssetGlobalId) = organizationContract.getAdditionalAssetInfo(0);
     }
 
     /// get the organization contract address
     function getOrganization() public view returns (address){
         return organizationContract;
+    }
+
+    function getVoteAssetGlobalId() public view returns (uint){
+        return voteAssetGlobalId;
     }
 
     /// @dev ACL through functionHash

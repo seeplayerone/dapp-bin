@@ -2,11 +2,15 @@ pragma solidity 0.4.25;
 
 // import "./3rd/math.sol";
 // import "../library/organization.sol";
+// import "./string_utils.sol";
 
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/library/organization.sol";
+import "github.com/evilcc2018/dapp-bin/library/string_utils.sol";
 
 contract PAIDAO is Organization, DSMath {
+    using StringLib for string;
+    
     ///params for organization
     uint32 private organizationId;
     bool registed = false;
@@ -39,9 +43,9 @@ contract PAIDAO is Organization, DSMath {
         configureFunctionAddressInternal(Director, 0x666162077d9b76c1df3dd22dff1b3a9bc25348ea39, OpMode.Add);
         configureFunctionAddressInternal(VoteContract, 0x66da67bf3462da51f083b5fed4662973a62701a687, OpMode.Add);
         ///TODO the correct way of following three lines should be modifying the "organization.sol"
-        configureFunctionRoleInternal(CONFIGURE_NORMAL_FUNCTION, SUPER_ADMIN, OpMode.Remove);
-        configureFunctionRoleInternal(CONFIGURE_ADVANCED_FUNCTION, SUPER_ADMIN, OpMode.Remove);
-        configureFunctionRoleInternal(CONFIGURE_SUPER_FUNCTION, SUPER_ADMIN, OpMode.Remove);
+        configureFunctionRoleInternal(CONFIGURE_NORMAL_FUNCTION, "SUPER_ADMIN", OpMode.Remove);
+        configureFunctionRoleInternal(CONFIGURE_ADVANCED_FUNCTION, "SUPER_ADMIN", OpMode.Remove);
+        configureFunctionRoleInternal(CONFIGURE_SUPER_FUNCTION, "SUPER_ADMIN", OpMode.Remove);
         
         registed = true;
     }
@@ -107,5 +111,12 @@ contract PAIDAO is Organization, DSMath {
 
     function getStates() public view returns (uint256) {
         return state;
+    }
+
+    function configFuncAddr(address _contract, address _caller, string _str) public {
+        configureFunctionAddressInternal(
+            StringLib.strConcat(StringLib.convertAddrToStr(_contract),_str),
+            _caller,
+            OpMode.Add);
     }
 }
