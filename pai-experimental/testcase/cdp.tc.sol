@@ -289,7 +289,7 @@ contract CDPTest is TestBase {
 
 }
  
-contract GovernanceFeeTest is TestBase {
+contract StabilityFeeTest is TestBase {
     function testEraInit() public {
         setup();
         assertEq(uint(cdp.era()), now);
@@ -488,5 +488,90 @@ contract GovernanceFeeTest is TestBase {
         assertEq(cdp.debtOfCDP(idx), 0);
         assertEq(liquidator.totalDebtPAI(), 10000000000);
     }
+}
+
+contract GovernanceFeeTest is TestBase {
+    function feeSetup() public returns (uint) {
+        setup();
+        oracle.updatePrice(ASSET_BTC, RAY * 10);
+        cdp.updateGovernanceFee(1000000564701133626865910626);
+        cdp.updateLiquidationRatio(RAY);
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(10000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 10000000000);
+
+        return idx;
+    }
+
+    function testFeeSetup() public {
+        feeSetup();
+        assertEq(cdp.updateAndFetchRates1(), RAY);
+        assertEq(cdp.updateAndFetchRates2(), RAY);
+    }
+
+    function testFeeFly() public {
+        feeSetup();
+        cdp.fly(1 days);
+        assertEq(cdp.updateAndFetchRates1(), RAY);
+        assertEq(cdp.updateAndFetchRates2(), RAY * 105 / 100);
+    }
+
+    function testFeeIce() public {
+        uint idx = feeSetup();
+
+        assertEq(cdp.totalDebt(), 10000000000);
+        assertEq(cdp.debtOfCDP(idx), 10000000000);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 0);
+
+        cdp.fly(1 days);
+
+        assertEq(cdp.totalDebt(), 10000000000);
+        assertEq(cdp.debtOfCDP(idx), 10000000000);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 500000000);        
+    }
+
+    function testFeeBorrow() public {
+        uint idx = feeSetup(); 
+
+        cdp.fly(1 days);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 500000000);
+
+        cdp.borrow(idx, 10000000000);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 500000000);
+
+        cdp.fly(1 days);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 1525000000);
+    }
+
+    function testFeeRepay() public {
+        uint idx = feeSetup(); 
+
+        cdp.fly(1 days);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 500000000);
+
+        cdp.repay.value(5250000000, ASSET_PAI)(idx);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 250000000);
+
+        cdp.fly(1 days);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 512500000);
+    }
+
+    function testFeeWipeAll() public {
+        uint idx = feeSetup(); 
+
+        cdp.fly(1 days);
+        assertEq(cdp.debtOfCDP(idx), 10000000000);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 500000000);
+
+        uint emm = flow.balance(this, ASSET_PAI);
+        cdp.repay.value(20000000000, ASSET_PAI)(idx);
+        assertEq(emm - flow.balance(this, ASSET_PAI), 10500000000);
+
+        assertEq(cdp.debtOfCDP(idx), 0);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 0);
+    }
+
     
+
+
 }
