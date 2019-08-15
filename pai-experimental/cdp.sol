@@ -233,8 +233,12 @@ contract CDP is DSMath, DSNote, Template {
         borrowInternal(id, amount);
     }
 
-    /// repay PAI
     function repay(uint record) public payable note {
+        repayInternal(record);
+    }
+
+    /// repay PAI
+    function repayInternal(uint record) internal {
         require(!settlement);
         require(msg.assettype == ASSET_PAI);
        
@@ -290,7 +294,7 @@ contract CDP is DSMath, DSNote, Template {
         require(CDPRecords[record].owner == msg.sender);
 
         if(CDPRecords[record].accumulatedDebt2 > 0) {
-            repay(record);
+            repayInternal(record);
         }
 
         require(debtOfCDP(record) == 0 && debtOfCDPwithGovernanceFee(record) == 0);
