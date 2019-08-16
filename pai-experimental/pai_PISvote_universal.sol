@@ -55,7 +55,7 @@ contract PISVoteUniversal is BasicVote {
     {
         require(voteNumber > rmul(_totalVotes,startPercentage),"not enough weights to start a vote");
         uint voteid = startVoteInternal(_subject, rmul(_totalVotes, passPercentage), _totalVotes,
-                                        _startTime, add(block.timestamp,_duration), _targetContract, _func, _param);
+                                        block.timestamp, add(block.timestamp,_duration), _targetContract, _func, _param);
         voteInternal(voteid,true,voteNumber);
     }
 

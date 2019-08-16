@@ -64,7 +64,7 @@ contract BasicVote is Template, DSMath {
         va.disagreeVotes = 0;
         va.throughVotes = _throughVotes;
         va.totalVotes = _totalVotes;
-        va.startTime = startTime;
+        va.startTime = _startTime;
         va.endTime = endTime;
         va.status = VoteStatus.ONGOING;
         va.target = _targetContract;
