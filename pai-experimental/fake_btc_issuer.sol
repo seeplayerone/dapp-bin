@@ -53,8 +53,10 @@ contract FakeBTCIssuer is Template, DSMath {
         totalSupply = add(totalSupply, amount);
     }
 
-    function burn(uint amount) public {
-        totalSupply = sub(totalSupply, amount);
+    function burn() public payable {
+        require(msg.assettype == ASSET_BTC);
+        hole.transfer(msg.value, msg.assettype);
+        totalSupply = sub(totalSupply, msg.value);
     }
 
     function getAssetType() public view returns (uint256) {

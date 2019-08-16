@@ -57,8 +57,6 @@ contract CDP is DSMath, DSNote, Template {
 
     mapping (uint => CDPRecord) private CDPRecords; /// all CDP records
 
-    address private hole = 0x660000000000000000000000000000000000000000;
-
     struct CDPRecord {
         address owner; /// owner of the CDP
         uint256 collateral; /// collateral in form of BTC'
@@ -274,8 +272,7 @@ contract CDP is DSMath, DSNote, Template {
         
         /// burn pai
         if(amount1 > 0) {
-            hole.transfer(amount1, ASSET_PAI);
-            issuer.burn(amount1);
+            issuer.burn.value(amount1, ASSET_PAI)();
         }
 
         /// governance fee to liquidator
@@ -472,37 +469,5 @@ contract CDP is DSMath, DSNote, Template {
         liquidatedCDPIndex = upperLimit;
         if(liquidatedCDPIndex == CDPIndex)
             liquidator.settlePhaseTwo();
-    }
-
-    /// @dev debug functions
-    /// TODO should be removed
-
-    function debug() public view returns(uint, uint, uint, uint, uint, uint) {
-        return (CDPIndex, lastTimestamp, accumulatedRates1, accumulatedRates2, totalNormalizedDebt, flow.balance(this, ASSET_BTC));
-    }
-
-    function debugCDP(uint record) public view returns (uint, uint, uint, uint, uint) {
-        CDPRecord storage data = CDPRecords[record];
-        return (data.collateral, data.accumulatedDebt1, rmul(data.accumulatedDebt1, accumulatedRates1), data.accumulatedDebt2, rmul(data.accumulatedDebt2, accumulatedRates2));
-    }
-
-    function readCDP(uint record) public view returns(address, uint, uint, uint){
-        return (CDPRecords[record].owner,CDPRecords[record].collateral,CDPRecords[record].accumulatedDebt1,CDPRecords[record].accumulatedDebt2);
-    }
-
-    function checkSafe(uint record) public view returns (bool) {
-        return safe(record);
-    }
-
-    function reOpen() public {
-        settlement = false;
-        liquidationPenalty = 1130000000000000000000000000;
-        liquidatedCDPIndex = 0;
-        liquidator.reOpen();
-        priceOracle.reOpen();
-    }
-
-    function liquidateProgress() public view returns (uint, uint) {
-        return (liquidatedCDPIndex, CDPIndex);
     }
 }

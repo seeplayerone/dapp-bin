@@ -747,6 +747,4 @@ contract LiquidationPenaltyTest is TestBase {
         cdp.liquidate(idx);
         assertEq(cdp.collateralOfCDP(idx), 1000000000);
     }
-
-
 }

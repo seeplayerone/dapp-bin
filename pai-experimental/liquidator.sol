@@ -20,20 +20,18 @@ contract Liquidator is DSMath, DSNote, Template {
     uint private totalDebt; /// total debt of the liquidator
     uint private discount; /// collateral selling discount
 
-    bool private settlement; /// the business is in settlement stage
-    bool private allLiquidated; /// the business is in settlement stage and all CDPs have been liquidated
+    bool private settlementP1; /// the business is in settlement stage
+    bool private settlementP2; /// the business is in settlement stage and all CDPs have been liquidated
     uint private collateralSettlementPrice; /// collateral settlement price, avaliable on settlememnt phase 2
 
     PriceOracle private oracle; /// price oracle
     PAIIssuer private issuer; /// PAI issuer
 
-    address private hole = 0x660000000000000000000000000000000000000000;
-
     constructor(address _oracle, address _issuer) public {
         oracle = PriceOracle(_oracle);
         issuer = PAIIssuer(_issuer);
 
-        ASSET_BTC = 0; /// using ASIM asset for test purpose
+        ASSET_BTC = 0;
         ASSET_PAI = issuer.getAssetType();
 
         discount = 970000000000000000000000000;
@@ -45,6 +43,14 @@ contract Liquidator is DSMath, DSNote, Template {
 
     function setAssetBTC(uint assetType) public {
         ASSET_BTC = assetType;
+    }
+
+    function setDiscount(uint value) public {
+        discount = value;
+    }
+
+    function getDiscount() public view returns (uint) {
+        return discount;
     }
 
     /// payable fallback function
@@ -70,10 +76,6 @@ contract Liquidator is DSMath, DSNote, Template {
         return flow.balance(this, ASSET_BTC);
     }
 
-    function debugAllValues() public view returns (uint, uint, uint) {
-        return (totalAssetPAI(), totalDebtPAI(), totalCollateralBTC());
-    }
-
     /// the liquidator needs to continuous neutralize debt with earned PAI 
     function cancelDebt() public note {
         if(totalAssetPAI() == 0 || totalDebtPAI() == 0) {
@@ -83,27 +85,26 @@ contract Liquidator is DSMath, DSNote, Template {
         uint256 amount = min(totalAssetPAI(), totalDebtPAI());
         totalDebt = sub(totalDebt, amount);
 
-        hole.transfer(amount, ASSET_PAI);
-        issuer.burn(amount);
+        issuer.burn.value(amount, ASSET_PAI)();
     }
 
     /// BTC' price against PAI
     function collateralPrice() public view returns (uint256) {
-        return settlement ? collateralSettlementPrice : oracle.getPrice(ASSET_BTC);
+        return settlementP1 ? collateralSettlementPrice : oracle.getPrice(ASSET_BTC);
     }
 
     /// the liquidator sells BTC'
     /// users can buy collateral from the liquidator either before settlement or in settlement phase 2, with different prices
     function buyColleteral() public payable note {
         require(msg.assettype == ASSET_PAI);
-        require(!settlement||allLiquidated);
+        require(!settlementP1 || settlementP2);
         /// before settlement
-        if(!settlement){
+        if(!settlementP1){
             uint referencePrice = rmul(collateralPrice(), discount);
             buyColleteralInternal(msg.value, referencePrice);
         }
         /// settlement phase 2
-        else if(allLiquidated){
+        else if(settlementP2){
             require(collateralSettlementPrice > 0);
             buyColleteralInternal(msg.value, collateralSettlementPrice);
         }
@@ -140,26 +141,15 @@ contract Liquidator is DSMath, DSNote, Template {
     }
 
     function settlePhaseOne() public {
-        require(!settlement);
-        settlement = true;
+        require(!settlementP1);
+        settlementP1 = true;
     }
 
     function settlePhaseTwo() public {
-        require(settlement);
-        require(!allLiquidated);
+        require(settlementP1);
+        require(!settlementP2);
         if(flow.balance(this, ASSET_BTC) > 0)
             collateralSettlementPrice = mul(totalDebt, RAY) / flow.balance(this, ASSET_BTC);
-        allLiquidated = true;
+        settlementP2 = true;
     }
-
-
-    /// only for debug
-    function states() public view returns(bool,bool) {
-        return (settlement,allLiquidated);
-    }
-
-    function reOpen() public {
-       settlement = false;
-       allLiquidated = false;
-    }    
 }
