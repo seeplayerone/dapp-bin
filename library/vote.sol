@@ -43,7 +43,8 @@ contract BasicVote is Template, DSMath {
          string _subject,
            uint _throughVotes,
            uint _totalVotes,
-           uint _duration,
+           uint _startTime,
+           uint _endTime,
         address _targetContract,
          bytes4 _func,
           bytes _param
@@ -51,7 +52,8 @@ contract BasicVote is Template, DSMath {
         internal
         returns(uint)
     {
-        require(_duration > 1 minutes, "not enough vote time");
+        require(_endTime > _startTime, "endTime should be later than startTime");
+        require(_endTime > block.timestamp, "invalid vote end time");
         require(_totalVotes > 0, "totalVotes should greater than zero");
         require(_totalVotes >= _throughVotes, "_throughVotes should greater than or equal to totalVotes");
 
@@ -62,8 +64,8 @@ contract BasicVote is Template, DSMath {
         va.disagreeVotes = 0;
         va.throughVotes = _throughVotes;
         va.totalVotes = _totalVotes;
-        va.startTime = block.timestamp;
-        va.endTime = add(block.timestamp, _duration);
+        va.startTime = startTime;
+        va.endTime = endTime;
         va.status = VoteStatus.ONGOING;
         va.target = _targetContract;
         va.func = _func;
@@ -78,7 +80,7 @@ contract BasicVote is Template, DSMath {
 
     /// @dev get basic information of a vote
     function getVoteInfo(uint voteId) public view returns (
-        string, address, uint, uint, uint, VoteStatus, address, string, string, bool) {
+        string, address, uint, uint, uint, VoteStatus, address, string, string, bool) {  //maybe need more information?
             Vote storage va = votes[voteId];
             if(voteId <= lastAssignedVoteId) {
                 //the following coding should be moved to some libaray
@@ -131,6 +133,7 @@ contract BasicVote is Template, DSMath {
         require(voteId <= lastAssignedVoteId, "vote not exist");
         Vote storage va = votes[voteId];
         require(VoteStatus.ONGOING == va.status, "vote not ongoing");
+        require(block.timestamp >= va.startTime, "vote not open");
         require(block.timestamp <= va.endTime, "vote closed");
         require(voteNumber > 0, "number of vote should be greater than zero");
         //require(block.timestamp >= va.startTime, "vote not open"); ///still need?
