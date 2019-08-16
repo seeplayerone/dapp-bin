@@ -18,12 +18,13 @@ contract PISVoteUniversal is Template, DSMath {
     
     /// params to be init
     PAIDAO paiDAO;
-    address organizationContract;
     uint96 voteAssetGlobalId;
     uint lastAssignedVoteId = 0;
  
-    /// vote status enumeration
+    /// vote param
     enum VoteStatus {ONGOING, APPROVED, REJECTED}
+    uint passPercentage = RAY / 2;
+    uint startPercentage = RAY / 1000;
 
     // vote event
     event CreateVote(uint);
@@ -34,49 +35,38 @@ contract PISVoteUniversal is Template, DSMath {
         string subject;
         /// vote proposer
         address proposer;
-        /// vote type (approved by all - 1, approved by a certain percentage - 2)
-        uint voteType;
-        /// total number of vote participants
-        uint totalParticipants;
-        /// required percentage (in RAY )
-        uint percent;
-        /// addresses voted for approval
-        address[] approvers;
+        /// voted for approval
+        uint agreeVotes;
         /// addresses voted for reject
-        address[] rejecters;
+        uint disagreeVotes;
         /// vote start time, measured by block timestamp
         uint startTime;
-        /// vote end time, measured by block timestamp
-        uint endTime;
+        /// vote duration
+        uint duration;
         /// vote status
         VoteStatus status;
-        /// whether the vote exists
-        bool exist;
+        /// call contract
+        address target;
         /// functionHash of the callback function
         bytes4 func;
         /// parameters for the callback function
-        bytes param;
-
-        mapping(address => bool) votersMap;        
+        bytes param;     
     }
    
     /// all votes in this contract
     mapping(uint => Vote) votes;
     
-
- 
     function setOrganization(address _organizationContract) public {
-        organizationContract = _organizationContract;
         paiDAO = PAIDAO(_organizationContract);
-        (,voteAssetGlobalId) = paiDAO.getAdditionalAssetInfo(0);
+        voteAssetGlobalId = paiDAO.getPISGlobalId();
     }
 
     /// get the organization contract address
-    function getOrganization() public view returns (address){
-        return organizationContract;
+    function getOrganization() public view returns (address) {
+        return paiDAO;
     }
 
-    function getVoteAssetGlobalId() public view returns (uint){
+    function getVoteAssetGlobalId() public view returns (uint) {
         return voteAssetGlobalId;
     }
 
@@ -90,57 +80,35 @@ contract PISVoteUniversal is Template, DSMath {
     }
  
     /// @dev start a vote
-    /// @param subject vote subject
-    /// @param voteType vote type
-    /// @param totalParticipants total participants
-    /// @param percent required participants
-    /// @param endTime vote end time
-    /// @param func functionHash of callback method
-    /// @param param parameters for callback method
-    function startVote(string subject, uint voteType, uint totalParticipants, uint percent, uint endTime, bytes4 func, bytes param)
-        public 
-        authFunctionHash("START_VOTE_FUNCTION")
-        returns(uint)
-    {
-        require(voteType == 1 || voteType == 2, "unsupported vote type");
-        if (1 == voteType) {
-            require(totalParticipants >= 1);
-        }
-        if (2 == voteType) {
-            require(percent >= 1 && percent <= 100);
-        }
-        require(endTime > block.timestamp, "invalid vote end time");
+    /// @param _subject vote subject
+    /// @param _duration vote end time
+    /// @param _func functionHash of callback method
+    /// @param _param parameters for callback method
+    function startVote(string _subject, uint _duration, address _targetContract, bytes4 _func, bytes _param) public payable {
+        //require(endTime > block.timestamp, "invalid vote end time");
         
         Vote memory va;
-        va.subject = subject;
+        va.subject = _subject;
         va.proposer = msg.sender;
-        va.voteType = voteType;
-        va.totalParticipants = totalParticipants;
-        va.percent = percent;
-        va.approvers = new address[](0);
-        va.rejecters = new address[](0);
+        va.agreeVotes = 0;////need add startVote number
+        va.disagreeVotes = 0;
         va.startTime = block.timestamp;
-        va.endTime = endTime;
+        va.duration = _duration;
         va.status = VoteStatus.ONGOING;
-        va.exist = true;
-        va.func = func;
-        va.param = param;
+        va.target = _targetContract;
+        va.func = _func;
+        va.param = _param;
         
-        uint voteId = lastAssignedVoteId + 1;
-        votes[voteId] = va;
-    
-        lastAssignedVoteId++;
-
-        emit CreateVote(voteId);
-    
-        return voteId;
+        votes[lastAssignedVoteId] = va;
+        emit CreateVote(lastAssignedVoteId);
+        lastAssignedVoteId = add(lastAssignedVoteId,1);
     }
 
     /// @dev get basic information of a vote
     function getVoteInfo(uint voteId) public view returns (string, address, uint, uint, uint, VoteStatus) {
         Vote storage va = votes[voteId];
-        if(va.exist) {
-            return (va.subject, va.proposer, va.approvers.length, va.rejecters.length, va.percent, va.status);
+        if(voteId <= lastAssignedVoteId) {
+            return (va.subject, va.proposer, va.agreeVotes, va.disagreeVotes, passPercentage, va.status);
         }
         return ("no such vote", 0x0, 0, 0, 0, VoteStatus.REJECTED);
     }
@@ -153,58 +121,38 @@ contract PISVoteUniversal is Template, DSMath {
     /// @dev participate in a vote
     /// @param voteId vote id
     /// @param attitude vote for yes/no
-    function vote(uint voteId, bool attitude) public 
-        authFunctionHash("VOTE_FUNCTION") 
-    {
+    function vote(uint voteId, bool attitude) public {
+        require(voteId <= lastAssignedVoteId, "vote not exist");
         Vote storage va = votes[voteId];
-        require(va.exist && VoteStatus.ONGOING == va.status, "vote not exist or not ongoing");
-        require(block.timestamp >= va.startTime && block.timestamp <= va.endTime, "not valid vote time");
         
-        address voter = msg.sender;
-        require(!va.votersMap[voter], "already voted");
+        //require(va.exist && VoteStatus.ONGOING == va.status, "vote not exist or not ongoing");
+        //require(block.timestamp >= va.startTime && block.timestamp <= va.endTime, "not valid vote time");
+        
+        //address voter = msg.sender;
+        // require(!va.votersMap[voter], "already voted");
 
-        va.votersMap[voter] = true;
-        /// type 1
-        if (1 == va.voteType) {
-            if (attitude) {
-                va.approvers.push(voter);
-                if (va.approvers.length == va.totalParticipants) {
-                    va.status = VoteStatus.APPROVED;
-                    emit ConductVote(va.approvers.length, va.rejecters.length, va.status);
-                    invokeOrganizationContract(va.func, va.param);
-                }
-            } else {
-                va.rejecters.push(voter);
+        // va.votersMap[voter] = true;
+
+        if (attitude) {
+            va.agreeVotes = va.agreeVotes + 100;
+            if (va.agreeVotes >= 300) {
+                va.status = VoteStatus.APPROVED;
+                invokeOrganizationContract(va.func, va.param);
+            }
+        } else {
+            va.disagreeVotes = va.disagreeVotes + 100;
+            if (va.disagreeVotes >= 300) {
                 va.status = VoteStatus.REJECTED;
-                /// emit ConductVote(va.approvers.length, va.rejecters.length, va.status);
             }
         }
-        /// type 2
-        else if (2 == va.voteType) {
-            if (attitude) {
-                va.approvers.push(voter);
-                if (va.approvers.length*100 >= va.percent*va.totalParticipants) {
-                    va.status = VoteStatus.APPROVED;
-                    emit ConductVote(va.approvers.length, va.rejecters.length, va.status);
-                    invokeOrganizationContract(va.func, va.param);
-                }
-            } else {
-                va.rejecters.push(voter);
-                if (va.rejecters.length*100 > (100-va.percent)*va.totalParticipants) {
-                    va.status = VoteStatus.REJECTED;
-                }
-                /// emit ConductVote(va.approvers.length, va.rejecters.length, va.status);
-            }
-        }
-
-        emit ConductVote(va.approvers.length, va.rejecters.length, va.status);
+        emit ConductVote(va.agreeVotes, va.disagreeVotes, va.status);
     }
 
     /// @dev callback function to invoke organization contract   
     /// @param _func functionHash
     /// @param _param bytecode parameter
     function invokeOrganizationContract(bytes4 _func, bytes _param) internal {
-        address tempAddress = organizationContract;
+        address tempAddress = paiDAO;
         uint paramLength = _param.length;
         uint totalLength = 4 + paramLength;
 

@@ -84,8 +84,8 @@ contract PAIDAO is Organization, DSMath {
         hole.transfer(msg.value, msg.assettype);
     }
 
-    function getAdditionalAssetInfo(uint32 _assetIndex) public view returns (uint64, uint96) {
-        return (Token[_assetIndex].assetLocalId,Token[_assetIndex].assetGlobalId);
+    function getPISGlobalId() public view returns (uint96) {
+        return Token[PIS].assetGlobalId;
     }
 
     /// only for debug
@@ -101,15 +101,18 @@ contract PAIDAO is Organization, DSMath {
     }
 
     uint256 private state = 0;
-    function plusOne() public authFunctionHash(Cashier) {
+    //function plusOne() public authFunctionHash(Cashier) {
+    function plusOne() public {
         state = state + 1;
     }
 
-    function plusTen() public authFunctionHash(Director) {
+    //function plusTen() public authFunctionHash(Director) {
+    function plusTen() public {
         state = state + 10;
     }
 
-    function plusHundred() public authFunctionHash(VoteContract) {
+    //function plusHundred() public authFunctionHash(VoteContract) {
+    function plusHundred() public {
         state = state + 100;
     }
 
