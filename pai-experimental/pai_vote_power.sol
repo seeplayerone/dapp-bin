@@ -10,7 +10,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 // import "./template.sol";
 // import "./pai_main.sol";
 interface Vote {
-    function vote(uint voteId, bool attitude) public;
+    function vote(uint voteId, bool attitude) external;
 }
 
 
@@ -26,7 +26,7 @@ contract PISVotePower is Template, DSMath {
     
     function setOrganization(address _organizationContract) public {
         paiDAO = PAIDAO(_organizationContract);
-        voteAssetGlobalId = paiDAO.getPISGlobalId();
+         (,voteAssetGlobalId) = paiDAO.getAdditionalAssetInfo(0);
     }
 
     /// get the organization contract address

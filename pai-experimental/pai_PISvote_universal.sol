@@ -58,7 +58,7 @@ contract PISVoteUniversal is Template, DSMath {
     
     function setOrganization(address _organizationContract) public {
         paiDAO = PAIDAO(_organizationContract);
-        voteAssetGlobalId = paiDAO.getPISGlobalId();
+        (,voteAssetGlobalId) = paiDAO.getAdditionalAssetInfo(0);
     }
 
     /// get the organization contract address
@@ -98,10 +98,10 @@ contract PISVoteUniversal is Template, DSMath {
         va.target = _targetContract;
         va.func = _func;
         va.param = _param;
-        
+
+        lastAssignedVoteId = add(lastAssignedVoteId,1);
         votes[lastAssignedVoteId] = va;
         emit CreateVote(lastAssignedVoteId);
-        lastAssignedVoteId = add(lastAssignedVoteId,1);
     }
 
     /// @dev get basic information of a vote
