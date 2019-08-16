@@ -49,7 +49,8 @@ contract BasicVote is Template, DSMath {
           bytes _param
         )
         internal
-        {
+        returns(uint)
+    {
         require(_duration > 1 minutes, "not enough vote time");
         require(_totalVotes > 0, "totalVotes should greater than zero");
         require(_totalVotes >= _throughVotes, "_throughVotes should greater than or equal to totalVotes");
@@ -72,6 +73,7 @@ contract BasicVote is Template, DSMath {
         lastAssignedVoteId = add(lastAssignedVoteId,1);
         votes[lastAssignedVoteId] = va;
         emit CreateVote(lastAssignedVoteId);
+        return lastAssignedVoteId;
     }
 
     /// @dev get basic information of a vote
