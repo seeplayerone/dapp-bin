@@ -84,7 +84,7 @@ contract PAIDAO is Organization, DSMath {
         hole.transfer(msg.value, msg.assettype);
     }
 
-    function getAdditionalAssetInfo(uint32 _assetIndex) public view returns (uint, uint) {
+    function getAdditionalAssetInfo(uint32 _assetIndex) public view returns (uint64, uint96) {
         return (Token[_assetIndex].assetLocalId,Token[_assetIndex].assetGlobalId);
     }
 

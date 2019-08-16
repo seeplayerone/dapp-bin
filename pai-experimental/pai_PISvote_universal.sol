@@ -8,7 +8,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 
 /// @title This is a simple vote contract, everyone has the same vote weights
 /// @dev Every template contract needs to inherit Template contract directly or indirectly
-contract PISVoteUniversal is Template, BasicVote, DSMath {
+contract PISVoteUniversal is BasicVote {
     using StringLib for string;
     
     /// params to be init
