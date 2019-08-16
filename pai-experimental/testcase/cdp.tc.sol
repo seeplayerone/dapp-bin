@@ -585,4 +585,168 @@ contract GovernanceFeeTest is TestBase {
         assertEq(emm1 - flow.balance(this, ASSET_PAI), 10500000000);
         assertEq(flow.balance(this, ASSET_BTC) - emm2, 10000000000);        
     }
+
+}
+
+contract DoubleFeeTest is TestBase {
+    function feeSetup() public returns (uint) {
+        setup();
+        oracle.updatePrice(ASSET_BTC, RAY * 10);
+        cdp.updateStabilityFee(1000000564701133626865910626);
+        cdp.updateGovernanceFee(1000000564701133626865910626);
+        cdp.updateLiquidationRatio(RAY);
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(10000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 10000000000);
+
+        return idx;
+    }    
+
+    function testDoubleFeeFly() {
+        feeSetup();
+        cdp.fly(1 days);
+        assertEq(cdp.updateAndFetchRates1(), RAY * 105 / 100);
+        assertEq(cdp.updateAndFetchRates2(), RAY * 11025 / 10000);        
+    }
+
+    function testDoubleFeeIce() {
+        uint idx = feeSetup();
+        assertEq(cdp.totalDebt(), 10000000000);
+        assertEq(cdp.debtOfCDP(idx), 10000000000);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 0);
+        assertEq(liquidator.totalAssetPAI(), 0);
+
+        cdp.fly(1 days);
+        cdp.updateRates();
+
+        assertEq(cdp.totalDebt(), 10500000000);
+        assertEq(cdp.debtOfCDP(idx), 10500000000);
+        assertEq(liquidator.totalAssetPAI(), 500000000);  
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 525000000);               
+    }
+
+    function testDoubleFeeBorrow() {
+        uint idx = feeSetup();
+        cdp.fly(1 days);
+        assertEq(cdp.debtOfCDP(idx), 10500000000);
+        cdp.borrow(idx, 10000000000);
+        assertEq(cdp.debtOfCDP(idx), 20500000000);
+    }
+
+    function testDoubleFeeRepay() {
+        uint idx = feeSetup();
+
+        cdp.fly(1 days);
+        assertEq(cdp.debtOfCDP(idx), 10500000000);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 525000000);               
+
+        cdp.repay.value(5512500000, ASSET_PAI)(idx);
+
+        assertEq(cdp.debtOfCDP(idx), 5250000000);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 262500000);               
+
+        /// all stability fees + half governance fees
+        assertEq(liquidator.totalAssetPAI(), 762500000);
+    }
+
+    function testDoubleFeeRepayAll() {
+        uint idx = feeSetup();
+
+        cdp.fly(1 days);
+        assertEq(cdp.debtOfCDP(idx), 10500000000);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 525000000);               
+
+        uint emm = flow.balance(this, ASSET_PAI);
+        cdp.repay.value(20000000000, ASSET_PAI)(idx);
+        assertEq(emm - flow.balance(this, ASSET_PAI), 11025000000);
+
+        assertEq(cdp.debtOfCDP(idx), 0);
+        assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 0);               
+
+        assertEq(liquidator.totalAssetPAI(), 1025000000);
+    }
+}
+
+contract LiquidationPenaltyTest is TestBase {
+    function penaltySetup() public returns (uint) {
+        setup();
+        oracle.updatePrice(ASSET_BTC, RAY);
+        cdp.updateLiquidationRatio(RAY * 2);
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 1000000000);
+
+        return idx;
+    }
+
+    function testPenaltyCase1() {
+        uint idx = penaltySetup();
+    
+        cdp.updateLiquidationRatio(RAY * 21 / 10);
+        cdp.updateLiquidationPenalty(RAY * 15 / 10);
+
+        assertEq(cdp.collateralOfCDP(idx), 2000000000);
+        cdp.liquidate(idx);
+        assertEq(cdp.collateralOfCDP(idx), 500000000);
+    }
+
+    function testPenaltyCase2() {
+        uint idx = penaltySetup();
+
+        cdp.updateLiquidationPenalty(RAY * 15 / 10);
+        oracle.updatePrice(ASSET_BTC, RAY * 8 / 10);
+
+        assertEq(cdp.collateralOfCDP(idx), 2000000000);
+        cdp.liquidate(idx);
+        assertEq(cdp.collateralOfCDP(idx), 125000000);
+    }
+
+    function testPenaltyParity() {
+        uint idx = penaltySetup();
+
+        cdp.updateLiquidationPenalty(RAY * 15 / 10);
+        oracle.updatePrice(ASSET_BTC, RAY * 5 / 10);
+
+        assertEq(cdp.collateralOfCDP(idx), 2000000000);
+        cdp.liquidate(idx);
+        assertEq(cdp.collateralOfCDP(idx), 0);
+    }
+
+    function testPenaltyUnder() {
+        uint idx = penaltySetup();
+
+        cdp.updateLiquidationPenalty(RAY * 15 / 10);
+        oracle.updatePrice(ASSET_BTC, RAY * 4 / 10);
+
+        assertEq(cdp.collateralOfCDP(idx), 2000000000);
+        cdp.liquidate(idx);
+        assertEq(cdp.collateralOfCDP(idx), 0);
+    }
+
+    function testSettlementWithPenalty() {
+        uint idx = penaltySetup();
+
+        cdp.updateLiquidationPenalty(RAY * 15 / 10);
+        
+        assertEq(cdp.collateralOfCDP(idx), 2000000000);
+        cdp.terminateBusiness();
+
+        cdp.liquidate(idx);
+        assertEq(cdp.collateralOfCDP(idx), 1000000000);
+    }
+
+    function testSettlementWithoutPenalty() {
+        uint idx = penaltySetup();
+
+        cdp.updateLiquidationPenalty(RAY);
+        
+        assertEq(cdp.collateralOfCDP(idx), 2000000000);
+        cdp.terminateBusiness();
+
+        cdp.liquidate(idx);
+        assertEq(cdp.collateralOfCDP(idx), 1000000000);
+    }
+
+
 }
