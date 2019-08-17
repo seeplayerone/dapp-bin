@@ -114,7 +114,7 @@ contract CDPTest is TestBase {
         cdp.closeCDPRecord(idx);
     }
 
-    function testTranserCDP() public {
+    function testTransferCDP() public {
         setup();
         uint idx = cdp.createCDP();
         assertEq(cdp.ownerOfCDP(idx), this);
@@ -132,26 +132,40 @@ contract CDPTest is TestBase {
         cdp.transferCDPOwnership(idx, 0x456);
     }
     
-    /// GETTER missing in cdp.sol
-    function testSetConfigs() public {
+    function testSetLiquidationRatio() public {
         setup();
         cdp.updateLiquidationRatio(1130000000000000000000000000);
-        cdp.updateLiquidationPenalty(1500000000000000000000000000);
+        assertEq(cdp.getLiquidationRatio(), 1130000000000000000000000000);
     }
 
-    /// GETTER missing in cdp.sol
+    function testSetLiquidationRatioFail() public {
+        setup();
+        cdp.updateLiquidationRatio(990000000000000000000000000);
+        assertEq(cdp.getLiquidationRatio(), 990000000000000000000000000);
+    }
+
+    function testSetLiquidationPenalty() public {
+        setup();
+        cdp.updateLiquidationPenalty(1500000000000000000000000000);
+        assertEq(cdp.getLiquidationPenalty(), 1500000000000000000000000000);
+    }
+
+    function testSetLiquidationPenaltyFail() public {
+        setup();
+        cdp.updateLiquidationPenalty(990000000000000000000000000);
+        assertEq(cdp.getLiquidationPenalty(), 990000000000000000000000000);
+    }
+
+    function testSetDebtCeiling() public {
+        setup();
+        cdp.updateDebtCeiling(1000000000000);
+        assertEq(cdp.getDebtCeiling(), 1000000000000);
+    }
+
     function testSetPriceOracle() public {
         setup();
         cdp.setPriceOracle(PriceOracle(0x123));
-    }
-
-    /// -32000:fvm: execution reverted
-    function testBorrowFail() public {
-        setup();
-        cdp.updateLiquidationRatio(1000000000000000000000000000);
-        uint idx = cdp.createCDP();
-        cdp.deposit.value(100000000, ASSET_BTC)(idx);
-        cdp.borrow(idx, 200000000);
+        assertEq(cdp.getPriceOracle(), 0x123);
     }
 
     function testBorrow() public {
@@ -163,6 +177,16 @@ contract CDPTest is TestBase {
         cdp.borrow(idx, 100000000);
         assertEq(cdp.debtOfCDP(idx), 100000000);
     }
+
+    /// -32000:fvm: execution reverted
+    function testBorrowFail() public {
+        setup();
+        cdp.updateLiquidationRatio(1000000000000000000000000000);
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(100000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 200000000);
+    }
+
 
     function testRepay() public {
         setup();
@@ -287,6 +311,18 @@ contract CDPTest is TestBase {
         assertEq(flow.balance(this, ASSET_BTC) - emm2, 100000000);
     }
 
+    function testCloseCDPFail() public {
+        setup();
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(100000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 50000000);
+
+        uint emm1 = flow.balance(this, ASSET_PAI);
+        uint emm2 = flow.balance(this, ASSET_BTC);
+
+        cdp.closeCDPRecord.value(40000000, ASSET_PAI)(idx);
+    }
+
 }
  
 contract StabilityFeeTest is TestBase {
@@ -330,7 +366,7 @@ contract StabilityFeeTest is TestBase {
         assertEq(cdp.totalDebt(), 10500000000);
     }
 
-    function testLiquidatorBonus1() public {
+    function testLiquidatorIncome1() public {
         uint idx = feeSetup();
         assertEq(cdp.totalDebt(), 10000000000);
         assertEq(cdp.debtOfCDP(idx), 10000000000);
@@ -343,7 +379,7 @@ contract StabilityFeeTest is TestBase {
         assertEq(liquidator.totalAssetPAI(), 500000000);        
     }
 
-    function testLiquidatorBonus2() public {
+    function testLiquidatorIncome2() public {
         uint idx = feeSetup();
         assertEq(cdp.totalDebt(), 10000000000);
         assertEq(cdp.debtOfCDP(idx), 10000000000);
@@ -370,7 +406,7 @@ contract StabilityFeeTest is TestBase {
         assertEq(liquidator.totalAssetPAI(), 1000000000);                        
     }
 
-    function testLiquidatorBonus3() public {
+    function testLiquidatorImcome3() public {
         uint idx = feeSetup();
         assertEq(cdp.totalDebt(), 10000000000);
         assertEq(cdp.debtOfCDP(idx), 10000000000);
