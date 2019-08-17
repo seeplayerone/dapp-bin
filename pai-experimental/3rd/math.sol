@@ -55,6 +55,15 @@ contract DSMath {
         z = add(mul(x, RAY), y / 2) / y;
     }
 
+    uint constant ASI = 10 ** 8;
+
+    function amul(uint x, uint y) internal pure returns (uint z) {
+        z = add(mul(x, y), ASI / 2) / ASI;
+    }
+    function adiv(uint x, uint y) internal pure returns (uint z) {
+        z = add(mul(x, ASI), y / 2) / y;
+    }
+
     // This famous algorithm is called "exponentiation by squaring"
     // and calculates x^n with x as fixed-point and n as regular unsigned.
     //
