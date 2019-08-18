@@ -784,3 +784,253 @@ contract LiquidationPenaltyTest is TestBase {
         assertEq(cdp.collateralOfCDP(idx), 1000000000);
     }
 }
+
+contract LiquidationTest is TestBase {
+    function liquidationSetup() {
+        setup();   
+        oracle.updatePrice(ASSET_BTC, RAY);
+        cdp.updateLiquidationRatio(RAY);
+        cdp.updateLiquidationPenalty(RAY);
+    }
+
+    function liq(uint idx) internal returns (uint256) {
+        uint256 collateralValue = cdp.collateralOfCDP(idx);
+        uint256 debtValue = rmul(cdp.debtOfCDP(idx), cdp.getLiquidationRatio()); 
+        return adiv(debtValue, collateralValue);
+    }
+
+    function collat(uint idx) internal returns (uint256) {
+        uint256 collateralValue = rmul(cdp.collateralOfCDP(idx), oracle.getPrice(ASSET_BTC));
+        uint256 debtValue = cdp.debtOfCDP(idx);
+        return adiv(collateralValue, debtValue);
+    }
+
+    function testLiq() public {
+        liquidationSetup();
+        oracle.updatePrice(ASSET_BTC, RAY * 2);
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 1000000000);
+
+        cdp.updateLiquidationRatio(RAY);
+        assertEq(liq(idx), ASI);
+
+        cdp.updateLiquidationRatio(RAY * 3 / 2);
+        assertEq(liq(idx), ASI * 3 / 2);
+
+        oracle.updatePrice(ASSET_BTC, RAY * 6);
+        assertEq(liq(idx), ASI * 3 / 2);
+
+        cdp.borrow(idx, 3000000000);
+        assertEq(liq(idx), ASI * 6);
+
+        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
+        assertEq(liq(idx), ASI * 3);
+    }
+
+    function testCollat() {
+        liquidationSetup();
+        oracle.updatePrice(ASSET_BTC, RAY * 2);
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 1000000000);
+        assertEq(collat(idx), ASI * 2);
+
+        oracle.updatePrice(ASSET_BTC, RAY * 4);
+        assertEq(collat(idx), ASI * 4);
+
+        cdp.borrow(idx, 1500000000);
+        assertEq(collat(idx), ASI * 8 / 5);
+
+        oracle.updatePrice(ASSET_BTC, RAY * 5);
+        cdp.withdraw(idx, 500000000);
+        assertEq(collat(idx), ASI);
+
+        oracle.updatePrice(ASSET_BTC, RAY * 4);
+        assertEq(collat(idx), ASI * 4 / 5);
+
+        cdp.repay.value(900000000, ASSET_PAI)(idx);
+        assertEq(collat(idx), ASI * 5 / 4);
+    }
+
+    function testLiquidationCase1() {
+        liquidationSetup();
+        cdp.updateLiquidationRatio(RAY * 3 / 2);
+        oracle.updatePrice(ASSET_BTC, RAY * 2);
+        liquidator.setDiscount(RAY);
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
+
+        oracle.updatePrice(ASSET_BTC, RAY * 3);     
+        cdp.borrow(idx, 1600000000);
+        oracle.updatePrice(ASSET_BTC, RAY * 2);
+
+        assertTrue(!cdp.safe(idx));     
+
+        cdp.liquidate(idx);
+
+        assertEq(liquidator.totalCollateralBTC(), 800000000);
+
+        uint emm1 = flow.balance(this, ASSET_PAI);
+        uint emm2 = flow.balance(this, ASSET_BTC);
+
+        liquidator.buyColleteral.value(400000000, ASSET_PAI)();
+
+        assertEq(emm1 - flow.balance(this, ASSET_PAI), 400000000);
+        assertEq(flow.balance(this, ASSET_BTC) - emm2, 200000000);
+
+        oracle.updatePrice(ASSET_BTC, RAY);
+
+        liquidator.buyColleteral.value(600000000, ASSET_PAI)();
+        assertEq(liquidator.totalCollateralBTC(), 0);
+    }
+
+    function testLiquidationCase2() {
+        liquidationSetup();
+        cdp.updateLiquidationRatio(RAY * 2);
+        cdp.updateLiquidationPenalty(RAY * 3 / 2);
+        oracle.updatePrice(ASSET_BTC, RAY * 20);
+        liquidator.setDiscount(RAY);
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 10000000000);
+
+        oracle.updatePrice(ASSET_BTC, RAY * 15);
+
+        cdp.liquidate(idx);
+
+        assertEq(cdp.debtOfCDP(idx), 0);
+        assertEq(cdp.collateralOfCDP(idx), 0);
+
+        assertEq(liquidator.totalDebtPAI(), 10000000000);
+        assertEq(liquidator.totalCollateralBTC(), 1000000000);
+
+        idx = cdp.createCDP();
+        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 5000000000);
+
+        liquidator.buyColleteral.value(15000000000, ASSET_PAI)();
+        assertEq(liquidator.totalDebtPAI(), 0);
+        assertEq(liquidator.totalCollateralBTC(), 0);      
+        assertEq(liquidator.totalAssetPAI(), 5000000000);
+    }
+}
+
+contract LiquidatorTest is TestBase {
+    function liquidatorSetup() public {
+        setup();
+        liquidator.setDiscount(RAY);
+    }
+
+    function testCancelDebt() public {
+        liquidatorSetup(); 
+
+        liquidator.addDebt(5000000000);
+        paiIssuer.mint(6000000000, liquidator);
+
+        assertEq(liquidator.totalAssetPAI(), 6000000000);
+        assertEq(liquidator.totalDebtPAI(), 5000000000);
+
+        liquidator.cancelDebt();
+        assertEq(liquidator.totalAssetPAI(), 1000000000);
+        assertEq(liquidator.totalDebtPAI(), 0);
+    }
+
+    function testBuyCollateral() public {
+        liquidatorSetup();
+
+        btcIssuer.mint(5000000000, liquidator);
+
+        uint emm1 = flow.balance(this, ASSET_PAI);
+        uint emm2 = flow.balance(this, ASSET_BTC);
+
+        liquidator.buyColleteral.value(3000000000, ASSET_PAI)();
+
+        assertEq(emm1 - flow.balance(this, ASSET_PAI), 3000000000);
+        assertEq(flow.balance(this, ASSET_BTC) - emm2, 3000000000);
+    }
+
+    function testBuyCollateralAll() public {
+        liquidatorSetup();
+
+        btcIssuer.mint(5000000000, liquidator);
+
+        uint emm1 = flow.balance(this, ASSET_PAI);
+        uint emm2 = flow.balance(this, ASSET_BTC);
+
+        liquidator.buyColleteral.value(6000000000, ASSET_PAI)();        
+
+        assertEq(emm1 - flow.balance(this, ASSET_PAI), 5000000000);
+        assertEq(flow.balance(this, ASSET_BTC) - emm2, 5000000000);
+    }
+
+    function testCancelDebtAfterBuy1() public {
+        liquidatorSetup(); 
+
+        liquidator.addDebt(2000000000);
+        paiIssuer.mint(1000000000, liquidator);
+        btcIssuer.mint(5000000000, liquidator);
+
+        liquidator.buyColleteral.value(1500000000, ASSET_PAI)();        
+
+        assertEq(liquidator.totalAssetPAI(), 500000000);
+        assertEq(liquidator.totalDebtPAI(), 0);
+    }
+
+    function testCancelDebtAfterBuy2() public {
+        liquidatorSetup(); 
+
+        liquidator.addDebt(2000000000);
+        paiIssuer.mint(1000000000, liquidator);
+        btcIssuer.mint(5000000000, liquidator);
+
+        liquidator.buyColleteral.value(500000000, ASSET_PAI)();        
+
+        assertEq(liquidator.totalAssetPAI(), 0);
+        assertEq(liquidator.totalDebtPAI(), 500000000);
+    }
+    
+    function testDiscountBuyPartial() public {
+        liquidatorSetup();
+
+        liquidator.setDiscount(RAY * 9 / 10);
+        oracle.updatePrice(ASSET_BTC, RAY * 2);
+
+        btcIssuer.mint(1000000000, liquidator);
+
+        uint emm1 = flow.balance(this, ASSET_PAI);
+        uint emm2 = flow.balance(this, ASSET_BTC);
+
+        liquidator.buyColleteral.value(900000000, ASSET_PAI)();
+
+        assertEq(emm1 - flow.balance(this, ASSET_PAI), 900000000);
+        assertEq(flow.balance(this, ASSET_BTC) - emm2, 500000000);
+
+        assertEq(liquidator.totalAssetPAI(), 900000000);
+        assertEq(liquidator.totalCollateralBTC(), 500000000);
+    }
+
+    function testDiscountBuyAll() public {
+        liquidatorSetup();
+
+        liquidator.setDiscount(RAY * 9 / 10);
+        oracle.updatePrice(ASSET_BTC, RAY * 2);
+
+        btcIssuer.mint(1000000000, liquidator);
+
+        uint emm1 = flow.balance(this, ASSET_PAI);
+        uint emm2 = flow.balance(this, ASSET_BTC);
+
+        liquidator.buyColleteral.value(9000000000, ASSET_PAI)();
+
+        assertEq(emm1 - flow.balance(this, ASSET_PAI), 1800000000);
+        assertEq(flow.balance(this, ASSET_BTC) - emm2, 1000000000);
+
+        assertEq(liquidator.totalAssetPAI(), 1800000000);
+        assertEq(liquidator.totalCollateralBTC(), 0);
+    }
+}
