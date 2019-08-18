@@ -95,22 +95,22 @@ contract Liquidator is DSMath, DSNote, Template {
 
     /// the liquidator sells BTC'
     /// users can buy collateral from the liquidator either before settlement or in settlement phase 2, with different prices
-    function buyColleteral() public payable note {
+    function buyCollateral() public payable note {
         require(msg.assettype == ASSET_PAI);
         require(!settlementP1 || settlementP2);
         /// before settlement
         if(!settlementP1){
             uint referencePrice = rmul(collateralPrice(), discount);
-            buyColleteralInternal(msg.value, referencePrice);
+            buyCollateralInternal(msg.value, referencePrice);
         }
         /// settlement phase 2
         else if(settlementP2){
             require(collateralSettlementPrice > 0);
-            buyColleteralInternal(msg.value, collateralSettlementPrice);
+            buyCollateralInternal(msg.value, collateralSettlementPrice);
         }
     }
 
-    function buyColleteralInternal(uint _money, uint _refPrice) internal {
+    function buyCollateralInternal(uint _money, uint _refPrice) internal {
         uint amount = rdiv(_money, _refPrice);
         require(amount > 0);
 
