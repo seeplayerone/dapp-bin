@@ -145,8 +145,8 @@ contract LiquidatorTest is Template, DSTest, DSMath {
 
         uint originalBTC = liquidator.totalCollateralBTC();
 
-        liquidator.settlePhaseOne();
-        liquidator.settlePhaseTwo();
+        liquidator.terminatePhaseOne();
+        liquidator.terminatePhaseTwo();
 
         assertEq(10**27 * 500 / 10, liquidator.collateralPrice());
 

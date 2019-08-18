@@ -766,7 +766,7 @@ contract LiquidationPenaltyTest is TestBase {
         cdp.updateLiquidationPenalty(RAY * 15 / 10);
         
         assertEq(cdp.collateralOfCDP(idx), 2000000000);
-        cdp.terminateBusiness();
+        cdp.terminate();
 
         cdp.liquidate(idx);
         assertEq(cdp.collateralOfCDP(idx), 1000000000);
@@ -778,7 +778,7 @@ contract LiquidationPenaltyTest is TestBase {
         cdp.updateLiquidationPenalty(RAY);
         
         assertEq(cdp.collateralOfCDP(idx), 2000000000);
-        cdp.terminateBusiness();
+        cdp.terminate();
 
         cdp.liquidate(idx);
         assertEq(cdp.collateralOfCDP(idx), 1000000000);

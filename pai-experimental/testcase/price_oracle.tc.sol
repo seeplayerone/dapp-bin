@@ -21,7 +21,7 @@ contract PriceOracleTest is Template, DSTest {
         assertEq(88, oracle.getPrice(0));
     }
 
-    function testUpdatePriceFail() public {
+    function testUpdatePriceWrong() public {
         setup();
         oracle.updatePrice(0, 88);
         assertEq(77, oracle.getPrice(0));
