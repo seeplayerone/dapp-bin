@@ -877,14 +877,14 @@ contract LiquidationTest is TestBase {
         uint emm1 = flow.balance(this, ASSET_PAI);
         uint emm2 = flow.balance(this, ASSET_BTC);
 
-        liquidator.buyColleteral.value(400000000, ASSET_PAI)();
+        liquidator.buyCollateral.value(400000000, ASSET_PAI)();
 
         assertEq(emm1 - flow.balance(this, ASSET_PAI), 400000000);
         assertEq(flow.balance(this, ASSET_BTC) - emm2, 200000000);
 
         oracle.updatePrice(ASSET_BTC, RAY);
 
-        liquidator.buyColleteral.value(600000000, ASSET_PAI)();
+        liquidator.buyCollateral.value(600000000, ASSET_PAI)();
         assertEq(liquidator.totalCollateralBTC(), 0);
     }
 
@@ -913,7 +913,7 @@ contract LiquidationTest is TestBase {
         cdp.deposit.value(1000000000, ASSET_BTC)(idx);
         cdp.borrow(idx, 5000000000);
 
-        liquidator.buyColleteral.value(15000000000, ASSET_PAI)();
+        liquidator.buyCollateral.value(15000000000, ASSET_PAI)();
         assertEq(liquidator.totalDebtPAI(), 0);
         assertEq(liquidator.totalCollateralBTC(), 0);      
         assertEq(liquidator.totalAssetPAI(), 5000000000);
@@ -948,7 +948,7 @@ contract LiquidatorTest is TestBase {
         uint emm1 = flow.balance(this, ASSET_PAI);
         uint emm2 = flow.balance(this, ASSET_BTC);
 
-        liquidator.buyColleteral.value(3000000000, ASSET_PAI)();
+        liquidator.buyCollateral.value(3000000000, ASSET_PAI)();
 
         assertEq(emm1 - flow.balance(this, ASSET_PAI), 3000000000);
         assertEq(flow.balance(this, ASSET_BTC) - emm2, 3000000000);
@@ -962,7 +962,7 @@ contract LiquidatorTest is TestBase {
         uint emm1 = flow.balance(this, ASSET_PAI);
         uint emm2 = flow.balance(this, ASSET_BTC);
 
-        liquidator.buyColleteral.value(6000000000, ASSET_PAI)();        
+        liquidator.buyCollateral.value(6000000000, ASSET_PAI)();        
 
         assertEq(emm1 - flow.balance(this, ASSET_PAI), 5000000000);
         assertEq(flow.balance(this, ASSET_BTC) - emm2, 5000000000);
@@ -975,7 +975,7 @@ contract LiquidatorTest is TestBase {
         paiIssuer.mint(1000000000, liquidator);
         btcIssuer.mint(5000000000, liquidator);
 
-        liquidator.buyColleteral.value(1500000000, ASSET_PAI)();        
+        liquidator.buyCollateral.value(1500000000, ASSET_PAI)();        
 
         assertEq(liquidator.totalAssetPAI(), 500000000);
         assertEq(liquidator.totalDebtPAI(), 0);
@@ -988,7 +988,7 @@ contract LiquidatorTest is TestBase {
         paiIssuer.mint(1000000000, liquidator);
         btcIssuer.mint(5000000000, liquidator);
 
-        liquidator.buyColleteral.value(500000000, ASSET_PAI)();        
+        liquidator.buyCollateral.value(500000000, ASSET_PAI)();        
 
         assertEq(liquidator.totalAssetPAI(), 0);
         assertEq(liquidator.totalDebtPAI(), 500000000);
@@ -1005,7 +1005,7 @@ contract LiquidatorTest is TestBase {
         uint emm1 = flow.balance(this, ASSET_PAI);
         uint emm2 = flow.balance(this, ASSET_BTC);
 
-        liquidator.buyColleteral.value(900000000, ASSET_PAI)();
+        liquidator.buyCollateral.value(900000000, ASSET_PAI)();
 
         assertEq(emm1 - flow.balance(this, ASSET_PAI), 900000000);
         assertEq(flow.balance(this, ASSET_BTC) - emm2, 500000000);
@@ -1025,7 +1025,7 @@ contract LiquidatorTest is TestBase {
         uint emm1 = flow.balance(this, ASSET_PAI);
         uint emm2 = flow.balance(this, ASSET_BTC);
 
-        liquidator.buyColleteral.value(9000000000, ASSET_PAI)();
+        liquidator.buyCollateral.value(9000000000, ASSET_PAI)();
 
         assertEq(emm1 - flow.balance(this, ASSET_PAI), 1800000000);
         assertEq(flow.balance(this, ASSET_BTC) - emm2, 1000000000);

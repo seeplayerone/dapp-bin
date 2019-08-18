@@ -118,7 +118,7 @@ contract LiquidatorTest is Template, DSTest, DSMath {
 
         uint originalBTC = liquidator.totalCollateralBTC();
 
-        liquidator.buyColleteral.value(value, ASSET_PAI)();
+        liquidator.buyCollateral.value(value, ASSET_PAI)();
 
         uint amount = rdiv(value, rmul(liquidator.collateralPrice(), discount));
         if(amount > originalBTC) {
@@ -150,7 +150,7 @@ contract LiquidatorTest is Template, DSTest, DSMath {
 
         assertEq(10**27 * 500 / 10, liquidator.collateralPrice());
 
-        liquidator.buyColleteral.value(value, ASSET_PAI)();
+        liquidator.buyCollateral.value(value, ASSET_PAI)();
 
         uint amount = rdiv(value, liquidator.collateralPrice());
         if(amount > originalBTC) {
