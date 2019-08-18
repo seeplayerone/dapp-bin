@@ -22,7 +22,7 @@ contract Liquidator is DSMath, DSNote, Template {
 
     bool private settlementP1; /// the business is in settlement stage
     bool private settlementP2; /// the business is in settlement stage and all CDPs have been liquidated
-    uint private collateralSettlementPrice; /// collateral settlement price, avaliable on settlememnt phase 2
+    uint private settlementPrice; /// collateral settlement price, avaliable on settlememnt phase 2
 
     PriceOracle private oracle; /// price oracle
     PAIIssuer private issuer; /// PAI issuer
@@ -90,7 +90,7 @@ contract Liquidator is DSMath, DSNote, Template {
 
     /// BTC' price against PAI
     function collateralPrice() public view returns (uint256) {
-        return settlementP1 ? collateralSettlementPrice : oracle.getPrice(ASSET_BTC);
+        return settlementP2 ? settlementPrice : oracle.getPrice(ASSET_BTC);
     }
 
     /// the liquidator sells BTC'
@@ -105,8 +105,8 @@ contract Liquidator is DSMath, DSNote, Template {
         }
         /// settlement phase 2
         else if(settlementP2){
-            require(collateralSettlementPrice > 0);
-            buyCollateralInternal(msg.value, collateralSettlementPrice);
+            require(settlementPrice > 0);
+            buyCollateralInternal(msg.value, settlementPrice);
         }
     }
 
@@ -140,16 +140,16 @@ contract Liquidator is DSMath, DSNote, Template {
         cancelDebt();
     }
 
-    function settlePhaseOne() public {
+    function terminatePhaseOne() public {
         require(!settlementP1);
         settlementP1 = true;
     }
 
-    function settlePhaseTwo() public {
+    function terminatePhaseTwo() public {
         require(settlementP1);
         require(!settlementP2);
         if(flow.balance(this, ASSET_BTC) > 0)
-            collateralSettlementPrice = mul(totalDebt, RAY) / flow.balance(this, ASSET_BTC);
+            settlementPrice = mul(totalDebt, RAY) / flow.balance(this, ASSET_BTC);
         settlementP2 = true;
     }
 }

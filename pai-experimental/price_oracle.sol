@@ -30,13 +30,4 @@ contract PriceOracle is Template {
         require(!settlement);
         settlement = true;
     }
-
-    /// only for debug
-    function reOpen() public {
-        settlement = false;
-    }
-
-    function checkState() public view returns (bool) {
-        return settlement;
-    }
 }
