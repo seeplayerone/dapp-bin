@@ -14,15 +14,25 @@
 pragma solidity >=0.4.23;
 
 contract DSTest {
+    // event eventListener          (address target, bool exact);
+    // event logs                   (bytes);
+    // event log_bytes32            (bytes32);
+    // event log_named_address      (bytes32 key, address val);
+    // event log_named_bytes32      (bytes32 key, bytes32 val);
+    // event log_named_decimal_int  (bytes32 key, int val, uint decimals);
+    // event log_named_decimal_uint (bytes32 key, uint val, uint decimals);
+    // event log_named_int          (bytes32 key, int val);
+    // event log_named_uint         (bytes32 key, uint val);
+
     event eventListener          (address target, bool exact);
     event logs                   (bytes);
-    event log_bytes32            (bytes32);
-    event log_named_address      (bytes32 key, address val);
-    event log_named_bytes32      (bytes32 key, bytes32 val);
-    event log_named_decimal_int  (bytes32 key, int val, uint decimals);
-    event log_named_decimal_uint (bytes32 key, uint val, uint decimals);
-    event log_named_int          (bytes32 key, int val);
-    event log_named_uint         (bytes32 key, uint val);
+    event log_bytes32            (string);
+    event log_named_address      (string key, address val);
+    event log_named_bytes32      (string key, bytes32 val);
+    event log_named_decimal_int  (string key, int val, uint decimals);
+    event log_named_decimal_uint (string key, uint val, uint decimals);
+    event log_named_int          (string key, int val);
+    event log_named_uint         (string key, uint val);
 
     bool public IS_TEST;
     bool public failed;

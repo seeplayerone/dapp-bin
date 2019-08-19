@@ -1,102 +1,164 @@
 pragma solidity 0.4.25;
 
-import "../../library/template.sol";
-import "../liquidator.sol";
-import "../3rd/test.sol";
-import "../3rd/math.sol";
+// import "../../library/template.sol";
+// import "../liquidator.sol";
+// import "../3rd/test.sol";
+// import "../3rd/math.sol";
 
-// import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
-// import "github.com/seeplayerone/dapp-bin/library/template.sol";
-// import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
-// import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/fake_btc_issuer.sol";
+
+contract FakePAIIssuer is PAIIssuer {
+    constructor() public {
+        templateName = "Fake-Template-Name-For-Test";
+    }
+}
 
 contract LiquidatorTest is Template, DSTest, DSMath {
     Liquidator private liquidator;
     PriceOracle private oracle;
-    PAIIssuer private issuer;
+    FakePAIIssuer private paiIssuer;
+    FakeBTCIssuer private btcIssuer;
 
     uint private discount = 970000000000000000000000000;
     uint private ASSET_BTC;
     uint private ASSET_PAI;
 
-    constructor(address liq, address ora, address iss) public {
-        liquidator = Liquidator(liq);
-        oracle = PriceOracle(ora);
-        issuer = PAIIssuer(iss);
+    function() public payable {
 
-        ASSET_BTC = 0; /// using ASIM asset for test purpose
-        ASSET_PAI = issuer.getAssetType();
     }
 
-    function debug() public view returns(uint) {
-        return issuer.getAssetType();
+    function setup() public {
+        oracle = new PriceOracle();
+
+        paiIssuer = new FakePAIIssuer();
+        paiIssuer.init("sb");
+        ASSET_PAI = paiIssuer.getAssetType();
+
+        btcIssuer = new FakeBTCIssuer();
+        btcIssuer.init("sb2");
+        ASSET_BTC = btcIssuer.getAssetType();
+
+        liquidator = new Liquidator(oracle, paiIssuer);
+        liquidator.setAssetPAI(ASSET_PAI);
+        liquidator.setAssetBTC(ASSET_BTC);
+
+        oracle.updatePrice(ASSET_BTC, RAY * 10);
+
+        paiIssuer.mint(100000000000, this);
+        btcIssuer.mint(10000000000, this);
     }
 
     function testAddDebt() public {
+        setup();
         liquidator.addDebt(100000000);
         assertEq(100000000, liquidator.totalDebtPAI());
     }
 
-    function testAddPAI() public payable {
-        require(msg.assettype == ASSET_PAI);
-        liquidator.addPAI();
-        assertEq(msg.value, liquidator.totalAssetPAI());
+    function testAddPAI() public {
+        setup();
+        uint value = 1000000000;
+        liquidator.addPAI.value(value, ASSET_PAI)();
+        assertEq(value, liquidator.totalAssetPAI());
     }
 
-    function testAddBTC() public payable {
-        require(msg.assettype == ASSET_BTC);
-        liquidator.addBTC();
-        assertEq(msg.value, liquidator.totalCollateralBTC());
+    function testAddBTC() public {
+        setup();
+        uint value = 1000000000;
+        liquidator.addBTC.value(value, ASSET_BTC)();
+        assertEq(value, liquidator.totalCollateralBTC());
     }
 
-    function testCancelDebtWithPAIRemaining() public payable {
-        require(msg.assettype == ASSET_PAI);
-        liquidator.addPAI();
-        liquidator.addDebt(msg.value/2);
-        assertEq(msg.value/2, liquidator.totalAssetPAI());
+    function testCancelDebtWithPAIRemaining() public {
+        setup();
+        uint value = 1000000000;
+        liquidator.addPAI.value(value, ASSET_PAI)();
+        liquidator.addDebt(value/2);
+        assertEq(value/2, liquidator.totalAssetPAI());
     }
 
-    function testCancelDebtWithDebtRemaining() public payable {
-        require(msg.assettype == ASSET_PAI);
-        liquidator.addPAI();
-        liquidator.addDebt(msg.value*2);
-        assertEq(msg.value, liquidator.totalDebtPAI());
+    function testCancelDebtWithDebtRemaining() public {
+        setup();
+        uint value = 1000000000;
+        liquidator.addPAI.value(value, ASSET_PAI)();
+        liquidator.addDebt(value*2);
+        assertEq(value, liquidator.totalDebtPAI());
     }
 
-    function testAddDebtAndBTC() public payable {
-        require(msg.assettype == ASSET_BTC);
-        liquidator.addBTC();
-        assertEq(msg.value, liquidator.totalCollateralBTC());
+    function testAddDebtAndBTC() public {
+        setup();
+        uint value = 1000000000;
+        liquidator.addBTC.value(value, ASSET_BTC)();
+        assertEq(value, liquidator.totalCollateralBTC());
         liquidator.addDebt(100000000);
         assertEq(100000000, liquidator.totalDebtPAI());
     }
 
     function testCollateralPrice() public {
-        oracle.updatePrice(0, 10*(10**27));
+        setup();
+        oracle.updatePrice(ASSET_BTC, 10*(10**27));
         assertEq(10*(10**27), liquidator.collateralPrice());
     }
 
-    //// should be tested when there is BTC in Liquidator
-    //// let's say 10 BTC
-    function testBuyCollateralNormal() public payable {
-        require(msg.assettype == ASSET_PAI);
-
+    function testBuyCollateralNormal() public {
+        setup();
+        liquidator.addBTC.value(1000000000, ASSET_BTC)();
+        liquidator.addDebt(50000000000);
+    
         assertEq(1000000000, liquidator.totalCollateralBTC());
+        assertEq(50000000000, liquidator.totalDebtPAI());
 
-        oracle.updatePrice(0, 10*(10**27));
+        oracle.updatePrice(ASSET_BTC, 10*(10**27));
         assertEq(10*(10**27), liquidator.collateralPrice());
+
+        uint value = 2000000000;
 
         uint originalBTC = liquidator.totalCollateralBTC();
 
-        liquidator.buyColleteral();
+        liquidator.buyCollateral.value(value, ASSET_PAI)();
 
-        uint amount = rdiv(msg.value, rmul(liquidator.collateralPrice(), discount));
+        uint amount = rdiv(value, rmul(liquidator.collateralPrice(), discount));
         if(amount > originalBTC) {
             assertEq(0, liquidator.totalCollateralBTC());
             assertEq(rmul(originalBTC, rmul(liquidator.collateralPrice(), discount)), liquidator.totalAssetPAI());
         } else {
             assertEq(originalBTC - amount, liquidator.totalCollateralBTC());
-            assertEq(rmul(amount, rmul(liquidator.collateralPrice(), discount)), liquidator.totalAssetPAI());
+            assertEq(0, liquidator.totalAssetPAI());
         }
+    }  
+
+    function testBuyCollateralSettlement() public {
+        setup();
+        liquidator.addBTC.value(1000000000, ASSET_BTC)();
+        liquidator.addDebt(50000000000);
+
+        assertEq(1000000000, liquidator.totalCollateralBTC());
+        assertEq(50000000000, liquidator.totalDebtPAI());
+
+        oracle.updatePrice(ASSET_BTC, 10**27 * 10);
+        assertEq(10**27 * 10, liquidator.collateralPrice());
+
+        uint value = 2000000000;
+
+        uint originalBTC = liquidator.totalCollateralBTC();
+
+        liquidator.terminatePhaseOne();
+        liquidator.terminatePhaseTwo();
+
+        assertEq(10**27 * 500 / 10, liquidator.collateralPrice());
+
+        liquidator.buyCollateral.value(value, ASSET_PAI)();
+
+        uint amount = rdiv(value, liquidator.collateralPrice());
+        if(amount > originalBTC) {
+            assertEq(0, liquidator.totalCollateralBTC());
+            assertEq(rmul(originalBTC, liquidator.collateralPrice()), liquidator.totalAssetPAI());
+        } else {
+            assertEq(originalBTC - amount, liquidator.totalCollateralBTC());
+            assertEq(0, liquidator.totalAssetPAI());
+        }        
     }
 }

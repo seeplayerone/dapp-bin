@@ -1,10 +1,10 @@
 pragma solidity 0.4.25;
 
-import "../library/template.sol";
-import "./3rd/math.sol";
+// import "../library/template.sol";
+// import "./3rd/math.sol";
 
-// import "github.com/seeplayerone/dapp-bin/library/template.sol";
-// import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
 
 contract PriceOracle is Template {
     /// asset prices against PAI
@@ -29,14 +29,5 @@ contract PriceOracle is Template {
     function terminate() public {
         require(!settlement);
         settlement = true;
-    }
-
-    /// only for debug
-    function reOpen() public {
-        settlement = false;
-    }
-
-    function checkState() public view returns (bool) {
-        return settlement;
     }
 }

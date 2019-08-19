@@ -1,6 +1,8 @@
 pragma solidity 0.4.25;
 
-contract BalanceOf {
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+
+contract BalanceOf is Template {
 
     uint debt;
 

@@ -11,16 +11,18 @@ import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
 contract PriceOracleTest is Template, DSTest {
     PriceOracle private oracle;
 
-    constructor(address addr) public {
-        oracle =  PriceOracle(addr);        
+    function setup() public {
+        oracle = new PriceOracle();        
     }
 
     function testUpdatePriceSuccess() public {
+        setup();
         oracle.updatePrice(0, 88);
         assertEq(88, oracle.getPrice(0));
     }
 
-    function testUpdatePriceFail() public {
+    function testUpdatePriceWrong() public {
+        setup();
         oracle.updatePrice(0, 88);
         assertEq(77, oracle.getPrice(0));
     }

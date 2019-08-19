@@ -1,6 +1,8 @@
 pragma solidity 0.4.25;
 
-contract MultipleTransfer {
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+
+contract MultipleTransfer is Template {
     uint total;
 
     function() public payable {

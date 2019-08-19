@@ -22,4 +22,13 @@ contract BalanceOf is Template {
         emit Balance(amount);
         emit Balance(flow.balance(this, msg.assettype));        
     }
+
+    function testView() public view {
+        emit Balance(100000000);
+    }
+
+    function testNonPayable() public {
+        amount = 100000;
+        emit Balance(amount);
+    }
 }

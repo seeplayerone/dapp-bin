@@ -57,8 +57,6 @@ contract CDP is DSMath, DSNote, Template {
 
     mapping (uint => CDPRecord) private CDPRecords; /// all CDP records
 
-    address private hole = 0x660000000000000000000000000000000000000000;
-
     struct CDPRecord {
         address owner; /// owner of the CDP
         uint256 collateral; /// collateral in form of BTC'
@@ -71,14 +69,16 @@ contract CDP is DSMath, DSNote, Template {
     }
 
     constructor(address _issuer, address _oracle, address _liquidator) public {
-        stabilityFee = 1000000000000000000000000000;
-        governanceFee = 1000000000000000000000000000;
-        accumulatedRates1 = 1000000000000000000000000000;
-        accumulatedRates2 = 1000000000000000000000000000;
+        stabilityFee = RAY;
+        governanceFee = RAY;
+        accumulatedRates1 = RAY;
+        accumulatedRates2 = RAY;
         liquidationRatio = 1500000000000000000000000000;
         liquidationPenalty = 1130000000000000000000000000;
 
-        lastTimestamp = block.timestamp;
+        debtCeiling = 0;
+
+        lastTimestamp = era();
 
         issuer = PAIIssuer(_issuer);
         priceOracle = PriceOracle(_oracle);
@@ -88,10 +88,26 @@ contract CDP is DSMath, DSNote, Template {
         ASSET_PAI = issuer.getAssetType();
     }
 
+    function setAssetPAI(uint assetType) public {
+        ASSET_PAI = assetType;
+    } 
+
+    function setAssetBTC(uint assetType) public {
+        ASSET_BTC = assetType;
+    }
+
+    function era() public view returns (uint) {
+        return block.timestamp;
+    }
+
     function updateStabilityFee(uint newFee) public {
         require(newFee >= RAY);
         updateRates();
         stabilityFee = newFee;
+    }
+
+    function getStabilityFee() public view returns (uint) {
+        return stabilityFee;
     }
 
     function updateGovernanceFee(uint newFee) public {
@@ -100,14 +116,34 @@ contract CDP is DSMath, DSNote, Template {
         governanceFee = newFee;
     }
 
+    function getGovernanceFee() public view returns (uint) {
+        return governanceFee;
+    }
+
     function updateLiquidationRatio(uint newRatio) public {
         require(newRatio >= RAY);
         liquidationRatio = newRatio;
     }
 
+    function getLiquidationRatio() public view returns (uint) {
+        return liquidationRatio;
+    }
+
     function updateLiquidationPenalty(uint newPenalty) public {
         require(newPenalty >= RAY);
         liquidationPenalty = newPenalty;
+    }
+
+    function getLiquidationPenalty() public view returns (uint) {
+        return liquidationPenalty;
+    }
+
+    function updateDebtCeiling(uint newCeiling) public {
+        debtCeiling = newCeiling;
+    }
+
+    function getDebtCeiling() public view returns (uint) {
+        return debtCeiling;
     }
 
     /// @dev CDP base operations
@@ -180,7 +216,7 @@ contract CDP is DSMath, DSNote, Template {
         CDPRecords[record].accumulatedDebt2 = add(CDPRecords[record].accumulatedDebt2, newDebt2);
 
         require(safe(record));
-        /// TODO check the total mint PAI has not exceed system limit - should be checked in issuer
+        /// TODO debt ceiling check
 
         issuer.mint(amount, msg.sender);
 
@@ -195,8 +231,12 @@ contract CDP is DSMath, DSNote, Template {
         borrowInternal(id, amount);
     }
 
-    /// repay PAI
     function repay(uint record) public payable note {
+        repayInternal(record);
+    }
+
+    /// repay PAI
+    function repayInternal(uint record) internal {
         require(!settlement);
         require(msg.assettype == ASSET_PAI);
        
@@ -232,8 +272,7 @@ contract CDP is DSMath, DSNote, Template {
         
         /// burn pai
         if(amount1 > 0) {
-            hole.transfer(amount1, ASSET_PAI);
-            issuer.burn(amount1);
+            issuer.burn.value(amount1, ASSET_PAI)();
         }
 
         /// governance fee to liquidator
@@ -247,9 +286,14 @@ contract CDP is DSMath, DSNote, Template {
     }
 
     /// close CDP
-    function closeCDPRecord(uint record) public note {
+    function closeCDPRecord(uint record) public payable note {
         require(!settlement);
         require(CDPRecords[record].owner == msg.sender);
+
+        if(CDPRecords[record].accumulatedDebt2 > 0) {
+            repayInternal(record);
+        }
+
         require(debtOfCDP(record) == 0 && debtOfCDPwithGovernanceFee(record) == 0);
 
         if(collateralOfCDP(record) > 0) {
@@ -298,6 +342,10 @@ contract CDP is DSMath, DSNote, Template {
         priceOracle = newPriceOracle;
     }
 
+    function getPriceOracle() public view returns (address) {
+        return priceOracle;
+    }
+
     function getCollateralPrice() public view returns (uint256 wad){
         return priceOracle.getPrice(ASSET_BTC);
     }
@@ -306,8 +354,16 @@ contract CDP is DSMath, DSNote, Template {
         liquidator = newLiquidator;
     }
 
+    function getLiquidator() public view returns (address) {
+        return liquidator;
+    }
+
     function setPAIIssuer(PAIIssuer newIssuer) public {
         issuer = newIssuer;
+    }
+
+    function getPAIIssuer() public view returns (address) {
+        return issuer;
     }
 
     function safe(uint record) public returns (bool) {
@@ -335,7 +391,7 @@ contract CDP is DSMath, DSNote, Template {
     function updateRates() public note {
         if(settlement) return;
 
-        uint256 currentTimestamp = block.timestamp;
+        uint256 currentTimestamp = era();
         uint256 deltaSeconds = currentTimestamp - lastTimestamp;
         if (deltaSeconds == 0) return; 
         lastTimestamp = currentTimestamp;
@@ -365,7 +421,7 @@ contract CDP is DSMath, DSNote, Template {
 
     /// liquidate a CDP
     function liquidate(uint record) public note {
-        require(!safe(record)||settlement);
+        require(!safe(record) || settlement);
 
         uint256 debt = debtOfCDP(record);
         liquidator.addDebt(debt);
@@ -385,6 +441,7 @@ contract CDP is DSMath, DSNote, Template {
         emit Liquidate(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, debt, collateralToLiquidator);
     }
 
+<<<<<<< HEAD
     /// terminate business => settlement process starts
     /// there are two phases of settlement
     ///     1. User/system can liquidate all CDPs using the given price without any penalty; only withdraw operation is allowed.
@@ -398,6 +455,12 @@ contract CDP is DSMath, DSNote, Template {
         liquidationPenalty = RAY;
         priceOracle.terminate();
         liquidator.settlePhaseOne();
+=======
+    function terminate() public note {
+        require(!settlement);
+        settlement = true;
+        liquidationPenalty = RAY;
+>>>>>>> 9451265f646fcd002edc0212617e5552bff88290
     }
 
     /// liquidate all CDPs after buffer period
@@ -411,39 +474,19 @@ contract CDP is DSMath, DSNote, Template {
                 liquidate(i);
         }
         liquidatedCDPIndex = upperLimit;
-        if(liquidatedCDPIndex == CDPIndex)
-            liquidator.settlePhaseTwo();
     }
 
-    /// @dev debug functions
-    /// TODO should be removed
-
-    function debug() public view returns(uint, uint, uint, uint, uint, uint) {
-        return (CDPIndex, lastTimestamp, accumulatedRates1, accumulatedRates2, totalNormalizedDebt, flow.balance(this, ASSET_BTC));
+    /// working normal
+    function inSettlement() public view returns (bool) {
+        return settlement;
     }
 
-    function debugCDP(uint record) public view returns (uint, uint, uint, uint, uint) {
-        CDPRecord storage data = CDPRecords[record];
-        return (data.collateral, data.accumulatedDebt1, rmul(data.accumulatedDebt1, accumulatedRates1), data.accumulatedDebt2, rmul(data.accumulatedDebt2, accumulatedRates2));
+    /// all debt cleared, ready for phase two
+    function readyForPhaseTwo() public view returns (bool) {
+        return totalNormalizedDebt == 0 || liquidatedCDPIndex == CDPIndex;
     }
 
-    function readCDP(uint record) public view returns(address, uint, uint, uint){
-        return (CDPRecords[record].owner,CDPRecords[record].collateral,CDPRecords[record].accumulatedDebt1,CDPRecords[record].accumulatedDebt2);
-    }
-
-    function checkSafe(uint record) public view returns (bool) {
-        return safe(record);
-    }
-
-    function reOpen() public {
-        settlement = false;
-        liquidationPenalty = 1130000000000000000000000000;
-        liquidatedCDPIndex = 0;
-        liquidator.reOpen();
-        priceOracle.reOpen();
-    }
-
-    function liquidateProgress() public view returns (uint, uint) {
-        return (liquidatedCDPIndex, CDPIndex);
+    function totalNumberOfCDP() public view returns (uint) {
+        return CDPIndex;
     }
 }
