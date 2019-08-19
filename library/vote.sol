@@ -12,7 +12,7 @@ import "github.com/evilcc2018/dapp-bin/library/template.sol";
 contract BasicVote is Template, DSMath {
     using StringLib for string;
 
-    enum VoteStatus {ONGOING, APPROVED, REJECTED}
+    enum VoteStatus {NOTSTARTED, ONGOING, APPROVED, REJECTED}
     uint lastAssignedVoteId = 0;
 
     // vote event
@@ -66,7 +66,6 @@ contract BasicVote is Template, DSMath {
         va.totalVotes = _totalVotes;
         va.startTime = _startTime;
         va.endTime = _endTime;
-        va.status = VoteStatus.ONGOING;
         va.target = _targetContract;
         va.func = _func;
         va.param = _param;
@@ -74,6 +73,7 @@ contract BasicVote is Template, DSMath {
 
         lastAssignedVoteId = add(lastAssignedVoteId,1);
         votes[lastAssignedVoteId] = va;
+        updateVoteStatus(lastAssignedVoteId);
         emit CreateVote(lastAssignedVoteId);
         return lastAssignedVoteId;
     }
@@ -111,17 +111,32 @@ contract BasicVote is Template, DSMath {
         return lastAssignedVoteId;
     }
 
-    function updateVoteStatus(uint voteId) internal {
+    function getVoteEndTime(uint voteId) public returns (uint) {
+        require(voteId <= lastAssignedVoteId, "vote not exist");
+        updateVoteStatus(voteId);
+        Vote storage va = votes[voteId];
+        if(va.status != VoteStatus.ONGOING) {
+            return 0;
+        } else {
+            return va.endTime;
+        }
+    }
+
+    function updateVoteStatus(uint voteId) public {
         require(voteId <= lastAssignedVoteId, "vote not exist");
         Vote storage va = votes[voteId];
-        if (VoteStatus.ONGOING == va.status) {
-            if (block.timestamp > va.endTime) {
-                va.status = VoteStatus.REJECTED;
-            } else if (va.agreeVotes >= va.throughVotes) {
-                va.status = VoteStatus.APPROVED;
-            } else if (va.disagreeVotes > sub(va.totalVotes,va.throughVotes)) {
+        if (block.timestamp < va.startTime) {
+            va.status = VoteStatus.NOTSTARTED;
+        } else if (block.timestamp > va.endTime) {
+            if(VoteStatus.ONGOING == va.status) {
                 va.status = VoteStatus.REJECTED;
             }
+        } else if (va.agreeVotes >= va.throughVotes) {
+            va.status = VoteStatus.APPROVED;
+        } else if (va.disagreeVotes > sub(va.totalVotes,va.throughVotes)) {
+            va.status = VoteStatus.REJECTED;
+        } else {
+            va.status = VoteStatus.ONGOING;
         }
     }
 
@@ -131,12 +146,10 @@ contract BasicVote is Template, DSMath {
     /// @param voteNumber number of votes that voter willing to vote
     function voteInternal(uint voteId, bool attitude, uint voteNumber) internal {
         require(voteId <= lastAssignedVoteId, "vote not exist");
+        updateVoteStatus(voteId);
         Vote storage va = votes[voteId];
         require(VoteStatus.ONGOING == va.status, "vote not ongoing");
-        require(block.timestamp >= va.startTime, "vote not open");
-        require(block.timestamp <= va.endTime, "vote closed");
         require(voteNumber > 0, "number of vote should be greater than zero");
-        //require(block.timestamp >= va.startTime, "vote not open"); ///still need?
 
         if (attitude) {
             va.agreeVotes = add(va.agreeVotes, voteNumber);
@@ -150,7 +163,6 @@ contract BasicVote is Template, DSMath {
     /// @dev callback function to invoke organization contract
     function invokeVoteResult(uint voteId) public {
         require(voteId <= lastAssignedVoteId, "vote not exist");
-        updateVoteStatus(voteId);
         Vote storage va = votes[voteId];
         if(VoteStatus.APPROVED == va.status && false == va.executed) {
             invokeOrganizationContract(va.func, va.param, va.target);
@@ -172,7 +184,7 @@ contract BasicVote is Template, DSMath {
             for { let i := 0 } lt(i, paramLength) { i := add(i, 32) } {
                 mstore(add(p, add(4,i)), mload(add(add(_param, 0x20), i)))
             }
-            
+
             let success := call(not(0), tempAddress, 0, 0, p, totalLength, 0, 0)
 
             let size := returndatasize

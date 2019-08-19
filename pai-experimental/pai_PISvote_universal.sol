@@ -6,6 +6,7 @@ import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/library/vote.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 
+/// interface....
 /// @title This is a simple vote contract, everyone has the same vote weights
 /// @dev Every template contract needs to inherit Template contract directly or indirectly
 contract PISVoteUniversal is BasicVote {
@@ -13,20 +14,28 @@ contract PISVoteUniversal is BasicVote {
     
     /// params to be init
     PAIDAO paiDAO;
-    uint96 voteAssetGlobalId;
 
     /// vote param
-    uint passPercentage = RAY / 2;
-    uint startPercentage = RAY / 1000;
+    uint passProportion;
+    uint startProportion;
 
-    function setOrganization(address _organizationContract) public {
+    constructor(address _organizationContract) public {
         paiDAO = PAIDAO(_organizationContract);
-        (,voteAssetGlobalId) = paiDAO.getAdditionalAssetInfo(0);
+        passProportion = RAY / 2;
+        startProportion = RAY / 1000;
     }
 
     /// get the organization contract address
     function getOrganization() public view returns (address) {
         return paiDAO;
+    }
+
+    function setPassProportion(uint _new) public authFunctionHash("SetParam") {
+        passProportion = _new;
+    }
+
+    function setStartProportion(uint _new) public authFunctionHash("SetParam") {
+        startProportion = _new;
     }
 
     function getVoteAssetGlobalId() public view returns (uint) {
@@ -38,7 +47,8 @@ contract PISVoteUniversal is BasicVote {
     ///  An organization can deploy multiple vote contracts from the same template
     ///  As a result, the functionHash is generated combining contract address and functionHash string
     modifier authFunctionHash(string func) {
-        require(paiDAO.canPerform(msg.sender, StringLib.strConcat(StringLib.convertAddrToStr(this),func)));
+        require(msg.sender == this ||
+                paiDAO.canPerform(msg.sender, StringLib.strConcat(StringLib.convertAddrToStr(this),func)));
         _;
     }
  
@@ -52,18 +62,15 @@ contract PISVoteUniversal is BasicVote {
            uint voteNumber
         )
         public
+        authFunctionHash("Vote")
     {
-        require(voteNumber > rmul(_totalVotes,startPercentage),"not enough weights to start a vote");
-        uint voteid = startVoteInternal(_subject, rmul(_totalVotes, passPercentage), _totalVotes,
+        require(voteNumber >= rmul(_totalVotes,startProportion),"not enough weights to start a vote");
+        uint voteid = startVoteInternal(_subject, rmul(_totalVotes, passProportion), _totalVotes,
                                         block.timestamp, add(block.timestamp,_duration), _targetContract, _func, _param);
         voteInternal(voteid,true,voteNumber);
     }
 
-    function vote(uint voteId, bool attitude, uint voteNumber) public {
+    function vote(uint voteId, bool attitude, uint voteNumber) public authFunctionHash("Vote") {
         voteInternal(voteId, attitude, voteNumber);
     }
 }
-
-
-
-
