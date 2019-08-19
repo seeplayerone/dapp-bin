@@ -11,6 +11,8 @@ import "github.com/seeplayerone/dapp-bin/library/template.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/cdp.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/fake_btc_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/settlement.sol";
+
 
 contract FakePAIIssuer is PAIIssuer {
     constructor() public {
@@ -1033,4 +1035,354 @@ contract LiquidatorTest is TestBase {
         assertEq(liquidator.totalAssetPAI(), 1800000000);
         assertEq(liquidator.totalCollateralBTC(), 0);
     }
+}
+
+contract SettlementTest is TestBase {
+    Settlement settlement;
+
+    function settlementSetup() public {
+        setup();
+        oracle.updatePrice(ASSET_BTC, RAY);
+        cdp.updateLiquidationRatio(RAY * 2);
+        cdp.updateLiquidationPenalty(RAY * 3 / 2);
+        liquidator.setDiscount(RAY);
+
+        settlement = new Settlement(oracle, cdp, liquidator);
+    }
+
+    function testSettlementNormal() public {
+        settlementSetup();
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 500000000);
+
+        settlement.terminatePhaseOne();
+
+        assertTrue(!cdp.readyForPhaseTwo());
+        cdp.liquidate(idx);
+        assertEq(liquidator.totalCollateralBTC(), 500000000);
+        assertEq(liquidator.totalDebtPAI(), 500000000);
+        assertTrue(cdp.readyForPhaseTwo());
+        assertEq(cdp.totalCollateral(), 1500000000);
+        assertEq(cdp.totalDebt(), 0);
+
+        cdp.withdraw(idx, 500000000);
+        assertEq(cdp.totalCollateral(), 1000000000);
+        assertEq(cdp.totalDebt(), 0);
+
+        settlement.terminatePhaseTwo();
+        cdp.withdraw(idx, 500000000);
+        assertEq(cdp.totalCollateral(), 500000000);
+        assertEq(cdp.totalDebt(), 0);
+
+        liquidator.buyCollateral.value(500000000, ASSET_PAI)();
+        assertEq(liquidator.totalCollateralBTC(), 0);
+        assertEq(liquidator.totalDebtPAI(), 0);
+    }
+
+    function testSettlementMultipleCDPOverCollateral() public {
+        settlementSetup();
+        
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 500000000);
+
+        uint idx2 = cdp.createCDP();
+        cdp.deposit.value(3000000000, ASSET_BTC)(idx2);
+        cdp.borrow(idx2, 1000000000);
+
+        uint idx3 = cdp.createCDP();
+        cdp.deposit.value(5000000000, ASSET_BTC)(idx3);
+        cdp.borrow(idx3, 2000000000);
+
+        assertEq(cdp.totalCollateral(), 10000000000);
+        assertEq(cdp.totalDebt(), 3500000000);
+
+        oracle.updatePrice(ASSET_BTC, RAY * 2);
+        assertTrue(cdp.safe(idx));
+        assertTrue(cdp.safe(idx2));
+        assertTrue(cdp.safe(idx3));
+
+        settlement.terminatePhaseOne();
+
+        cdp.liquidate(idx2);
+        assertEq(liquidator.totalCollateralBTC(), 500000000);
+        assertEq(liquidator.totalDebtPAI(), 1000000000);      
+
+        assertTrue(!cdp.readyForPhaseTwo());
+
+        cdp.quickLiquidate(2);
+        assertEq(liquidator.totalCollateralBTC(), 750000000);
+        assertEq(liquidator.totalDebtPAI(), 1500000000);      
+
+        assertTrue(!cdp.readyForPhaseTwo());
+
+        cdp.quickLiquidate(3);
+        assertEq(liquidator.totalCollateralBTC(), 1750000000);
+        assertEq(liquidator.totalDebtPAI(), 3500000000);    
+
+        assertTrue(cdp.totalDebt() == 0);
+        assertEq(cdp.collateralOfCDP(idx), 1750000000);
+        assertEq(cdp.collateralOfCDP(idx2), 2500000000);
+        assertEq(cdp.collateralOfCDP(idx3), 4000000000);
+        assertTrue(cdp.readyForPhaseTwo());
+
+        settlement.terminatePhaseTwo();
+
+        liquidator.buyCollateral.value(3500000000, ASSET_PAI)();
+        assertEq(liquidator.totalCollateralBTC(), 0);
+        assertEq(liquidator.totalDebtPAI(), 0);    
+    }
+
+    function testSettlementMultipleCDPUnderCollateral() public {
+        settlementSetup();
+        
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 500000000);
+
+        uint idx2 = cdp.createCDP();
+        cdp.deposit.value(3000000000, ASSET_BTC)(idx2);
+        cdp.borrow(idx2, 1000000000);
+
+        uint idx3 = cdp.createCDP();
+        cdp.deposit.value(5000000000, ASSET_BTC)(idx3);
+        cdp.borrow(idx3, 2000000000);
+
+        assertEq(cdp.totalCollateral(), 10000000000);
+        assertEq(cdp.totalDebt(), 3500000000);
+
+        oracle.updatePrice(ASSET_BTC, RAY / 10);
+        assertTrue(!cdp.safe(idx));
+        assertTrue(!cdp.safe(idx2));
+        assertTrue(!cdp.safe(idx3));
+
+        settlement.terminatePhaseOne();
+
+        cdp.liquidate(idx2);
+        assertEq(liquidator.totalCollateralBTC(), 3000000000);
+        assertEq(liquidator.totalDebtPAI(), 1000000000);      
+
+        assertTrue(!cdp.readyForPhaseTwo());
+
+        cdp.quickLiquidate(2);
+        assertEq(liquidator.totalCollateralBTC(), 5000000000);
+        assertEq(liquidator.totalDebtPAI(), 1500000000);      
+
+        assertTrue(!cdp.readyForPhaseTwo());
+
+        cdp.quickLiquidate(3);
+        assertEq(liquidator.totalCollateralBTC(), 10000000000);
+        assertEq(liquidator.totalDebtPAI(), 3500000000);    
+
+        assertTrue(cdp.totalDebt() == 0);
+        assertEq(cdp.collateralOfCDP(idx), 0);
+        assertEq(cdp.collateralOfCDP(idx2), 0);
+        assertEq(cdp.collateralOfCDP(idx3), 0);
+        assertTrue(cdp.readyForPhaseTwo());
+
+        settlement.terminatePhaseTwo();
+
+        liquidator.buyCollateral.value(3500000000, ASSET_PAI)();
+        assertEq(liquidator.totalCollateralBTC(), 0);
+        assertEq(liquidator.totalDebtPAI(), 0);    
+    }
+
+    function testSettlementPhaseOneBuyFromLiquidatorFail() {
+        settlementSetup();        
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 500000000);
+
+        assertTrue(cdp.safe(idx));
+        oracle.updatePrice(ASSET_BTC, RAY / 2);
+
+        assertTrue(!cdp.safe(idx));
+        cdp.liquidate(idx);
+
+        assertEq(liquidator.totalCollateralBTC(), 1000000000);
+        assertEq(liquidator.totalDebtPAI(), 500000000);    
+
+        liquidator.buyCollateral.value(100000000, ASSET_PAI)();
+
+        assertEq(liquidator.totalCollateralBTC(), 800000000);
+        assertEq(liquidator.totalDebtPAI(), 400000000);    
+
+        settlement.terminatePhaseOne();
+        /// cause revert
+        liquidator.buyCollateral.value(100000000, ASSET_PAI)();
+
+        settlement.terminatePhaseTwo();
+        liquidator.buyCollateral.value(100000000, ASSET_PAI)();
+        assertEq(liquidator.totalCollateralBTC(), 600000000);
+        assertEq(liquidator.totalDebtPAI(), 300000000);    
+
+    }
+
+    function testSettlementPhaseTwoBuyFromLiquidator() {
+        settlementSetup();        
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 500000000);
+
+        assertTrue(cdp.safe(idx));
+        oracle.updatePrice(ASSET_BTC, RAY / 2);
+
+        assertTrue(!cdp.safe(idx));
+        cdp.liquidate(idx);
+
+        assertEq(liquidator.totalCollateralBTC(), 1000000000);
+        assertEq(liquidator.totalDebtPAI(), 500000000);    
+
+        liquidator.buyCollateral.value(100000000, ASSET_PAI)();
+
+        assertEq(liquidator.totalCollateralBTC(), 800000000);
+        assertEq(liquidator.totalDebtPAI(), 400000000);    
+
+        settlement.terminatePhaseOne();
+
+        settlement.terminatePhaseTwo();
+        liquidator.buyCollateral.value(100000000, ASSET_PAI)();
+        assertEq(liquidator.totalCollateralBTC(), 600000000);
+        assertEq(liquidator.totalDebtPAI(), 300000000);    
+
+    }
+
+    function testSettlementDepositFail() {
+        settlementSetup();     
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 500000000);
+
+        settlement.terminatePhaseOne();
+
+        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
+    }
+
+    function testSettlementDepositCompare() {
+        settlementSetup();     
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 500000000);
+
+        cdp.deposit.value(1000000000, ASSET_BTC)(idx);        
+    }
+
+    function testSettlementBorrowFail() {
+        settlementSetup();     
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 500000000);
+
+        settlement.terminatePhaseOne();
+
+        cdp.borrow(idx, 500000000);
+    }
+
+    function testSettlementBorrowCompare() {
+        settlementSetup();     
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 500000000);
+
+        cdp.borrow(idx, 500000000);
+    }
+
+    function testSettlementRepayFail() {
+        settlementSetup();     
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 500000000);
+
+        settlement.terminatePhaseOne();
+
+        cdp.repay.value(500000000, ASSET_PAI)(idx);
+    }
+
+    function testSettlementRepayCompare() {
+        settlementSetup();     
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 500000000);
+
+        cdp.repay.value(500000000, ASSET_PAI)(idx);
+    }
+
+    function testSettlementPhaseOneWithdraw() {
+        settlementSetup();     
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
+
+        settlement.terminatePhaseOne();
+
+        cdp.withdraw(idx, 1000000000);
+    }
+
+    function testSettlementPhaseTwoWithdraw() {
+        settlementSetup();     
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
+
+        settlement.terminatePhaseOne();
+        settlement.terminatePhaseTwo();
+
+        cdp.withdraw(idx, 1000000000);
+    }
+
+    function testDirectPhaseTwoFail() {
+        settlementSetup();     
+
+        settlement.terminatePhaseTwo();
+    } 
+
+    function testPhaseTwoNotReadyFail() {
+        settlementSetup();     
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 500000000);
+
+        settlement.terminatePhaseOne();
+        settlement.terminatePhaseTwo();
+    }
+
+    function testPhaseTwoReady() {
+        settlementSetup();     
+
+        uint idx = cdp.createCDP();
+        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 500000000);
+
+        settlement.terminatePhaseOne();
+
+        cdp.liquidate(idx);
+
+        settlement.terminatePhaseTwo();
+    }
+
+    function testSettlementUpdateOracleFail() {
+        settlementSetup();     
+
+        settlement.terminatePhaseOne();
+
+        oracle.updatePrice(ASSET_BTC, 1);
+    }
+
+    function testSettlementUpdateOracleCompare() {
+        settlementSetup();     
+
+        oracle.updatePrice(ASSET_BTC, 1);
+    }
+
 }
