@@ -16,7 +16,7 @@ interface Vote {
 
 /// @title This is a simple vote contract, everyone has the same vote weights
 /// @dev Every template contract needs to inherit Template contract directly or indirectly
-contract PISVotePower is Template, DSMath {
+contract PISVoteManager is Template, DSMath {
     using StringLib for string;
     
     /// params to be init
@@ -25,13 +25,20 @@ contract PISVotePower is Template, DSMath {
     bool assetIdsetUp;
     
     mapping(address => uint) balanceOf;
+
+    struct voteInfo {
+        uint voteNumber;
+        uint finishTime;
+    }
+
+    mapping(address => mapping(address => mapping(uint => voteInfo))) voteStates;
     constructor(address _organizationContract) public {
         paiDAO = PAIDAO(_organizationContract);
     }
 
     function setVoteAssetGlobalId(uint96 _id) public {
         //require(msg.sender == paiDAO);
-        require(!assetIdsetUp,"Asset Global Id has already setted.");
+        require(!assetIdsetUp, "Asset Global Id has already setted.");
         voteAssetGlobalId = _id;
         assetIdsetUp = true;
     }
@@ -50,9 +57,13 @@ contract PISVotePower is Template, DSMath {
         balanceOf[msg.sender] = add(balanceOf[msg.sender], msg.value);
     }
 
-    function voteTo(address _vote, uint voteId, bool attitude, uint voteNumber) public {
-        Vote(_vote).vote(voteId, attitude, voteNumber);
+    function voteTo(address voteContract, uint voteId, bool attitude, uint voteNumber) public {
+        Vote(voteContract).vote(voteId, attitude, voteNumber);
+        voteStates[msg.sender][voteContract][voteId].voteNumber = voteStates[msg.sender][_voteContract][voteId].voteNumber + voteNumber;
+        voteStates[msg.sender][voteContract][voteId].finishTime = 
     }
+
+
 }
 
 
