@@ -38,16 +38,12 @@ contract PISVoteUniversal is BasicVote {
         startProportion = _new;
     }
 
-    function getVoteAssetGlobalId() public view returns (uint) {
-        return voteAssetGlobalId;
-    }
-
     /// @dev ACL through functionHash
     ///  Note all ACL mappings are kept in the organization contract
     ///  An organization can deploy multiple vote contracts from the same template
     ///  As a result, the functionHash is generated combining contract address and functionHash string
     modifier authFunctionHash(string func) {
-        require(msg.sender == this ||
+        require(msg.sender == address(this) ||
                 paiDAO.canPerform(msg.sender, StringLib.strConcat(StringLib.convertAddrToStr(this),func)));
         _;
     }
@@ -62,7 +58,7 @@ contract PISVoteUniversal is BasicVote {
            uint voteNumber
         )
         public
-        authFunctionHash("Vote")
+        //authFunctionHash("Vote")
     {
         require(voteNumber >= rmul(_totalVotes,startProportion),"not enough weights to start a vote");
         uint voteid = startVoteInternal(_subject, rmul(_totalVotes, passProportion), _totalVotes,
@@ -70,7 +66,17 @@ contract PISVoteUniversal is BasicVote {
         voteInternal(voteid,true,voteNumber);
     }
 
-    function vote(uint voteId, bool attitude, uint voteNumber) public authFunctionHash("Vote") {
+    function vote(uint voteId, bool attitude, uint voteNumber) public {
+    //function vote(uint voteId, bool attitude, uint voteNumber) public authFunctionHash("Vote") {
         voteInternal(voteId, attitude, voteNumber);
+    }
+
+    //only for debug
+    function getPassProportion() public view returns (uint) {
+        return passProportion;
+    }
+
+    function getStartProportion() public view returns (uint) {
+        return startProportion;
     }
 }
