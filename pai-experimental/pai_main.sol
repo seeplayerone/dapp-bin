@@ -37,9 +37,6 @@ contract PAIDAO is Organization, DSMath {
     function init() public {
         require(!registed);
         organizationId = registry.registerOrganization(organizationName, templateName);
-        configureFunctionAddressInternal(Cashier, 0x66b7bd27d59dd91d6c78b8402b90c820ab24cd073b, OpMode.Add);
-        configureFunctionAddressInternal(Director, 0x666162077d9b76c1df3dd22dff1b3a9bc25348ea39, OpMode.Add);
-        configureFunctionAddressInternal(VoteContract, 0x66da67bf3462da51f083b5fed4662973a62701a687, OpMode.Add);
         ///TODO the correct way of following three lines should be modifying the "organization.sol"
         configureFunctionRoleInternal(CONFIGURE_NORMAL_FUNCTION, "SUPER_ADMIN", OpMode.Remove);
         configureFunctionRoleInternal(CONFIGURE_ADVANCED_FUNCTION, "SUPER_ADMIN", OpMode.Remove);
