@@ -22,6 +22,34 @@ contract FakePAIIssuer is PAIIssuer {
     }
 }
 
+contract FakePerson is Template {
+    function() public payable {}
+
+    function callAnyMethod(bytes4 _func, bytes _param, address _addr, uint _amout, uint96 _assetGlobalId) public returns (bool) {
+        address tempAddress = _addr;
+        uint paramLength = _param.length;
+        uint totalLength = 4 + paramLength;
+        uint amount = _amount;
+        uint assetGlobalId = _assetGlobalId;
+
+        assembly {
+            let p := mload(0x40)
+            mstore(p, _func)
+            for { let i := 0 } lt(i, paramLength) { i := add(i, 32) } {
+                mstore(add(p, add(4,i)), mload(add(add(_param, 0x20), i)))
+            }
+
+            let success := call(not(0), tempAddress, amount, assetGlobalId, p, totalLength, 0, 0)
+
+            let size := returndatasize
+            returndatacopy(p, 0, size)
+
+            return success
+        }
+    }
+}
+
+
 contract FakePaiDao is PAIDAO {
     constructor(string _organizationName, address[] _members)
         PAIDAO(_organizationName, _members)
@@ -68,10 +96,14 @@ contract TestBase is Template, DSTest, DSMath {
 
     function testALL() public {
         paiDAO = new FakePaiDao("PAIDAO", new address[](0));
+        FakePerson p1 = new FakePerson();
         paiDAO.init();
         paiDAO.tempMintPIS(100000000, 0x6674f97041ba5ab1dd0e98e4fa6212ef590fedec95);
         (,ASSET_PIS) = paiDAO.Token(0);
 
         assertEq(flow.balance(0x6674f97041ba5ab1dd0e98e4fa6212ef590fedec95,ASSET_PIS),100000000);
+
+        bool success = p1.callAnyMethod(0xc717df3b,0x0000000000000000000000000000000000000000000000000000000005f5e10000000000000000000000006674f97042ba5ab1dd0e98e4fa6212ef590fedec95,paiDAO,0,0);
+        assertEq(success,true);
     }
 }
