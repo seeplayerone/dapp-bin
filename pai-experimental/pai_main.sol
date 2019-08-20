@@ -32,6 +32,7 @@ contract PAIDAO is Organization, DSMath {
         Organization(_organizationName, _members)
         public
     {
+        tempAdmin = msg.sender;
     }
 
     function init() public {
@@ -41,8 +42,7 @@ contract PAIDAO is Organization, DSMath {
         configureFunctionRoleInternal(CONFIGURE_NORMAL_FUNCTION, "SUPER_ADMIN", OpMode.Remove);
         configureFunctionRoleInternal(CONFIGURE_ADVANCED_FUNCTION, "SUPER_ADMIN", OpMode.Remove);
         configureFunctionRoleInternal(CONFIGURE_SUPER_FUNCTION, "SUPER_ADMIN", OpMode.Remove);
-        tempAdmin = msg.sender;
-        
+
         registed = true;
     }
     function configureFunctionAddress(string _function, address _address, OpMode _opMode) public authFunctionHash("VOTE") {
