@@ -441,19 +441,10 @@ contract CDP is DSMath, DSNote, Template {
         emit Liquidate(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, debt, collateralToLiquidator);
     }
 
-    /// terminate business => settlement process starts
-    /// there are two phases of settlement
-    ///     1. User/system can liquidate all CDPs using the given price without any penalty; only withdraw operation is allowed.
-    ///        Liquidator can not sell collateral at this phase.
-    ///     2. All CDPs are liquidated, withdraw operation is still allowed if more collaterals are left in CDPs.
-    ///        A final collateral price is calculated for users to redeem PAI for collateral from Liquidator.
-    function terminateBusiness() public note {
+    function terminate() public note {
         require(!settlement);
-        updateRates();
         settlement = true;
         liquidationPenalty = RAY;
-        priceOracle.terminate();
-        liquidator.settlePhaseOne();
     }
 
     /// liquidate all CDPs after buffer period
