@@ -96,6 +96,7 @@ contract TestBase is Template, DSTest, DSMath {
 
         ///test init
         paiDAO = FakePaiDao(p1.createPAIDAO());
+        assertEq(paiDAO.tempAdmin(),p1);
         tempBool = p2.callInit(paiDAO);
         assertTrue(tempBool);
         tempBool = p2.callInit(paiDAO);

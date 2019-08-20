@@ -14,7 +14,7 @@ contract PAIDAO is Organization, DSMath {
     ///params for organization
     uint32 public organizationId;
     bool registed = false;
-    address tempAdmin;
+    address public tempAdmin;
 
     ///params for assets;
     uint32 private constant PIS = 0;
