@@ -21,6 +21,15 @@ contract FakePAIIssuer is PAIIssuer {
     }
 }
 
+contract FakePaiDao is PAIDAO {
+    constructor(string _organizationName, address[] _members)
+        PAIDAO(_organizationName, _members)
+        public
+    {
+        templateName = "Fake-Template-Name-For-Test-PaiDao";
+    }
+}
+
 /// this contract is used to simulate `time flies` to test governance fees and stability fees accurately
 contract TestTimeflies is DSNote {
     uint256  _era;
@@ -49,7 +58,7 @@ contract TimefliesCDP is CDP, TestTimeflies {
 }
 
 contract TestBase is Template, DSTest, DSMath {
-    PAIDAO internal paiDAO;
+    FakePaiDao internal paiDAO;
     uint96 internal ASSET_PIS;
 
     function() public payable {
@@ -57,11 +66,11 @@ contract TestBase is Template, DSTest, DSMath {
     }
 
     function setup() public {
-        paiDAO = new PAIDAO("PAIDAO",[]);
+        paiDAO = new FakePaiDao("PAIDAO", new address[](0));
         paiDAO.init();
-        paiDAO.mintPIS(100000000, this);
-        (,ASSET_PIS) = paiDAO.getAdditionalAssetInfo(0);
+        paiDAO.mintPIS(100000000, 0x6674f97041ba5ab1dd0e98e4fa6212ef590fedec95);
+        ASSET_PIS = paiDAO.Token[0]().assetGlobalId;
 
-        assertEq(flow.balance(this,ASSET_PIS),100000000);
+        assertEq(flow.balance(0x6674f97041ba5ab1dd0e98e4fa6212ef590fedec95,ASSET_PIS),100000000);
     }
 }

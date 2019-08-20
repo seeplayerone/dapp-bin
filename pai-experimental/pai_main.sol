@@ -12,7 +12,7 @@ contract PAIDAO is Organization, DSMath {
     using StringLib for string;
     
     ///params for organization
-    uint32 private organizationId;
+    uint32 public organizationId;
     bool registed = false;
     string constant Cashier = "CASHIER";
     string constant Director = "DIRECTOR";
@@ -25,7 +25,7 @@ contract PAIDAO is Organization, DSMath {
         uint64 assetLocalId;
         uint96 assetGlobalId;
     }
-    mapping (uint32 => AdditionalAssetInfo) private Token; //name needs to be optimized；
+    mapping (uint32 => AdditionalAssetInfo) public Token; //name needs to be optimized；
 
     ///params for burn
     address private constant hole = 0x660000000000000000000000000000000000000000;
@@ -50,7 +50,7 @@ contract PAIDAO is Organization, DSMath {
         registed = true;
     }
 
-    function mintPIS(uint amount, address dest) public {
+    function mintPIS(uint amount, address dest) public authFunctionHash("SUPER_ADMIN") {
         if(issuedAssets[PIS].existed) {
             mint(PIS, amount);
         } else {
@@ -61,7 +61,7 @@ contract PAIDAO is Organization, DSMath {
         dest.transfer(amount, Token[PIS].assetGlobalId);
     }
 
-    function mintPAI(uint amount, address dest) public {
+    function mintPAI(uint amount, address dest) public authFunctionHash("SUPER_ADMIN") {
         if(issuedAssets[PAI].existed) {
             mint(PAI, amount);
         } else {
@@ -88,42 +88,10 @@ contract PAIDAO is Organization, DSMath {
         return (Token[_assetIndex].assetLocalId,Token[_assetIndex].assetGlobalId);
     }
 
-    /// only for debug
-    function getOrganizationId() public view returns(uint32) {
-        return organizationId;
-    }
-
-    function deposit() public payable {
-    }
-
-    function getExtralAssetInfo(uint32 _assetIndex) public view returns (uint, uint) {
-        return (Token[_assetIndex].assetLocalId,Token[_assetIndex].assetGlobalId);
-    }
-
-    uint256 private state = 0;
-    //function plusOne() public authFunctionHash(Cashier) {
-    function plusOne() public {
-        state = state + 1;
-    }
-
-    //function plusTen() public authFunctionHash(Director) {
-    function plusTen() public {
-        state = state + 10;
-    }
-
-    //function plusHundred() public authFunctionHash(VoteContract) {
-    function plusHundred() public {
-        state = state + 100;
-    }
-
-    function getStates() public view returns (uint256) {
-        return state;
-    }
-
-    function configFuncAddr(address _contract, address _caller, string _str) public {
+    function configFuncAddr(address _contract, address _caller, string _str, OpMode _op) public {
         configureFunctionAddressInternal(
             StringLib.strConcat(StringLib.convertAddrToStr(_contract),_str),
             _caller,
-            OpMode.Add);
+            _op);
     }
 }
