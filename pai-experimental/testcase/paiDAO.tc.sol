@@ -13,7 +13,6 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/test.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_person.sol";
 
 
 contract FakePAIIssuer is PAIIssuer {
@@ -25,28 +24,22 @@ contract FakePAIIssuer is PAIIssuer {
 contract FakePerson is Template {
     function() public payable {}
 
-    function callAnyMethod(bytes4 _func, bytes _param, address _addr, uint _amout, uint96 _assetGlobalId) public returns (bool) {
-        address tempAddress = _addr;
-        uint paramLength = _param.length;
-        uint totalLength = 4 + paramLength;
-        uint amount = _amount;
-        uint assetGlobalId = _assetGlobalId;
-
-        assembly {
-            let p := mload(0x40)
-            mstore(p, _func)
-            for { let i := 0 } lt(i, paramLength) { i := add(i, 32) } {
-                mstore(add(p, add(4,i)), mload(add(add(_param, 0x20), i)))
-            }
-
-            let success := call(not(0), tempAddress, amount, assetGlobalId, p, totalLength, 0, 0)
-
-            let size := returndatasize
-            returndatacopy(p, 0, size)
-
-            return success
-        }
+    function createPAIDAO() public returns (address) {
+        return (new FakePaiDao("PAIDAO", new address[](0)));
     }
+
+    function callTempMintPIS(address _addr, uint amount, address dest) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("tempMintPIS(uint256,address)"));
+        bool result = FakePaiDao(_addr).call(methodId,amount,dest);
+        return result;
+    }
+
+    function callInit(address _addr) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("init()"));
+        bool result = FakePaiDao(_addr).call(methodId);
+        return result;
+    }
+            
 }
 
 
@@ -80,7 +73,7 @@ contract TestTimeflies is DSNote {
 contract TimefliesCDP is CDP, TestTimeflies {
     constructor(address _issuer, address _oracle, address _liquidator)
         CDP(_issuer, _oracle, _liquidator)
-        public 
+        public
     {
 
     }
@@ -95,15 +88,28 @@ contract TestBase is Template, DSTest, DSMath {
     }
 
     function testALL() public {
-        paiDAO = new FakePaiDao("PAIDAO", new address[](0));
+        bool tempBool;
         FakePerson p1 = new FakePerson();
-        paiDAO.init();
-        paiDAO.tempMintPIS(100000000, 0x6674f97041ba5ab1dd0e98e4fa6212ef590fedec95);
+        FakePerson p2 = new FakePerson();
+        FakePerson p3 = new FakePerson();
+        //FakePerson p4 = new FakePerson();
+
+        ///test init
+        paiDAO = FakePaiDao(p1.createPAIDAO());
+        tempBool = p2.callInit(paiDAO);
+        assertTrue(tempBool);
+        tempBool = p2.callInit(paiDAO);
+        assertTrue(!tempBool);
+        tempBool = p1.callInit(paiDAO);
+        assertTrue(!tempBool);
+
+        ///test mint
+        tempBool = p1.callTempMintPIS(paiDAO,100000000,p3);
+        assertTrue(tempBool);
         (,ASSET_PIS) = paiDAO.Token(0);
+        assertEq(flow.balance(p3,ASSET_PIS),100000000);
+        tempBool = p2.callTempMintPIS(paiDAO,100000000,p3);
+        assertTrue(!tempBool);
 
-        assertEq(flow.balance(0x6674f97041ba5ab1dd0e98e4fa6212ef590fedec95,ASSET_PIS),100000000);
-
-        bool success = p1.callAnyMethod(0xc717df3b,0x0000000000000000000000000000000000000000000000000000000005f5e10000000000000000000000006674f97042ba5ab1dd0e98e4fa6212ef590fedec95,paiDAO,0,0);
-        assertEq(success,true);
     }
 }

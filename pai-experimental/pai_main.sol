@@ -67,7 +67,7 @@ contract PAIDAO is Organization, DSMath {
     }
 
     function tempMintPIS(uint amount, address dest) public {
-        //require(msg.sender == tempAdmin, "Only temp admin can mint");
+        require(msg.sender == tempAdmin, "Only temp admin can mint");
         this.mintPIS(amount, dest);
     }
 
