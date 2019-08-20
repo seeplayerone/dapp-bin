@@ -11,6 +11,17 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 // import "./pai_main.sol";
 interface Vote {
     function vote(uint voteId, bool attitude, uint voteNumber) external;
+    function startVote(
+         string _subject,
+           uint _totalVotes,
+           uint _duration,
+        address _targetContract,
+         bytes4 _func,
+          bytes _param,
+           uint voteNumber
+        )
+        external
+        returns (uint);
     function getVoteEndTime(uint voteId) external returns (uint);
 }
 
@@ -39,10 +50,10 @@ contract PISVoteManager is Template, DSMath {
         paiDAO = PAIDAO(_organizationContract);
     }
 
-    function setVoteAssetGlobalId(uint96 _id) public {
+    function setVoteAssetGlobalId() public {
         //require(msg.sender == paiDAO);
         require(!assetIdsetUp, "Asset Global Id has already setted.");
-        voteAssetGlobalId = _id;
+        (,voteAssetGlobalId) = paiDAO.getAdditionalAssetInfo(0);
         assetIdsetUp = true;
     }
     /// get the organization contract address
@@ -61,10 +72,36 @@ contract PISVoteManager is Template, DSMath {
     }
 
     function withdraw(uint amount) public {
-        uint withdrawLimit = sub(balanceOf[msg.sender],getMostVote(msg.sender));
-        require(withdrawLimit >= amount，"not enough balance or some PIS is still in vote process");
+        uint mostVote;
+        (mostVote,) = getMostVote(msg.sender);
+        uint withdrawLimit = sub(balanceOf[msg.sender],mostVote);
+        require(withdrawLimit >= amount, "not enough balance or some PIS is still in vote process");
         msg.sender.transfer(amount, voteAssetGlobalId);
     }
+
+    function startVoteTo(
+        address _voteContract,
+         string _subject,
+           uint _duration,
+        address _targetContract, ///todo this param should be deleted
+         bytes4 _func,
+          bytes _param,
+           uint _voteNumber
+        )
+        public
+    {
+        require(_voteNumber <= balanceOf[msg.sender], "not enough vote power");
+        uint _totalVotes;
+        (,,,,,_totalVotes) = paiDAO.getAssetInfo(0);
+        uint voteId = Vote(_voteContract).startVote(_subject, 1000, _duration, _targetContract, _func, _param, _voteNumber);
+        voteInfo memory v;
+        v.voteContract = _voteContract;
+        v.voteId = voteId;
+        v.voteNumber = _voteNumber;
+        v.finishTime = Vote(_voteContract).getVoteEndTime(voteId);
+        voteStates[msg.sender].push(v);
+    }
+
 
     function voteTo(address _voteContract, uint _voteId, bool attitude, uint _voteNumber) public {
         Vote(_voteContract).vote(_voteId, attitude, _voteNumber);
@@ -75,7 +112,7 @@ contract PISVoteManager is Template, DSMath {
             voteStates[msg.sender][index].voteNumber = add(voteStates[msg.sender][index].voteNumber, _voteNumber);
             require(voteStates[msg.sender][index].voteNumber <= balanceOf[msg.sender],"not enough vote power");
         } else {
-            require(_voteNumber <= balanceOf[msg.sender],"not enough vote power");
+            require(_voteNumber <= balanceOf[msg.sender], "not enough vote power");
             voteInfo memory v;
             v.voteContract = _voteContract;
             v.voteId = _voteId;
@@ -85,10 +122,12 @@ contract PISVoteManager is Template, DSMath {
         }
     }
 
-    function getMostVote(address _addr) public returns (uint, uint) {
+    function getMostVote(address _addr) public returns (uint,uint) {
         uint len = voteStates[_addr].length;
+        if (0 == len)
+            return (0,0);
         uint mostVoteNumber = 0;
-        uint mostVoteEndTime = 0;
+        uint index = 0;
         for(uint i = 0; i < len;) {
             voteInfo storage v = voteStates[_addr][i];
             if (v.finishTime > 0) {
@@ -97,7 +136,7 @@ contract PISVoteManager is Template, DSMath {
             if (v.finishTime > 0) {
                 if (v.voteNumber > mostVoteNumber) {
                     mostVoteNumber = v.voteNumber;
-                    mostVoteEndTime = v.finishTime;
+                    index = i;
                     i++;
                 }
             } else {
@@ -109,7 +148,7 @@ contract PISVoteManager is Template, DSMath {
                 len--;
             }
         }
-        return (mostVoteNumber, mostVoteEndTime);
+        return (mostVoteNumber,index);
     }
     
     function voteExist(address _addr, address _voteContract, uint _voteId) public view returns (bool, uint) {
@@ -123,7 +162,7 @@ contract PISVoteManager is Template, DSMath {
         return (false,0);
     }
 
-    ///only for debug 
+    ///only for debug
     function getVoteInfo(address _addr,uint i) public view returns (address,uint,uint,uint) {
         return(
             voteStates[_addr][i].voteContract,
@@ -131,6 +170,10 @@ contract PISVoteManager is Template, DSMath {
             voteStates[_addr][i].voteNumber,
             voteStates[_addr][i].finishTime
         );
+    }
+
+    function getBalanceOf() public view returns (uint) {
+        return balanceOf[msg.sender];
     }
 }
 

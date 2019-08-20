@@ -3,8 +3,8 @@ pragma solidity 0.4.25;
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 
 contract test is Template {
-    uint256 private state = 0;
-    function plusOne() public {
+    uint256 public state = 0;
+    function plusOne() public payable {
         state = state + 1;
     }
 
@@ -12,8 +12,15 @@ contract test is Template {
         return state;
     }
 
-    function getFun() public view returns (string) {
-        bytes4 memory bab = msg.sig;
-        return string(bab);
+}
+
+contract test2 is Template {
+    uint256 private st = 0;
+    function getFrom(address _addr) public {
+        st = test(_addr).state();
+    }
+
+    function getStates() public view returns (uint256) {
+        return st;
     }
 }

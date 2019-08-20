@@ -59,11 +59,13 @@ contract PISVoteUniversal is BasicVote {
         )
         public
         //authFunctionHash("Vote")
+        returns (uint)
     {
         require(voteNumber >= rmul(_totalVotes,startProportion),"not enough weights to start a vote");
-        uint voteid = startVoteInternal(_subject, rmul(_totalVotes, passProportion), _totalVotes,
+        uint voteId = startVoteInternal(_subject, rmul(_totalVotes, passProportion), _totalVotes,
                                         block.timestamp, add(block.timestamp,_duration), _targetContract, _func, _param);
-        voteInternal(voteid,true,voteNumber);
+        voteInternal(voteId,true,voteNumber);
+        return voteId;
     }
 
     function vote(uint voteId, bool attitude, uint voteNumber) public {

@@ -3,16 +3,34 @@ pragma solidity 0.4.25;
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 
 contract test is Template {
-    uint256 private state = 0;
-    uint private ASSET_BTC = 0;
-    function plusOne() public {
-        state = state + 1;
-        msg.sender.transfer(100000000, ASSET_BTC);
+    uint a = 1;
+    uint b = 2;
+    uint test1 = 0;
+    uint test2 = 0;
+    uint test3 = 0;
+    function setParam1() public {
+        (test1,test2) = getAB();
+    }
+    function setParam2() public {
+        (test3,) = getAB();
     }
 
-    function() public payable {}
-
-    function getStates() public view returns (uint256) {
-        return state;
+    function setParam3() public {
+        (,test3) = getAB();
     }
+
+    function setZero() public {
+        test1 = 0;
+        test2 = 0;
+        test3 = 0;
+    }
+
+    function getAB() public view returns (uint,uint) {
+        return (a,b);
+    }
+
+    function getTestNumber() public view returns (uint,uint,uint) {
+        return (test1,test2,test3);
+    }
+
 }
