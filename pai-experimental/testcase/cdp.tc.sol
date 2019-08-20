@@ -1346,6 +1346,19 @@ contract SettlementTest is TestBase {
         settlement.terminatePhaseTwo();
     } 
 
+    function testDirectPhaseTwoRawCall() {
+        settlementSetup();
+
+        bytes4 exec = bytes4(keccak256("terminatePhaseTwo()"));
+        bool result = address(settlement).call(exec);    
+        assertTrue(!result);
+
+        exec = bytes4(keccak256("terminatePhaseOne()"));
+        result = address(settlement).call(exec);
+        assertTrue(result);
+
+    }
+
     function testPhaseTwoNotReadyFail() {
         settlementSetup();     
 
@@ -1384,5 +1397,7 @@ contract SettlementTest is TestBase {
 
         oracle.updatePrice(ASSET_BTC, 1);
     }
+
+
 
 }
