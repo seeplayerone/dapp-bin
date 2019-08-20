@@ -242,7 +242,7 @@ contract ACL {
     ///  internally it calls canPerform()
     /// @param _functionStr functioHash 
     modifier authFunctionHash(string _functionStr) {
-        require(canPerform(msg.sender, _functionStr));
+        require(msg.sender == address(this) || canPerform(msg.sender, _functionStr));
         _;
     }
     

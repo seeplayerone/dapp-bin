@@ -14,9 +14,7 @@ contract PAIDAO is Organization, DSMath {
     ///params for organization
     uint32 public organizationId;
     bool registed = false;
-    string constant Cashier = "CASHIER";
-    string constant Director = "DIRECTOR";
-    string constant VoteContract = "VOTE";
+    address tempAdmin;
 
     ///params for assets;
     uint32 private constant PIS = 0;
@@ -46,11 +44,42 @@ contract PAIDAO is Organization, DSMath {
         configureFunctionRoleInternal(CONFIGURE_NORMAL_FUNCTION, "SUPER_ADMIN", OpMode.Remove);
         configureFunctionRoleInternal(CONFIGURE_ADVANCED_FUNCTION, "SUPER_ADMIN", OpMode.Remove);
         configureFunctionRoleInternal(CONFIGURE_SUPER_FUNCTION, "SUPER_ADMIN", OpMode.Remove);
+        tempAdmin = msg.sender;
         
         registed = true;
     }
-//authFunctionHash("SUPER_ADMIN")
-    function mintPIS(uint amount, address dest) public {
+    function configureFunctionAddress(string _function, address _address, OpMode _opMode) public authFunctionHash("VOTE") {
+        configureFunctionAddressInternal(_function, _address, _opMode);
+    }
+
+    function configFuncAddr(address _contract, address _caller, string _str, OpMode _op) public authFunctionHash("VOTE") {
+        configureFunctionAddressInternal(
+            StringLib.strConcat(StringLib.convertAddrToStr(_contract),_str),
+            _caller,
+            _op);
+    }
+
+    function tempSelfConfig(string _function, address _address, OpMode _opMode) public {
+        require(msg.sender == tempAdmin, "Only temp admin can configure");
+        configureFunctionAddress(_function, _address, _opMode);
+    }
+
+    function tempConfig(address _contract, address _caller, string _str, OpMode _op) public {
+        require(msg.sender == tempAdmin, "Only temp admin can configure");
+        configFuncAddr(_contract, _caller, _str, _op);
+    }
+
+    function everyThingIsOk() public {
+        require(msg.sender == tempAdmin, "Only temp admin can configure");
+        tempAdmin = 0x0;
+    }
+
+    function tempMintPIS(uint amount, address dest) public {
+        require(msg.sender == tempAdmin, "Only temp admin can mint");
+        mintPIS(amount, dest);
+    }
+
+    function mintPIS(uint amount, address dest) public authFunctionHash("VOTE") {
         if(issuedAssets[PIS].existed) {
             mint(PIS, amount);
         } else {
@@ -61,7 +90,7 @@ contract PAIDAO is Organization, DSMath {
         dest.transfer(amount, Token[PIS].assetGlobalId);
     }
 
-    function mintPAI(uint amount, address dest) public {
+    function mintPAI(uint amount, address dest) public authFunctionHash("ISSURER") {
         if(issuedAssets[PAI].existed) {
             mint(PAI, amount);
         } else {
@@ -86,12 +115,5 @@ contract PAIDAO is Organization, DSMath {
 
     function getAdditionalAssetInfo(uint32 _assetIndex) public view returns (uint64, uint96) {
         return (Token[_assetIndex].assetLocalId,Token[_assetIndex].assetGlobalId);
-    }
-
-    function configFuncAddr(address _contract, address _caller, string _str, OpMode _op) public {
-        configureFunctionAddressInternal(
-            StringLib.strConcat(StringLib.convertAddrToStr(_contract),_str),
-            _caller,
-            _op);
     }
 }
