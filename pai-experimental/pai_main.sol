@@ -49,8 +49,8 @@ contract PAIDAO is Organization, DSMath {
         
         registed = true;
     }
-
-    function mintPIS(uint amount, address dest) public authFunctionHash("SUPER_ADMIN") {
+//authFunctionHash("SUPER_ADMIN")
+    function mintPIS(uint amount, address dest) public {
         if(issuedAssets[PIS].existed) {
             mint(PIS, amount);
         } else {
@@ -61,7 +61,7 @@ contract PAIDAO is Organization, DSMath {
         dest.transfer(amount, Token[PIS].assetGlobalId);
     }
 
-    function mintPAI(uint amount, address dest) public authFunctionHash("SUPER_ADMIN") {
+    function mintPAI(uint amount, address dest) public {
         if(issuedAssets[PAI].existed) {
             mint(PAI, amount);
         } else {

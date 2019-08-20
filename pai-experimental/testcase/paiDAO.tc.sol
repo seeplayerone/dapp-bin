@@ -69,7 +69,7 @@ contract TestBase is Template, DSTest, DSMath {
         paiDAO = new FakePaiDao("PAIDAO", new address[](0));
         paiDAO.init();
         paiDAO.mintPIS(100000000, 0x6674f97041ba5ab1dd0e98e4fa6212ef590fedec95);
-        ASSET_PIS = paiDAO.Token[0]().assetGlobalId;
+        (,ASSET_PIS) = paiDAO.getAdditionalAssetInfo(0);
 
         assertEq(flow.balance(0x6674f97041ba5ab1dd0e98e4fa6212ef590fedec95,ASSET_PIS),100000000);
     }
