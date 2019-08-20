@@ -26,7 +26,7 @@ contract PAIDAO is Organization, DSMath {
     mapping (uint32 => AdditionalAssetInfo) public Token; //name needs to be optimized；
 
     ///params for burn
-    address private constant hole = 0x660000000000000000000000000000000000000000;
+    address private constant zeroAddr = 0x660000000000000000000000000000000000000000;
     
     constructor(string _organizationName, address[] _members)
         Organization(_organizationName, _members)
@@ -66,14 +66,14 @@ contract PAIDAO is Organization, DSMath {
         configFuncAddr(_contract, _caller, _str, _op);
     }
 
-    function everyThingIsOk() public {
-        require(msg.sender == tempAdmin, "Only temp admin can configure");
-        tempAdmin = 0x0;
-    }
-
     function tempMintPIS(uint amount, address dest) public {
         require(msg.sender == tempAdmin, "Only temp admin can mint");
-        mintPIS(amount, dest);
+        this.mintPIS(amount, dest);
+    }
+
+    function everyThingIsOk() public {
+        require(msg.sender == tempAdmin, "Only temp admin can configure");
+        tempAdmin = zeroAddr;
     }
 
     function mintPIS(uint amount, address dest) public authFunctionHash("VOTE") {
@@ -107,7 +107,7 @@ contract PAIDAO is Organization, DSMath {
         }else{
             issuedAssets[PAI].totalIssued = sub(issuedAssets[PAI].totalIssued, msg.value);
         }
-        hole.transfer(msg.value, msg.assettype);
+        zeroAddr.transfer(msg.value, msg.assettype);
     }
 
     function getAdditionalAssetInfo(uint32 _assetIndex) public view returns (uint64, uint96) {
