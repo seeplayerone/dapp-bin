@@ -131,7 +131,7 @@ contract TestBase is Template, DSTest, DSMath {
         tempBool = p1.callTempSelfConfig(paiDAO,"VOTE",p3,0);
         assertTrue(tempBool);
 
-        //paiDAO.canPerform(p3,"VOTE");
+        paiDAO.canPerform(p3,"VOTE");
         //tempBool = p3.callMintPIS(paiDAO,100000000,p3);
         //assertTrue(tempBool);
         // assertEq(flow.balance(p3,ASSET_PIS),200000000);

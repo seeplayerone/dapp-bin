@@ -58,7 +58,7 @@ contract PAIDAO is Organization, DSMath {
 
     function tempSelfConfig(string _function, address _address, uint8 _opMode) public {
         require(msg.sender == tempAdmin, "Only temp admin can configure");
-        this.configureFunctionAddress(_function, _address, _opMode);
+        this.configureFunctionAddress(_function, _address, OpMode(_opMode));
     }
 
     function tempConfig(address _contract, address _caller, string _str, OpMode _op) public {
