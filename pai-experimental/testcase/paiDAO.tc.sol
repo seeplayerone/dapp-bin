@@ -71,9 +71,9 @@ contract FakePerson is Template {
     }
 
     function callBurn(address paidao, uint amount, uint96 id) public returns (bool) {
-        //bytes4 methodId = bytes4(keccak256("burn()"));
-        //bool result = FakePaiDao(paidao).call.value(amount,id)(methodId);
-        bool result = FakePaiDao(paidao).burn.call.value(amount,id)();
+        bytes4 methodId = bytes4(keccak256("burn()"));
+        bool result = FakePaiDao(paidao).call.value(amount,id)(methodId);
+        //bool result = FakePaiDao(paidao).burn.call.value(amount,id)();
         return result;
     }
 
@@ -242,7 +242,7 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(!tempBool);//43
         tempBool = p1.callEveryThingIsOk(paiDAO);
         assertTrue(tempBool);//44
-        tempBool = p1.callTempMintPAI(paiDAO,100000000,p3);
+        tempBool = p1.callTempMintPIS(paiDAO,100000000,p3);
         assertTrue(!tempBool);//45
         tempBool = p1.callTempConfig(paiDAO,"TESTDELETE",p4,0);
         assertTrue(!tempBool);//46
