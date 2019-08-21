@@ -71,11 +71,6 @@ contract PAIDAO is Organization, DSMath {
         this.mintPIS(amount, dest);
     }
 
-    function everyThingIsOk() public {
-        require(msg.sender == tempAdmin, "Only temp admin can configure");
-        tempAdmin = zeroAddr;
-    }
-
     function mintPIS(uint amount, address dest) public authFunctionHash("VOTE") {
         if(issuedAssets[PIS].existed) {
             mint(PIS, amount);
@@ -108,5 +103,10 @@ contract PAIDAO is Organization, DSMath {
             issuedAssets[PAI].totalIssued = sub(issuedAssets[PAI].totalIssued, msg.value);
         }
         zeroAddr.transfer(msg.value, msg.assettype);
+    }
+
+    function everyThingIsOk() public {
+        require(msg.sender == tempAdmin, "Only temp admin can configure");
+        tempAdmin = zeroAddr;
     }
 }

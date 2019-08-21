@@ -46,7 +46,7 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callTempOthersConfig(address paidao,address _contract, address _caller, string _str, uint8 _op) public returns (bool) {
+    function callTempOthersConfig(address paidao,address _contract, address _caller, string _str, uint8 _opMode) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("tempOthersConfig(address,address,string,uint8)"));
         bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,_contract,_caller,_str,_opMode));
         return result;
@@ -64,8 +64,24 @@ contract FakePerson is Template {
         return result;
     }
 
+    function callMintPAI(address paidao, uint amount, address dest) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("mintPAI(uint256,address)"));
+        bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,amount,dest));
+        return result;
+    }
 
+    function callBurn(address paidao, uint amount, uint96 id) public returns (bool) {
+        //bytes4 methodId = bytes4(keccak256("burn()"));
+        //bool result = FakePaiDao(paidao).call.value(amount,id)(methodId);
+        bool result = FakePaiDao(paidao).burn.call.value(amount,id)();
+        return result;
+    }
 
+    function callEveryThingIsOk(address paidao) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("everyThingIsOk()"));
+        bool result = FakePaiDao(paidao).call(methodId);
+        return result;
+    }
 }
 
 // contract FakePAIIssuer is PAIIssuer {
@@ -73,7 +89,6 @@ contract FakePerson is Template {
 //         templateName = "Fake-Template-Name-For-Test";
 //     }
 // }
-
 
 contract FakePaiDao is PAIDAO {
     constructor(string _organizationName, address[] _members)
@@ -105,6 +120,7 @@ contract TestTimeflies is Template {
 contract TestCase is Template, DSTest, DSMath {
     FakePaiDao internal paiDAO;
     uint96 internal ASSET_PIS;
+    uint96 internal ASSET_PAI;
 
     function() public payable {
 
@@ -151,40 +167,87 @@ contract TestCase is Template, DSTest, DSMath {
         ///test all by order
         tempBool = p1.callTempConfig(paiDAO,"VOTE",p3,0);
         assertTrue(tempBool);//13
-        tempBool = p1.callConfigFunc(paiDAO,"TESTAUTH",p2,0);
+        tempBool = p1.callConfigFunc(paiDAO,"TESTAUTH1",p2,0);
         assertTrue(!tempBool);//14
-        tempBool = p3.callConfigFunc(paiDAO,"TESTAUTH",p2,0);
+        tempBool = p3.callConfigFunc(paiDAO,"TESTAUTH1",p2,0);
         assertTrue(tempBool);//15
-        tempBool = paiDAO.canPerform(p2,"TESTAUTH");
+        tempBool = paiDAO.canPerform(p2,"TESTAUTH1");
         assertTrue(tempBool);//16
-        tempBool = p3.callConfigFunc(paiDAO,"TESTAUTH",p2,1);
+        tempBool = p3.callConfigFunc(paiDAO,"TESTAUTH1",p2,1);
         assertTrue(tempBool);//17
-        tempBool = paiDAO.canPerform(p2,"TESTAUTH");
+        tempBool = paiDAO.canPerform(p2,"TESTAUTH1");
         assertTrue(!tempBool);//18
 
-        tempBool = p1.callConfigOthersFunc(paiDAO,p4,p2,"TESTAUTH",0);
+        tempBool = p1.callConfigOthersFunc(paiDAO,p4,p2,"TESTAUTH2",0);
         assertTrue(!tempBool);//19
-        tempBool = p3.callConfigOthersFunc(paiDAO,p4,p2,"TESTAUTH",0);
+        tempBool = p3.callConfigOthersFunc(paiDAO,p4,p2,"TESTAUTH2",0);
         assertTrue(tempBool);//20
-        tempBool = paiDAO.canPerform(p2, StringLib.strConcat(StringLib.convertAddrToStr(p4),"TESTAUTH"));
+        tempBool = paiDAO.canPerform(p2, StringLib.strConcat(StringLib.convertAddrToStr(p4),"TESTAUTH2"));
         assertTrue(tempBool);//21
-        tempBool = p3.callConfigOthersFunc(paiDAO,p4,p2,"TESTAUTH",1);
+        tempBool = p3.callConfigOthersFunc(paiDAO,p4,p2,"TESTAUTH2",1);
         assertTrue(tempBool);//22
-        tempBool = paiDAO.canPerform(p2, StringLib.strConcat(StringLib.convertAddrToStr(p4),"TESTAUTH"));
+        tempBool = paiDAO.canPerform(p2, StringLib.strConcat(StringLib.convertAddrToStr(p4),"TESTAUTH2"));
         assertTrue(!tempBool);//23
 
-        tempBool = p3.callTempConfig(paiDAO,"TESTAUTH",p4,0);
+        tempBool = p3.callTempConfig(paiDAO,"TESTAUTH3",p4,0);
         assertTrue(!tempBool);//24
-        tempBool = p1.callTempConfig(paiDAO,"TESTAUTH",p4,0);
+        tempBool = p1.callTempConfig(paiDAO,"TESTAUTH3",p4,0);
         assertTrue(tempBool);//25
-        tempBool = paiDAO.canPerform(p4,"TESTAUTH");
+        tempBool = paiDAO.canPerform(p4,"TESTAUTH3");
         assertTrue(tempBool);//26
-        tempBool = p1.callTempConfig(paiDAO,"TESTAUTH",p4,1);
+        tempBool = p1.callTempConfig(paiDAO,"TESTAUTH3",p4,1);
         assertTrue(tempBool);//27
-        tempBool = paiDAO.canPerform(p4,"TESTAUTH");
+        tempBool = paiDAO.canPerform(p4,"TESTAUTH3");
         assertTrue(!tempBool);//28
 
-        //tempBool = callTempOthersConfig
+        tempBool = p3.callTempOthersConfig(paiDAO,p4,p2,"TESTAUTH4",0);
+        assertTrue(!tempBool);//29
+        tempBool = p1.callTempOthersConfig(paiDAO,p4,p2,"TESTAUTH4",0);
+        assertTrue(tempBool);//30
+        tempBool = paiDAO.canPerform(p2, StringLib.strConcat(StringLib.convertAddrToStr(p4),"TESTAUTH4"));
+        assertTrue(tempBool);//31
+        tempBool = p1.callTempOthersConfig(paiDAO,p4,p2,"TESTAUTH4",1);
+        assertTrue(tempBool);//32
+        tempBool = paiDAO.canPerform(p2, StringLib.strConcat(StringLib.convertAddrToStr(p4),"TESTAUTH4"));
+        assertTrue(!tempBool);//33
 
+        /// mintPIS and tempMintPIS are already tested
+
+        tempBool = p1.callMintPAI(paiDAO,100000000,p3);
+        assertTrue(!tempBool);//34
+        tempBool = p3.callMintPAI(paiDAO,100000000,p3);
+        assertTrue(!tempBool);//35
+        tempBool = p1.callTempConfig(paiDAO,"ISSURER",p3,0);
+        assertTrue(tempBool);//36
+        tempBool = p3.callMintPAI(paiDAO,100000003,p3);
+        assertTrue(tempBool);//37
+        (,ASSET_PAI) = paiDAO.Token(1);
+        assertEq(flow.balance(p3,ASSET_PAI),100000003);//38
+
+        uint balance;
+        (,,,,,balance) = paiDAO.getAssetInfo(1);
+        assertEq(balance,100000003);//39
+        (,,,,,balance) = paiDAO.getAssetInfo(0);
+        assertEq(balance,200000000);//40
+        assertEq(flow.balance(p3,ASSET_PIS),200000000);//41
+        tempBool = p3.callBurn(paiDAO,20000,ASSET_PIS);
+        assertTrue(tempBool);//42
+        //assertEq(flow.balance(p3,ASSET_PIS),200000000);//43
+        //tempBool = p3.callBurn(paiDAO,20000,ASSET_PIS);
+        //assertTrue(tempBool);//44
+        //burnPAI
+        //
+
+        tempBool = p3.callEveryThingIsOk(paiDAO);
+        assertTrue(!tempBool);//43
+        tempBool = p1.callEveryThingIsOk(paiDAO);
+        assertTrue(tempBool);//44
+        tempBool = p1.callTempMintPAI(paiDAO,100000000,p3);
+        assertTrue(!tempBool);//45
+        tempBool = p1.callTempConfig(paiDAO,"TESTDELETE",p4,0);
+        assertTrue(!tempBool);//46
+        tempBool = p1.callTempOthersConfig(paiDAO,p4,p2,"TESTDELETE",0);
+        assertTrue(!tempBool);//47
+        
     }
 }
