@@ -28,17 +28,30 @@ contract FakePerson is Template {
         return (new FakePaiDao("PAIDAO", new address[](0)));
     }
 
+    function callInit(address _addr) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("init()"));
+        bool result = FakePaiDao(_addr).call(methodId);
+        return result;
+    }
+
     function callTempMintPIS(address _addr, uint amount, address dest) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("tempMintPIS(uint256,address)"));
         bool result = FakePaiDao(_addr).call(methodId,amount,dest);
         return result;
     }
 
-    function callInit(address _addr) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("init()"));
-        bool result = FakePaiDao(_addr).call(methodId);
+    function callMintPIS(address _addr, uint amount, address dest) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("mintPIS(uint256,address)"));
+        bool result = FakePaiDao(_addr).call(methodId,amount,dest);
         return result;
     }
+
+    function callTempSelfConfig(address _addr, string _function, address _address, uint8 _opMode) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("tempSelfConfig(string,address,uint8)"));
+        bool result = FakePaiDao(_addr).call(methodId,_function,_address,_opMode);
+        return result;
+    }
+
             
 }
 
@@ -112,5 +125,15 @@ contract TestBase is Template, DSTest, DSMath {
         tempBool = p2.callTempMintPIS(paiDAO,100000000,p3);
         assertTrue(!tempBool);
 
+        ///test auth setting
+        tempBool = p3.callMintPIS(paiDAO,100000000,p3);
+        assertTrue(!tempBool);
+        tempBool = p1.callTempSelfConfig(paiDAO,"VOTE",p3,0);
+        assertTrue(tempBool);
+
+        //paiDAO.canPerform(p3,"VOTE");
+        //tempBool = p3.callMintPIS(paiDAO,100000000,p3);
+        //assertTrue(tempBool);
+        // assertEq(flow.balance(p3,ASSET_PIS),200000000);
     }
 }
