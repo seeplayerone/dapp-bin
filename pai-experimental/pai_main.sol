@@ -56,14 +56,14 @@ contract PAIDAO is Organization, DSMath {
             _opMode);
     }
 
-    function tempSelfConfig(string _function, address _address, OpMode _opMode) public {
+    function tempConfig(string _function, address _address, OpMode _opMode) public {
         require(msg.sender == tempAdmin, "Only temp admin can configure");
         this.configFunc(_function, _address, _opMode);
     }
 
-    function tempConfig(address _contract, address _caller, string _str, OpMode _op) public {
+    function tempOthersConfig(address _contract, address _caller, string _function, OpMode _opMode) public {
         require(msg.sender == tempAdmin, "Only temp admin can configure");
-        this.configOthersFunc(_contract, _caller, _str, _op);
+        this.configOthersFunc(_contract, _caller, _function, _opMode);
     }
 
     function tempMintPIS(uint amount, address dest) public {
@@ -108,9 +108,5 @@ contract PAIDAO is Organization, DSMath {
             issuedAssets[PAI].totalIssued = sub(issuedAssets[PAI].totalIssued, msg.value);
         }
         zeroAddr.transfer(msg.value, msg.assettype);
-    }
-
-    function getAdditionalAssetInfo(uint32 _assetIndex) public view returns (uint64, uint96) {
-        return (Token[_assetIndex].assetLocalId,Token[_assetIndex].assetGlobalId);
     }
 }
