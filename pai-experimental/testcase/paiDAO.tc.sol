@@ -14,13 +14,6 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 
-
-contract FakePAIIssuer is PAIIssuer {
-    constructor() public {
-        templateName = "Fake-Template-Name-For-Test";
-    }
-}
-
 contract FakePerson is Template {
     function() public payable {}
 
@@ -52,7 +45,18 @@ contract FakePerson is Template {
         return result;
     }
 
-            
+    function callConfigureFunctionAddress(address _addr, string _function, address _address, OpMode _opMode) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("configureFunctionAddress(string,address,uint8)"));
+        bool result = FakePaiDao(_addr).call(abi.encodeWithSelector(methodId,_function,_address,_opMode));
+        return result;
+    }
+
+}
+
+contract FakePAIIssuer is PAIIssuer {
+    constructor() public {
+        templateName = "Fake-Template-Name-For-Test";
+    }
 }
 
 
@@ -83,16 +87,7 @@ contract TestTimeflies is DSNote {
     }
 }
 
-contract TimefliesCDP is CDP, TestTimeflies {
-    constructor(address _issuer, address _oracle, address _liquidator)
-        CDP(_issuer, _oracle, _liquidator)
-        public
-    {
-
-    }
-}
-
-contract TestBase is Template, DSTest, DSMath {
+contract TestCase is Template, DSTest, DSMath {
     FakePaiDao internal paiDAO;
     uint96 internal ASSET_PIS;
 
@@ -100,7 +95,7 @@ contract TestBase is Template, DSTest, DSMath {
 
     }
 
-    function testALL() public {
+    function testMainContract() public {
         bool tempBool;
         FakePerson p1 = new FakePerson();
         FakePerson p2 = new FakePerson();
@@ -133,5 +128,20 @@ contract TestBase is Template, DSTest, DSMath {
         tempBool = p3.callMintPIS(paiDAO,100000000,p3);
         assertTrue(tempBool);
         assertEq(flow.balance(p3,ASSET_PIS),200000000);
+        tempBool = p1.callTempSelfConfig(paiDAO,"VOTE",p3,1);
+        assertTrue(tempBool);
+        tempBool = p3.callMintPIS(paiDAO,100000000,p3);
+        assertTrue(!tempBool);
+
+        ///test all by order
+        tempBool = p1.callTempSelfConfig(paiDAO,"VOTE",p3,0);
+        assertTrue(tempBool);
+        tempBool = p1.callConfigureFunctionAddress(paiDAO,"TESTAUTH",p2,0);
+        assertTrue(!tempBool);
+        tempBool = p3.callConfigureFunctionAddress(paiDAO,"TESTAUTH",p2,0);
+        assertTrue(tempBool);
+        tempBool = paiDAO.canPerform(p2,"TESTAUTH");
+        assertTrue(tempBool);
+        tempBool = p3.callConfigureFunctionAddress(paiDAO,"TESTAUTH",p2,0);
     }
 }

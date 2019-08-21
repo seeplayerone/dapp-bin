@@ -265,11 +265,13 @@ contract ACL {
         if (!authorized) {
             /// check (functionHash -> roles) mapping
             Roles storage funcRoleMap = functionRolesMap[_function];
-            require(funcRoleMap.exist);
+            if(!funcRoleMap.exist)
+                return false;
             
             /// check (address -> roles) mapping
             Roles storage addrRoleMap = addressRolesMap[_caller];
-            require(addrRoleMap.exist);
+            if(!addrRoleMap.exist)
+                return false;
             
             for(uint i = 0; i < funcRoleMap.value.length; i++) {
                 if(addrRoleMap.references[funcRoleMap.value[i]]) {
