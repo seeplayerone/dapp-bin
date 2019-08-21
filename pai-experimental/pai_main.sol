@@ -45,7 +45,7 @@ contract PAIDAO is Organization, DSMath {
 
         registed = true;
     }
-    function configureFunctionAddress(string _function, address _address, OpMode _opMode) public authFunctionHash("VOTE") {
+    function configureFunctionAddress(string _function, address _address, OpMode _opMode) public {
         configureFunctionAddressInternal(_function, _address, _opMode);
     }
 
