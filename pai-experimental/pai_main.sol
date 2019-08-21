@@ -45,7 +45,7 @@ contract PAIDAO is Organization, DSMath {
 
         registed = true;
     }
-    function configureFunctionAddress(string _function, address _address, OpMode _opMode) public {
+    function configureFunctionAddress(string _function, address _address, OpMode _opMode) public authFunctionHash("VOTE") {
         configureFunctionAddressInternal(_function, _address, _opMode);
     }
 
@@ -56,9 +56,9 @@ contract PAIDAO is Organization, DSMath {
             _op);
     }
 
-    function tempSelfConfig(string _function, address _address, uint8 _opMode) public {
-        //require(msg.sender == tempAdmin, "Only temp admin can configure");
-        this.configureFunctionAddress(_function, _address, OpMode(_opMode));
+    function tempSelfConfig(string _function, address _address, OpMode _opMode) public {
+        require(msg.sender == tempAdmin, "Only temp admin can configure");
+        this.configureFunctionAddress(_function, _address, _opMode);
     }
 
     function tempConfig(address _contract, address _caller, string _str, OpMode _op) public {

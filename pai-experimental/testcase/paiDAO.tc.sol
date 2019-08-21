@@ -36,19 +36,19 @@ contract FakePerson is Template {
 
     function callTempMintPIS(address _addr, uint amount, address dest) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("tempMintPIS(uint256,address)"));
-        bool result = FakePaiDao(_addr).call(methodId,amount,dest);
+        bool result = FakePaiDao(_addr).call(abi.encodeWithSelector(methodId,amount,dest));
         return result;
     }
 
     function callMintPIS(address _addr, uint amount, address dest) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("mintPIS(uint256,address)"));
-        bool result = FakePaiDao(_addr).call(methodId,amount,dest);
+        bool result = FakePaiDao(_addr).call(abi.encodeWithSelector(methodId,amount,dest));
         return result;
     }
 
     function callTempSelfConfig(address _addr, string _function, address _address, uint8 _opMode) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("tempSelfConfig(string,address,uint8)"));
-        bool result = FakePaiDao(_addr).call(methodId,_function,_address,_opMode);
+        bool result = FakePaiDao(_addr).call(abi.encodeWithSelector(methodId,_function,_address,_opMode));
         return result;
     }
 
@@ -128,14 +128,10 @@ contract TestBase is Template, DSTest, DSMath {
         ///test auth setting
         tempBool = p3.callMintPIS(paiDAO,100000000,p3);
         assertTrue(!tempBool);
-        tempBool = p1.callTempSelfConfig(paiDAO,"VOTE",p3,0); // msg.sender = p1;
-        //paiDAO.tempSelfConfig("VOTE",p3,0); // msg.sender = this;
-       // assertTrue(tempBool);
-
-
-        paiDAO.canPerform(p3,"VOTE"); // msg.sender = this;
-        //tempBool = p3.callMintPIS(paiDAO,100000000,p3);
-        //assertTrue(tempBool);
-        // assertEq(flow.balance(p3,ASSET_PIS),200000000);
+        tempBool = p1.callTempSelfConfig(paiDAO,"VOTE",p3,0);
+        assertTrue(tempBool);
+        tempBool = p3.callMintPIS(paiDAO,100000000,p3);
+        assertTrue(tempBool);
+        assertEq(flow.balance(p3,ASSET_PIS),200000000);
     }
 }
