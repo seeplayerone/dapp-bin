@@ -128,11 +128,12 @@ contract TestBase is Template, DSTest, DSMath {
         ///test auth setting
         tempBool = p3.callMintPIS(paiDAO,100000000,p3);
         assertTrue(!tempBool);
-        //tempBool = p1.callTempSelfConfig(paiDAO,"VOTE",p3,0);
-        paiDAO.tempSelfConfig("VOTE",p3,0);
+        tempBool = p1.callTempSelfConfig(paiDAO,"VOTE",p3,0); // msg.sender = p1;
+        //paiDAO.tempSelfConfig("VOTE",p3,0); // msg.sender = this;
+       // assertTrue(tempBool);
 
 
-        paiDAO.canPerform(p3,"VOTE");
+        paiDAO.canPerform(p3,"VOTE"); // msg.sender = this;
         //tempBool = p3.callMintPIS(paiDAO,100000000,p3);
         //assertTrue(tempBool);
         // assertEq(flow.balance(p3,ASSET_PIS),200000000);

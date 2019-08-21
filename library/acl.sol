@@ -31,6 +31,8 @@ contract ACL {
         address[] value;
         mapping (address=>bool) references;
     }
+
+    event TELLME(OpMode);
     
     /// functionHash -> roles
     mapping (bytes32 => Roles) internal functionRolesMap; 
@@ -74,6 +76,7 @@ contract ACL {
         bytes32 _role = keccak256(abi.encodePacked(_roleStr));
         bytes32 _function = keccak256(abi.encodePacked(_functionStr));
         Roles storage funcRole = functionRolesMap[_function];
+        emit TELLME(_opMode);
         if (_opMode == OpMode.Add) {
             if (!funcRole.exist) {
                 funcRole.exist = true;
