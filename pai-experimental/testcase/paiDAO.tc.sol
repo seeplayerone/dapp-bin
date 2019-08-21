@@ -6,10 +6,11 @@ pragma solidity 0.4.25;
 // import "../3rd/test.sol";
 // import "../3rd/math.sol";
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
+import "github.com/evilcc2018/dapp-bin/library/string_utils.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/mctest.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
@@ -21,35 +22,42 @@ contract FakePerson is Template {
         return (new FakePaiDao("PAIDAO", new address[](0)));
     }
 
-    function callInit(address _addr) public returns (bool) {
+    function callInit(address paidao) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("init()"));
-        bool result = FakePaiDao(_addr).call(methodId);
+        bool result = FakePaiDao(paidao).call(methodId);
         return result;
     }
 
-    function callTempMintPIS(address _addr, uint amount, address dest) public returns (bool) {
+    function callTempMintPIS(address paidao, uint amount, address dest) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("tempMintPIS(uint256,address)"));
-        bool result = FakePaiDao(_addr).call(abi.encodeWithSelector(methodId,amount,dest));
+        bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,amount,dest));
         return result;
     }
 
-    function callMintPIS(address _addr, uint amount, address dest) public returns (bool) {
+    function callMintPIS(address paidao, uint amount, address dest) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("mintPIS(uint256,address)"));
-        bool result = FakePaiDao(_addr).call(abi.encodeWithSelector(methodId,amount,dest));
+        bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,amount,dest));
         return result;
     }
 
-    function callTempSelfConfig(address _addr, string _function, address _address, uint8 _opMode) public returns (bool) {
+    function callTempSelfConfig(address paidao, string _function, address _address, uint8 _opMode) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("tempSelfConfig(string,address,uint8)"));
-        bool result = FakePaiDao(_addr).call(abi.encodeWithSelector(methodId,_function,_address,_opMode));
+        bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,_function,_address,_opMode));
         return result;
     }
 
-    function callConfigureFunctionAddress(address _addr, string _function, address _address, OpMode _opMode) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("configureFunctionAddress(string,address,uint8)"));
-        bool result = FakePaiDao(_addr).call(abi.encodeWithSelector(methodId,_function,_address,_opMode));
+    function callConfigFunc(address paidao, string _function, address _address, uint8 _opMode) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("configFunc(string,address,uint8)"));
+        bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,_function,_address,_opMode));
         return result;
     }
+
+    function callConfigOthersFunc(address paidao, address _contract, address _caller, string _str, uint8 _opMode) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("configOthersFunc(address,address,string,uint8)"));
+        bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,_contract,_caller,_str,_opMode));
+        return result;
+    }
+    
 
 }
 
@@ -104,47 +112,47 @@ contract TestCase is Template, DSTest, DSMath {
 
         ///test init
         paiDAO = FakePaiDao(p1.createPAIDAO());
-        assertEq(paiDAO.tempAdmin(),p1);
+        assertEq(paiDAO.tempAdmin(),p1);//0
         tempBool = p2.callInit(paiDAO);
-        assertTrue(tempBool);
+        assertTrue(tempBool);//1
         tempBool = p2.callInit(paiDAO);
-        assertTrue(!tempBool);
+        assertTrue(!tempBool);//2
         tempBool = p1.callInit(paiDAO);
-        assertTrue(!tempBool);
+        assertTrue(!tempBool);//3
 
         ///test mint
         tempBool = p1.callTempMintPIS(paiDAO,100000000,p3);
-        assertTrue(tempBool);
+        assertTrue(tempBool);//4
         (,ASSET_PIS) = paiDAO.Token(0);
-        assertEq(flow.balance(p3,ASSET_PIS),100000000);
+        assertEq(flow.balance(p3,ASSET_PIS),100000000);//5
         tempBool = p2.callTempMintPIS(paiDAO,100000000,p3);
-        assertTrue(!tempBool);
+        assertTrue(!tempBool);//6
 
         ///test auth setting
         tempBool = p3.callMintPIS(paiDAO,100000000,p3);
-        assertTrue(!tempBool);
+        assertTrue(!tempBool);//7
         tempBool = p1.callTempSelfConfig(paiDAO,"VOTE",p3,0);
-        assertTrue(tempBool);
+        assertTrue(tempBool);//8
         tempBool = p3.callMintPIS(paiDAO,100000000,p3);
-        assertTrue(tempBool);
-        assertEq(flow.balance(p3,ASSET_PIS),200000000);
+        assertTrue(tempBool);//9
+        assertEq(flow.balance(p3,ASSET_PIS),200000000);//10
         tempBool = p1.callTempSelfConfig(paiDAO,"VOTE",p3,1);
-        assertTrue(tempBool);
+        assertTrue(tempBool);//11
         tempBool = p3.callMintPIS(paiDAO,100000000,p3);
-        assertTrue(!tempBool);
+        assertTrue(!tempBool);//12
 
         ///test all by order
         tempBool = p1.callTempSelfConfig(paiDAO,"VOTE",p3,0);
-        assertTrue(tempBool);
-        tempBool = p1.callConfigureFunctionAddress(paiDAO,"TESTAUTH",p2,0);
-        assertTrue(!tempBool);
-        tempBool = p3.callConfigureFunctionAddress(paiDAO,"TESTAUTH",p2,0);
-        assertTrue(tempBool);
+        assertTrue(tempBool);//13
+        tempBool = p1.callConfigFunc(paiDAO,"TESTAUTH",p2,0);
+        assertTrue(!tempBool);//14
+        tempBool = p3.callConfigFunc(paiDAO,"TESTAUTH",p2,0);
+        assertTrue(tempBool);//15
         tempBool = paiDAO.canPerform(p2,"TESTAUTH");
-        assertTrue(tempBool);
-        tempBool = p3.callConfigureFunctionAddress(paiDAO,"TESTAUTH",p2,1);
-        assertTrue(tempBool);
+        assertTrue(tempBool);//16
+        tempBool = p3.callConfigFunc(paiDAO,"TESTAUTH",p2,1);
+        assertTrue(tempBool);//17
         tempBool = paiDAO.canPerform(p2,"TESTAUTH");
-        assertTrue(!tempBool);
+        assertTrue(!tempBool);//18
     }
 }

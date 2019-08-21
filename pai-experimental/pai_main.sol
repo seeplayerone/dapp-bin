@@ -45,25 +45,25 @@ contract PAIDAO is Organization, DSMath {
 
         registed = true;
     }
-    function configureFunctionAddress(string _function, address _address, OpMode _opMode) public authFunctionHash("VOTE") {
+    function configFunc(string _function, address _address, OpMode _opMode) public authFunctionHash("VOTE") {
         configureFunctionAddressInternal(_function, _address, _opMode);
     }
 
-    function configFuncAddr(address _contract, address _caller, string _str, OpMode _op) public authFunctionHash("VOTE") {
+    function configOthersFunc(address _contract, address _caller, string _function, OpMode _opMode) public authFunctionHash("VOTE") {
         configureFunctionAddressInternal(
-            StringLib.strConcat(StringLib.convertAddrToStr(_contract),_str),
+            StringLib.strConcat(StringLib.convertAddrToStr(_contract),_function),
             _caller,
-            _op);
+            _opMode);
     }
 
     function tempSelfConfig(string _function, address _address, OpMode _opMode) public {
         require(msg.sender == tempAdmin, "Only temp admin can configure");
-        this.configureFunctionAddress(_function, _address, _opMode);
+        this.configFunc(_function, _address, _opMode);
     }
 
     function tempConfig(address _contract, address _caller, string _str, OpMode _op) public {
         require(msg.sender == tempAdmin, "Only temp admin can configure");
-        this.configFuncAddr(_contract, _caller, _str, _op);
+        this.configOthersFunc(_contract, _caller, _str, _op);
     }
 
     function tempMintPIS(uint amount, address dest) public {
