@@ -53,7 +53,7 @@ contract PISVoteManager is Template, DSMath {
     function setVoteAssetGlobalId() public {
         //require(msg.sender == paiDAO);
         require(!assetIdsetUp, "Asset Global Id has already setted.");
-        (,voteAssetGlobalId) = paiDAO.getAdditionalAssetInfo(0);
+        (,voteAssetGlobalId) = paiDAO.Token(0);
         assetIdsetUp = true;
     }
     /// get the organization contract address

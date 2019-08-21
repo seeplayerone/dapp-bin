@@ -14,6 +14,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/mctest.sol";
 // import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
 // import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_vote_manager.sol";
 
 contract FakePerson is Template {
     function() public payable {}
@@ -118,15 +119,14 @@ contract TestTimeflies is Template {
 }
 
 contract TestCase is Template, DSTest, DSMath {
-    FakePaiDao internal paiDAO;
-    uint96 internal ASSET_PIS;
-    uint96 internal ASSET_PAI;
-
     function() public payable {
 
     }
 
     function testMainContract() public {
+        FakePaiDao paiDAO;
+        uint96 ASSET_PIS;
+        uint96 ASSET_PAI;
         bool tempBool;
         FakePerson p1 = new FakePerson();
         FakePerson p2 = new FakePerson();
@@ -248,6 +248,25 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(!tempBool);//46
         tempBool = p1.callTempOthersConfig(paiDAO,p4,p2,"TESTDELETE",0);
         assertTrue(!tempBool);//47
-        
+    }
+
+    function testVoteManager() public {
+        FakePaiDao paiDAO;
+        PISVoteManager voteManager;
+        uint96 ASSET_PIS;
+        //uint96 ASSET_PAI;
+        bool tempBool;
+        FakePerson p1 = new FakePerson();
+        //FakePerson p2 = new FakePerson();
+        //FakePerson p3 = new FakePerson();
+        //FakePerson p4 = new FakePerson();
+
+        ///test init
+        paiDAO = FakePaiDao(p1.createPAIDAO());
+        tempBool = p1.callInit(paiDAO);
+        tempBool = p1.callTempMintPIS(paiDAO,100000000,p1);
+        (,ASSET_PIS) = paiDAO.Token(0);
+        voteManager = new PISVoteManager(paiDAO);
+        assertTrue(false);
     }
 }
