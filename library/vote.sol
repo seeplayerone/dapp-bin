@@ -80,7 +80,7 @@ contract BasicVote is Template, DSMath {
 
     /// @dev get basic information of a vote
     function getVoteInfo(uint voteId) public view returns (
-        string, address, uint, uint, uint, uint, address, string, string, bool) {  //maybe need more information?
+        string, address, uint, uint, uint, VoteStatus, address, string, string, bool) {  //maybe need more information?
             Vote storage va = votes[voteId];
             if(voteId <= lastAssignedVoteId) {
                 //the following coding should be moved to some libaray
@@ -96,7 +96,7 @@ contract BasicVote is Template, DSMath {
                     mul(va.agreeVotes, RAY) / va.totalVotes, /// Pro-proportionality
                     mul(va.disagreeVotes, RAY) / va.totalVotes, /// Anti-proportionality
                     mul(va.throughVotes, RAY) / va.totalVotes, /// required proportion
-                    uint(va.status),
+                    va.status,
                     va.target,
                     string(_func),
                     string(va.param),
@@ -104,6 +104,14 @@ contract BasicVote is Template, DSMath {
                     );
             }
             return ("no such vote", 0x0, 0, 0, 0, 3, 0x0, "", "", false);
+    }
+
+     function getVoteStatus(uint voteId) public view returns (VoteStatus) {
+            Vote storage va = votes[voteId];
+            if(voteId <= lastAssignedVoteId) {}
+                return va.status;
+            }
+            return VoteStatus.REJECTED;
     }
 
     /// @dev get last vote id
