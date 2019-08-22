@@ -361,8 +361,7 @@ contract TestCase is Template, DSTest, DSMath {
         assertEq(voteId,1);//15
         assertEq(voteNumber,10000000);//16
         assertEq(finishTime,block.timestamp + 4);//17
-        string tempStr;
+        string memory tempStr;
         (tempStr,,,,,,,,,) = voteContract.getVoteInfo(1);
-        assertEq(tempStr,"TESTVOTE1");//14
-    }
+        assertEq0(tempStr,"TESTVOTE1");//18
 }

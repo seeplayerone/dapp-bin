@@ -151,10 +151,12 @@ contract DSTest {
         }
 
         if (!ok) {
+            emit log_named_uint("  Index", testIndex);
             emit log_bytes32("Error: Wrong `bytes' value");
             emit log_named_bytes32("  Expected", "[cannot show `bytes' value]");
             emit log_named_bytes32("  Actual", "[cannot show `bytes' value]");
             fail();
         }
+        testIndex++;
     }
 }
