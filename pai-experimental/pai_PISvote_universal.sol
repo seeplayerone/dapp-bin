@@ -39,7 +39,7 @@ contract PISVoteUniversal is BasicVote {
     ///  As a result, the functionHash is generated combining contract address and functionHash string
     modifier authFunctionHash(string func) {
         require(msg.sender == address(this) ||
-                paiDAO.canPerform(msg.sender, StringLib.strConcat(StringLib.convertAddrToStr(this),func)));
+                paiDAO.canPerform(msg.sender, func));
         _;
     }
  
@@ -53,7 +53,7 @@ contract PISVoteUniversal is BasicVote {
            uint voteNumber
         )
         public
-        authFunctionHash("Vote")
+        authFunctionHash("VOTE")
         returns (uint)
     {
         require(voteNumber >= rmul(_totalVotes,startProportion),"not enough weights to start a vote");
@@ -63,7 +63,7 @@ contract PISVoteUniversal is BasicVote {
         return voteId;
     }
 
-    function vote(uint voteId, bool attitude, uint voteNumber) public authFunctionHash("Vote") {
+    function vote(uint voteId, bool attitude, uint voteNumber) public authFunctionHash("VOTE") {
         voteInternal(voteId, attitude, voteNumber);
     }
 
