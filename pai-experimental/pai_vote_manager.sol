@@ -32,8 +32,8 @@ contract PISVoteManager is Template, DSMath {
     using StringLib for string;
     
     /// params to be init
-    PAIDAO paiDAO;
-    uint96 voteAssetGlobalId;
+    PAIDAO public paiDAO;
+    uint96 public voteAssetGlobalId;
     
     mapping(address => uint) public balanceOf;
 
@@ -48,15 +48,6 @@ contract PISVoteManager is Template, DSMath {
     constructor(address _organizationContract) public {
         paiDAO = PAIDAO(_organizationContract);
         (,voteAssetGlobalId) = paiDAO.Token(0);
-    }
-
-    /// get the organization contract address
-    function getOrganization() public view returns (address) {
-        return paiDAO;
-    }
-
-    function getVoteAssetGlobalId() public view returns (uint) {
-        return voteAssetGlobalId;
     }
 
     function deposit() public payable {

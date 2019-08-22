@@ -76,6 +76,11 @@ contract FakePerson is Template {
         bool result = FakePaiDao(paidao).call(methodId);
         return result;
     }
+
+    function callDeposit(address voteManager, uint amount, uint96 id) public returns (bool) {
+        FakePaiDao(voteManager).deposit.value(amount,id)();
+        return true;
+    }
 }
 
 // contract FakePAIIssuer is PAIIssuer {
@@ -300,14 +305,10 @@ contract TestCase is Template, DSTest, DSMath {
     function testVoteManager() public {
         FakePaiDao paiDAO;
         PISVoteManager voteManager;
-        PISVoteUniversal voteContract;
+        TimefliesVoteU voteContract;
         uint96 ASSET_PIS;
-        //uint96 ASSET_PAI;
         bool tempBool;
         FakePerson p1 = new FakePerson();
-        //FakePerson p2 = new FakePerson();
-        //FakePerson p3 = new FakePerson();
-        //FakePerson p4 = new FakePerson();
 
         ///test init
         paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
@@ -315,7 +316,11 @@ contract TestCase is Template, DSTest, DSMath {
         tempBool = p1.callTempMintPIS(paiDAO,100000000,p1);
         (,ASSET_PIS) = paiDAO.Token(0);
         voteManager = new PISVoteManager(paiDAO);
-        voteContract = new PISVoteUniversal(paiDAO);
-        assertTrue(false);
+        voteContract = new TimefliesVoteU(paiDAO);
+        assertEq(voteManager.paiDAO(),paiDAO);//0
+        assertEq(voteManager.voteAssetGlobalId(),ASSET_PIS);//1
+        p1.callDeposit(voteManager,50000000,ASSET_PIS);
+        assertEq(voteManager.balanceOf(p1),50000000)//2
+
     }
 }
