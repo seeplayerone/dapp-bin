@@ -13,7 +13,7 @@ contract PISVoteUniversal is BasicVote {
     using StringLib for string;
     
     /// params to be init
-    PAIDAO paiDAO;
+    PAIDAO public paiDAO;
 
     /// vote param
     uint public passProportion;
@@ -23,11 +23,6 @@ contract PISVoteUniversal is BasicVote {
         paiDAO = PAIDAO(_organizationContract);
         passProportion = RAY / 2;
         startProportion = RAY / 1000;
-    }
-
-    /// get the organization contract address
-    function getOrganization() public view returns (address) {
-        return paiDAO;
     }
 
     function setPassProportion(uint _new) public authFunctionHash("SetParam") {
