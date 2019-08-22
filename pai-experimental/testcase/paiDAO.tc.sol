@@ -78,8 +78,14 @@ contract FakePerson is Template {
     }
 
     function callDeposit(address voteManager, uint amount, uint96 id) public returns (bool) {
-        FakePaiDao(voteManager).deposit.value(amount,id)();
+        PISVoteManager(voteManager).deposit.value(amount,id)();
         return true;
+    }
+
+    function callWithdraw(address voteManager, uint amount) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("withdraw(uint256)"));
+        bool result = PISVoteManager(voteManager).call(abi.encodeWithSelector(methodId,amount));
+        return result;
     }
 }
 
@@ -318,9 +324,14 @@ contract TestCase is Template, DSTest, DSMath {
         voteManager = new PISVoteManager(paiDAO);
         voteContract = new TimefliesVoteU(paiDAO);
         assertEq(voteManager.paiDAO(),paiDAO);//0
-        assertEq(voteManager.voteAssetGlobalId(),ASSET_PIS);//1
-        p1.callDeposit(voteManager,50000000,ASSET_PIS);
-        assertEq(voteManager.balanceOf(p1),50000000)//2
+        assertEq(uint(voteManager.voteAssetGlobalId()),uint(ASSET_PIS));//1
+
+        ///test deposit
+        p1.callDeposit(voteManager,40000000,ASSET_PIS);
+        assertEq(voteManager.balanceOf(p1),40000000);//2
+        assertEq(flow.balance(p1,ASSET_PIS),60000000);//3
+        tempBool = p1.callWithdraw(voteManager,60000000);
+        assertEq(tempBool);//4
 
     }
 }

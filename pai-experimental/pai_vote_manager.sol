@@ -45,8 +45,8 @@ contract PISVoteManager is Template, DSMath {
     }
 
     mapping(address => voteInfo[]) voteStates;
-    constructor(address _organizationContract) public {
-        paiDAO = PAIDAO(_organizationContract);
+    constructor(address organization) public {
+        paiDAO = PAIDAO(organization);
         (,voteAssetGlobalId) = paiDAO.Token(0);
     }
 
@@ -146,7 +146,6 @@ contract PISVoteManager is Template, DSMath {
         return (false,0);
     }
 
-    ///only for debug
     function getVoteInfo(address _addr,uint i) public view returns (address,uint,uint,uint) {
         return(
             voteStates[_addr][i].voteContract,
@@ -154,10 +153,6 @@ contract PISVoteManager is Template, DSMath {
             voteStates[_addr][i].voteNumber,
             voteStates[_addr][i].finishTime
         );
-    }
-
-    function getBalanceOf() public view returns (uint) {
-        return balanceOf[msg.sender];
     }
 }
 
