@@ -355,8 +355,10 @@ contract TestCase is Template, DSTest, DSMath {
 
         ///test vote
         p1.callDeposit(voteManager,40000000,ASSET_PIS);
-        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",2,paiDAO,hex"e51ed97d",hex"",10000000);
+        tempBool = p1.callTempConfig(paiDAO,"VOTE",voteManager,0);
         assertTrue(tempBool);//7
+        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",2,paiDAO,hex"e51ed97d",hex"",10000000);
+        assertTrue(tempBool);//8
 
 
 
