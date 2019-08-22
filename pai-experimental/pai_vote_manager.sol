@@ -64,10 +64,10 @@ contract PISVoteManager is Template, DSMath {
     }
 
     function startVoteTo(
-        address _voteContract,
+        address _voteContract, ///todo this param should be deleted
          string _subject,
            uint _duration,
-        address _targetContract, ///todo this param should be deleted
+        address _targetContract,
          bytes4 _func,
           bytes _param,
            uint _voteNumber

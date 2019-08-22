@@ -87,6 +87,23 @@ contract FakePerson is Template {
         bool result = PISVoteManager(voteManager).call(abi.encodeWithSelector(methodId,amount));
         return result;
     }
+
+    function callStartVoteTo(
+        address voteManager,
+        address _voteContract,
+         string _subject,
+           uint _duration,
+        address _targetContract,
+         bytes4 _func,
+          bytes _param,
+           uint _voteNumber
+        )
+        public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("startVoteTo(address,address,string,uint256,address,bytes4,bytes,uint256)"));
+        bool result = PISVoteManager(voteManager).call(abi.encodeWithSelector(methodId,
+        _voteContract,_subject,_duration,_targetContract,_func,_param,_voteNumber));
+        return result;
+    }
 }
 
 // contract FakePAIIssuer is PAIIssuer {
@@ -326,12 +343,22 @@ contract TestCase is Template, DSTest, DSMath {
         assertEq(voteManager.paiDAO(),paiDAO);//0
         assertEq(uint(voteManager.voteAssetGlobalId()),uint(ASSET_PIS));//1
 
-        ///test deposit
+        ///test deposit && withdraw
         p1.callDeposit(voteManager,40000000,ASSET_PIS);
         assertEq(voteManager.balanceOf(p1),40000000);//2
         assertEq(flow.balance(p1,ASSET_PIS),60000000);//3
         tempBool = p1.callWithdraw(voteManager,60000000);
-        assertEq(tempBool);//4
+        assertTrue(!tempBool);//4
+        tempBool = p1.callWithdraw(voteManager,40000000);
+        assertTrue(tempBool);//5
+        assertEq(flow.balance(p1,ASSET_PIS),100000000);//6
+
+        ///test vote
+        p1.callDeposit(voteManager,40000000,ASSET_PIS);
+        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",2,paiDAO,0xe51ed97d,0x,10000000);
+        assertTrue(tempBool);//7
+
+
 
     }
 }
