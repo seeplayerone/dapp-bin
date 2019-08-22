@@ -99,7 +99,7 @@ contract FakePerson is Template {
            uint _voteNumber
         )
         public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("startVoteTo(address,address,string,uint256,address,bytes4,bytes,uint256)"));
+        bytes4 methodId = bytes4(keccak256("startVoteTo(address,string,uint256,address,bytes4,bytes,uint256)"));
         bool result = PISVoteManager(voteManager).call(abi.encodeWithSelector(methodId,
         _voteContract,_subject,_duration,_targetContract,_func,_param,_voteNumber));
         return result;
@@ -355,7 +355,7 @@ contract TestCase is Template, DSTest, DSMath {
 
         ///test vote
         p1.callDeposit(voteManager,40000000,ASSET_PIS);
-        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",2,paiDAO,0xe51ed97d,0x,10000000);
+        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",2,paiDAO,hex"e51ed97d",hex"",10000000);
         assertTrue(tempBool);//7
 
 
