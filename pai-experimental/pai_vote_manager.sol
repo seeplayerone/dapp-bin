@@ -35,7 +35,7 @@ contract PISVoteManager is Template, DSMath {
     PAIDAO paiDAO;
     uint96 voteAssetGlobalId;
     
-    mapping(address => uint) balanceOf;
+    mapping(address => uint) public balanceOf;
 
     struct voteInfo {
         address voteContract;
@@ -60,7 +60,6 @@ contract PISVoteManager is Template, DSMath {
     }
 
     function deposit() public payable {
-        require(assetIdsetUp, "vote asset doesn't setted");
         require(msg.assettype == voteAssetGlobalId, "Only PIS can get vote power");
         balanceOf[msg.sender] = add(balanceOf[msg.sender], msg.value);
     }
