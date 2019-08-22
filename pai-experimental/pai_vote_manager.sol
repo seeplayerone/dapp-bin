@@ -34,7 +34,6 @@ contract PISVoteManager is Template, DSMath {
     /// params to be init
     PAIDAO paiDAO;
     uint96 voteAssetGlobalId;
-    bool assetIdsetUp;
     
     mapping(address => uint) balanceOf;
 
@@ -48,14 +47,9 @@ contract PISVoteManager is Template, DSMath {
     mapping(address => voteInfo[]) voteStates;
     constructor(address _organizationContract) public {
         paiDAO = PAIDAO(_organizationContract);
+        (,voteAssetGlobalId) = paiDAO.Token(0);
     }
 
-    function setVoteAssetGlobalId() public {
-        //require(msg.sender == paiDAO);
-        require(!assetIdsetUp, "Asset Global Id has already setted.");
-        (,voteAssetGlobalId) = paiDAO.Token(0);
-        assetIdsetUp = true;
-    }
     /// get the organization contract address
     function getOrganization() public view returns (address) {
         return paiDAO;

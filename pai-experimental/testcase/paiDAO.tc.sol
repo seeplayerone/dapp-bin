@@ -73,9 +73,10 @@ contract FakePerson is Template {
 
     function callBurn(address paidao, uint amount, uint96 id) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("burn()"));
-        bool result = FakePaiDao(paidao).call.value(amount,id)(methodId);
-        //bool result = FakePaiDao(paidao).burn.call.value(amount,id)();
-        return result;
+       // bool result = FakePaiDao(paidao).call.value(amount,id)(methodId);
+        FakePaiDao(paidao).burn.value(amount,id)();
+        return true;
+        //return result;
     }
 
     function callEveryThingIsOk(address paidao) public returns (bool) {
@@ -230,24 +231,28 @@ contract TestCase is Template, DSTest, DSMath {
         (,,,,,balance) = paiDAO.getAssetInfo(0);
         assertEq(balance,200000000);//40
         assertEq(flow.balance(p3,ASSET_PIS),200000000);//41
-        tempBool = p3.callBurn(paiDAO,20000,ASSET_PIS);
-        assertTrue(tempBool);//42
-        //assertEq(flow.balance(p3,ASSET_PIS),200000000);//43
-        //tempBool = p3.callBurn(paiDAO,20000,ASSET_PIS);
-        //assertTrue(tempBool);//44
-        //burnPAI
-        //
+        p3.callBurn(paiDAO,100000000,ASSET_PIS);
+        assertEq(flow.balance(p3,ASSET_PIS),100000000);//42
+        (,,,,,balance) = paiDAO.getAssetInfo(0);
+        assertEq(balance,100000000);//43
+        assertEq(flow.balance(p3,ASSET_PAI),100000003);//44
+        p3.callBurn(paiDAO,100000000,ASSET_PAI);
+        assertEq(flow.balance(p3,ASSET_PAI),3);//45
+        (,,,,,balance) = paiDAO.getAssetInfo(1);
+        assertEq(balance,3);//46
+
+
 
         tempBool = p3.callEveryThingIsOk(paiDAO);
-        assertTrue(!tempBool);//43
-        tempBool = p1.callEveryThingIsOk(paiDAO);
-        assertTrue(tempBool);//44
-        tempBool = p1.callTempMintPIS(paiDAO,100000000,p3);
-        assertTrue(!tempBool);//45
-        tempBool = p1.callTempConfig(paiDAO,"TESTDELETE",p4,0);
-        assertTrue(!tempBool);//46
-        tempBool = p1.callTempOthersConfig(paiDAO,p4,p2,"TESTDELETE",0);
         assertTrue(!tempBool);//47
+        tempBool = p1.callEveryThingIsOk(paiDAO);
+        assertTrue(tempBool);//48
+        tempBool = p1.callTempMintPIS(paiDAO,100000000,p3);
+        assertTrue(!tempBool);//49
+        tempBool = p1.callTempConfig(paiDAO,"TESTDELETE",p4,0);
+        assertTrue(!tempBool);//50
+        tempBool = p1.callTempOthersConfig(paiDAO,p4,p2,"TESTDELETE",0);
+        assertTrue(!tempBool);//51
     }
 
     function testVoteManager() public {
