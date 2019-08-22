@@ -363,7 +363,7 @@ contract TestCase is Template, DSTest, DSMath {
         assertEq(finishTime,block.timestamp + 4);//17
         uint voteState;
         voteState = uint(voteContract.getVoteStatus(1));
-        assertEq(voteState,0); //19
+        assertEq(voteState,0); //18
 
 
 

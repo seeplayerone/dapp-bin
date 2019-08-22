@@ -103,12 +103,12 @@ contract BasicVote is Template, DSMath {
                     va.executed
                     );
             }
-            return ("no such vote", 0x0, 0, 0, 0, 3, 0x0, "", "", false);
+            return ("no such vote", 0x0, 0, 0, 0, VoteStatus.REJECTED, 0x0, "", "", false);
     }
 
      function getVoteStatus(uint voteId) public view returns (VoteStatus) {
             Vote storage va = votes[voteId];
-            if(voteId <= lastAssignedVoteId) {}
+            if(voteId <= lastAssignedVoteId) {
                 return va.status;
             }
             return VoteStatus.REJECTED;
