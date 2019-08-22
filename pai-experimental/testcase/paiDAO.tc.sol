@@ -65,10 +65,8 @@ contract FakePerson is Template {
 
     function callBurn(address paidao, uint amount, uint96 id) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("burn()"));
-       // bool result = FakePaiDao(paidao).call.value(amount,id)(methodId);
-        FakePaiDao(paidao).burn.value(amount,id)();
-        return true;
-        //return result;
+        bool result = FakePaiDao(paidao).call.value(amount,id)(abi.encodeWithSelector(methodId));
+        return result;
     }
 
     function callEveryThingIsOk(address paidao) public returns (bool) {
@@ -78,8 +76,9 @@ contract FakePerson is Template {
     }
 
     function callDeposit(address voteManager, uint amount, uint96 id) public returns (bool) {
-        PISVoteManager(voteManager).deposit.value(amount,id)();
-        return true;
+        bytes4 methodId = bytes4(keccak256("deposit()"));
+        bool result = PISVoteManager(voteManager).call.value(amount,id)(abi.encodeWithSelector(methodId));
+        return result;
     }
 
     function callWithdraw(address voteManager, uint amount) public returns (bool) {
@@ -294,35 +293,19 @@ contract TestCase is Template, DSTest, DSMath {
         paiDAO1.init();
         paiDAO2.init();
         tempBool = p1.callTempMintPIS(paiDAO1,100000000,p2);
-        assertTrue(tempBool);
+        assertTrue(tempBool); //0
+        (,ASSET_PIS1) = paiDAO1.Token(0);
         tempBool = p1.callTempMintPIS(paiDAO2,100000000,p2);
-        assertTrue(tempBool);
-        p2.callBurn(paiDAO1,100,ASSET_PIS1);
-        p2.callBurn(paiDAO2,100,ASSET_PIS2);
-    }
-
-    function testBurn2() public {
-        // revert is expected
-        FakePaiDao paiDAO1;
-        FakePaiDao paiDAO2;
-        uint96 ASSET_PIS1;
-        uint96 ASSET_PIS2;
-        FakePerson p1 = new FakePerson();
-        FakePerson p2 = new FakePerson();
-        paiDAO1 = FakePaiDao(p1.createPAIDAO("DAO1"));
-        paiDAO2 = FakePaiDao(p1.createPAIDAO("DAO2"));
-        bool tempBool;
-        paiDAO1.init();
-        paiDAO2.init();
-        tempBool = p1.callTempMintPIS(paiDAO1,100000000,p2);
-        assertTrue(tempBool);
-        tempBool = p1.callTempMintPIS(paiDAO2,100000000,p2);
-        assertTrue(tempBool);
-        p2.callBurn(paiDAO1,100,ASSET_PIS1);
-        p2.callBurn(paiDAO2,100,ASSET_PIS2);
-
-        //------------------above code should be same as testBurn1()
-        p2.callBurn(paiDAO1,100,ASSET_PIS2);
+        assertTrue(tempBool); //1
+        (,ASSET_PIS2) = paiDAO2.Token(0);
+        tempBool = p2.callBurn(paiDAO1,100,ASSET_PIS1);
+        assertTrue(tempBool); //2
+        tempBool = p2.callBurn(paiDAO2,100,ASSET_PIS2);
+        assertTrue(tempBool); //3
+        tempBool = p2.callBurn(paiDAO1,100,ASSET_PIS2);
+        assertTrue(!tempBool); //4
+        tempBool = p2.callBurn(paiDAO2,100,ASSET_PIS1);
+        assertTrue(!tempBool); //5
     }
 
     function testVoteManager() public {
@@ -356,21 +339,31 @@ contract TestCase is Template, DSTest, DSMath {
         ///test vote
         p1.callDeposit(voteManager,40000000,ASSET_PIS);
         tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",4,paiDAO,hex"e51ed97d",hex"",10000000);
-        assertTrue(tempBool);//7
+        assertTrue(!tempBool);//7
         tempBool = p1.callTempConfig(paiDAO,"Vote",voteManager,0);
         assertTrue(tempBool);//8
         tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",4,paiDAO,hex"e51ed97d",hex"",10000000);
-        assertTrue(tempBool);//9
-        tempBool = p1.callTempConfig(paiDAO,"Vote",voteManager,0);
+        assertTrue(!tempBool);//9
+        tempBool = p1.callTempConfig(paiDAO,"VOTE",voteManager,0);
         assertTrue(tempBool);//10
-        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",3,paiDAO,hex"e51ed97d",hex"",20000000);
+        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",4,paiDAO,hex"e51ed97d",hex"",10000000);
         assertTrue(tempBool);//11
-        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",2,paiDAO,hex"e51ed97d",hex"",30000000);
+        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE2",3,paiDAO,hex"e51ed97d",hex"",20000000);
         assertTrue(tempBool);//12
-        uint most;
-        uint index;
-        (most,index) = voteManager.getMostVote(p1);
-        assertEq(most,30000000);
-        assertEq(index,2);
+        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE3",2,paiDAO,hex"e51ed97d",hex"",30000000);
+        assertTrue(tempBool);//13
+        address addr;
+        uint voteId;
+        uint voteNumber;
+        uint finishTime;
+        (addr,voteId,voteNumber,finishTime) = voteManager.getVoteInfo(p1,0);
+        assertEq(addr,voteContract);//14
+        assertEq(voteId,1);//15
+        assertEq(voteNumber,10000000);//16
+        assertEq(finishTime,block.timestamp + 4);//17
+        string tempStr;
+        (tempStr,,,,,,,,,) = voteContract.getVoteInfo(1);
+        assertEq(tempStr,"TESTVOTE1");//14
+
     }
 }

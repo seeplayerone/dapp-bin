@@ -88,11 +88,13 @@ contract DSTest {
 
     function assertEq(bytes32 a, bytes32 b) internal {
         if (a != b) {
+            emit log_named_uint("  Index", testIndex);
             emit log_bytes32("Error: Wrong `bytes32' value");
             emit log_named_bytes32("  Expected", b);
             emit log_named_bytes32("    Actual", a);
             fail();
         }
+        testIndex++
     }
 
     function assertEqDecimal(int a, int b, uint decimals) internal {
@@ -106,7 +108,6 @@ contract DSTest {
 
     function assertEqDecimal(uint a, uint b, uint decimals) internal {
         if (a != b) {
-            emit log_named_uint("  Index", testIndex);
             emit log_bytes32("Error: Wrong fixed-point decimal");
             emit log_named_decimal_uint("  Expected", b, decimals);
             emit log_named_decimal_uint("    Actual", a, decimals);
@@ -116,6 +117,7 @@ contract DSTest {
 
     function assertEq(int a, int b) internal {
         if (a != b) {
+            emit log_named_uint("  Index", testIndex);
             emit log_bytes32("Error: Wrong `int' value");
             emit log_named_int("  Expected", b);
             emit log_named_int("    Actual", a);
