@@ -121,6 +121,7 @@ contract DSTest {
             emit log_named_int("    Actual", a);
             fail();
         }
+        testIndex++;
     }
 
     function assertEq(uint a, uint b) internal {

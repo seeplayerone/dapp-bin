@@ -357,15 +357,18 @@ contract TestCase is Template, DSTest, DSMath {
         p1.callDeposit(voteManager,40000000,ASSET_PIS);
         tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",4,paiDAO,hex"e51ed97d",hex"",10000000);
         assertTrue(tempBool);//7
-        tempBool = p1.callTempConfig(paiDAO,"VOTE",voteManager,0);
+        tempBool = p1.callTempConfig(paiDAO,"Vote",voteManager,0);
         assertTrue(tempBool);//8
         tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",4,paiDAO,hex"e51ed97d",hex"",10000000);
         assertTrue(tempBool);//9
-        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",3,paiDAO,hex"e51ed97d",hex"",20000000);
+        tempBool = p1.callTempConfig(paiDAO,"Vote",voteManager,0);
         assertTrue(tempBool);//10
-        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",2,paiDAO,hex"e51ed97d",hex"",30000000);
+        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",3,paiDAO,hex"e51ed97d",hex"",20000000);
         assertTrue(tempBool);//11
-        uint most,index;
+        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",2,paiDAO,hex"e51ed97d",hex"",30000000);
+        assertTrue(tempBool);//12
+        uint most;
+        uint index;
         (most,index) = voteManager.getMostVote(p1);
         assertEq(most,30000000);
         assertEq(index,2);
