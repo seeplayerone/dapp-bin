@@ -77,7 +77,7 @@ contract PISVoteManager is Template, DSMath {
         require(_voteNumber <= balanceOf[msg.sender], "not enough vote power");
         uint _totalVotes;
         (,,,,,_totalVotes) = paiDAO.getAssetInfo(0);
-        uint voteId = Vote(_voteContract).startVote(_subject, 1000, _duration, _targetContract, _func, _param, _voteNumber);
+        uint voteId = Vote(_voteContract).startVote(_subject, _totalVotes, _duration, _targetContract, _func, _param, _voteNumber);
         voteInfo memory v;
         v.voteContract = _voteContract;
         v.voteId = voteId;
