@@ -83,7 +83,7 @@ contract DSTest {
         testIndex++;
     }
 
-    function assertEq(string memory a, string storage b) internal {
+    function assertEq(string memory a, string memory b) internal {
         if (keccak256(abi.encodePacked(a)) != keccak256(abi.encodePacked(b))) {
             emit log_named_uint("  Index", testIndex);
             emit log_bytes32("Error: Wrong `string' value");
