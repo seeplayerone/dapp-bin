@@ -1,26 +1,18 @@
 pragma solidity 0.4.25;
 
-// import "../../library/template.sol";
-// import "../cdp.sol";
-// import "../fake_btc_issuer.sol";
-// import "../3rd/test.sol";
-// import "../3rd/math.sol";
-
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/library/string_utils.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/mctest.sol";
-// import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
-// import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
-// import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_vote_manager.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_universal.sol";
 
 contract FakePerson is Template {
     function() public payable {}
 
-    function createPAIDAO() public returns (address) {
-        return (new FakePaiDao("PAIDAO", new address[](0)));
+    function createPAIDAO(string _str) public returns (address) {
+        return (new FakePaiDao(_str, new address[](0)));
     }
 
     function callInit(address paidao) public returns (bool) {
@@ -119,6 +111,13 @@ contract TestTimeflies is Template {
     }
 }
 
+contract TimefliesVoteU is PISVoteUniversal,TestTimeflies {
+    constructor(address _organizationContract)
+    PISVoteUniversal(_organizationContract)
+    public {
+    }
+}
+
 contract TestCase is Template, DSTest, DSMath {
     function() public payable {
 
@@ -135,7 +134,7 @@ contract TestCase is Template, DSTest, DSMath {
         FakePerson p4 = new FakePerson();
 
         ///test init
-        paiDAO = FakePaiDao(p1.createPAIDAO());
+        paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
         assertEq(paiDAO.tempAdmin(),p1);//0
         tempBool = p2.callInit(paiDAO);
         assertTrue(tempBool);//1
@@ -241,8 +240,6 @@ contract TestCase is Template, DSTest, DSMath {
         (,,,,,balance) = paiDAO.getAssetInfo(1);
         assertEq(balance,3);//46
 
-
-
         tempBool = p3.callEveryThingIsOk(paiDAO);
         assertTrue(!tempBool);//47
         tempBool = p1.callEveryThingIsOk(paiDAO);
@@ -254,10 +251,56 @@ contract TestCase is Template, DSTest, DSMath {
         tempBool = p1.callTempOthersConfig(paiDAO,p4,p2,"TESTDELETE",0);
         assertTrue(!tempBool);//51
     }
+    
+    function testBurn1() public {
+        // unrevert is expected
+        FakePaiDao paiDAO1;
+        FakePaiDao paiDAO2;
+        uint96 ASSET_PIS1;
+        uint96 ASSET_PIS2;
+        FakePerson p1 = new FakePerson();
+        FakePerson p2 = new FakePerson();
+        paiDAO1 = FakePaiDao(p1.createPAIDAO("DAO1"));
+        paiDAO2 = FakePaiDao(p1.createPAIDAO("DAO2"));
+        bool tempBool;
+        paiDAO1.init();
+        paiDAO2.init();
+        tempBool = p1.callTempMintPIS(paiDAO1,100000000,p2);
+        assertTrue(tempBool);
+        tempBool = p1.callTempMintPIS(paiDAO2,100000000,p2);
+        assertTrue(tempBool);
+        p2.callBurn(paiDAO1,100,ASSET_PIS1);
+        p2.callBurn(paiDAO2,100,ASSET_PIS2);
+    }
+
+    function testBurn2() public {
+        // revert is expected
+        FakePaiDao paiDAO1;
+        FakePaiDao paiDAO2;
+        uint96 ASSET_PIS1;
+        uint96 ASSET_PIS2;
+        FakePerson p1 = new FakePerson();
+        FakePerson p2 = new FakePerson();
+        paiDAO1 = FakePaiDao(p1.createPAIDAO("DAO1"));
+        paiDAO2 = FakePaiDao(p1.createPAIDAO("DAO2"));
+        bool tempBool;
+        paiDAO1.init();
+        paiDAO2.init();
+        tempBool = p1.callTempMintPIS(paiDAO1,100000000,p2);
+        assertTrue(tempBool);
+        tempBool = p1.callTempMintPIS(paiDAO2,100000000,p2);
+        assertTrue(tempBool);
+        p2.callBurn(paiDAO1,100,ASSET_PIS1);
+        p2.callBurn(paiDAO2,100,ASSET_PIS2);
+
+        //------------------above code should be same as testBurn1()
+        p2.callBurn(paiDAO1,100,ASSET_PIS2);
+    }
 
     function testVoteManager() public {
         FakePaiDao paiDAO;
         PISVoteManager voteManager;
+        PISVoteUniversal voteContract;
         uint96 ASSET_PIS;
         //uint96 ASSET_PAI;
         bool tempBool;
@@ -267,11 +310,12 @@ contract TestCase is Template, DSTest, DSMath {
         //FakePerson p4 = new FakePerson();
 
         ///test init
-        paiDAO = FakePaiDao(p1.createPAIDAO());
+        paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
         tempBool = p1.callInit(paiDAO);
         tempBool = p1.callTempMintPIS(paiDAO,100000000,p1);
         (,ASSET_PIS) = paiDAO.Token(0);
         voteManager = new PISVoteManager(paiDAO);
+        voteContract = new PISVoteUniversal(paiDAO);
         assertTrue(false);
     }
 }
