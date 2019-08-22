@@ -53,7 +53,7 @@ contract BasicVote is Template, DSMath {
         returns(uint)
     {
         require(_endTime > _startTime, "endTime should be later than startTime");
-        require(_endTime > block.timestamp, "invalid vote end time");
+        require(_endTime > timeNow(), "invalid vote end time");
         require(_totalVotes > 0, "totalVotes should greater than zero");
         require(_totalVotes >= _throughVotes, "_throughVotes should greater than or equal to totalVotes");
 
@@ -133,9 +133,9 @@ contract BasicVote is Template, DSMath {
     function updateVoteStatus(uint voteId) public {
         require(voteId <= lastAssignedVoteId, "vote not exist");
         Vote storage va = votes[voteId];
-        if (block.timestamp < va.startTime) {
+        if (timeNow() < va.startTime) {
             va.status = VoteStatus.NOTSTARTED;
-        } else if (block.timestamp > va.endTime) {
+        } else if (timeNow() > va.endTime) {
             if(VoteStatus.ONGOING == va.status) {
                 va.status = VoteStatus.REJECTED;
             }
@@ -176,6 +176,10 @@ contract BasicVote is Template, DSMath {
             invokeOrganizationContract(va.func, va.param, va.target);
             va.executed = true;
         }
+    }
+
+    function timeNow() public view returns (uint256) {
+        return block.timestamp;
     }
 
     /// @dev callback function to invoke organization contract   

@@ -66,8 +66,4 @@ contract PISVoteUniversal is BasicVote {
     function vote(uint voteId, bool attitude, uint voteNumber) public authFunctionHash("VOTE") {
         voteInternal(voteId, attitude, voteNumber);
     }
-
-    function timeNow() public view returns (uint256) {
-        return block.timestamp;
-    }
 }

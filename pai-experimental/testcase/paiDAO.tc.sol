@@ -128,7 +128,7 @@ contract TestTimeflies is Template {
         _era = block.timestamp;
     }
 
-    function era() public view returns (uint256) {
+    function timeNow() public view returns (uint256) {
         return _era == 0 ? block.timestamp : _era;
     }
 
@@ -352,19 +352,22 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(tempBool);//12
         tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE3",2,paiDAO,hex"e51ed97d",hex"",30000000);
         assertTrue(tempBool);//13
-        address addr;
-        uint voteId;
-        uint voteNumber;
-        uint finishTime;
-        (addr,voteId,voteNumber,finishTime) = voteManager.getVoteInfo(p1,0);
-        assertEq(addr,voteContract);//14
-        assertEq(voteId,1);//15
-        assertEq(voteNumber,10000000);//16
-        assertEq(finishTime,block.timestamp + 4);//17
-        uint voteState;
-        voteState = uint(voteContract.getVoteStatus(1));
-        assertEq(voteState,0); //18
+        uint mostVote;
+        (mostVote,) = voteManager.getMostVote(p1);
+        assertEq(mostVote,30000000);//14
+        uint t1 = voteContract.timeNow();
+        assertEq(t1,0);//15
+        voteContract.fly(2);
+        assertEq(voteContract.timeNow(),0);//16
 
+        // (mostVote,) = voteManager.getMostVote(p1);
+        // assertEq(mostVote,30000000);//15
+        // voteContract.fly(3);
+        // (mostVote,) = voteManager.getMostVote(p1);
+        // assertEq(mostVote,30000000);//16
+        // voteContract.fly(4);
+        // (mostVote,) = voteManager.getMostVote(p1);
+        // assertEq(mostVote,30000000);//17
 
 
     }
