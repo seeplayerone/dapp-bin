@@ -33,6 +33,7 @@ contract DSTest {
     event log_named_decimal_uint (string key, uint val, uint decimals);
     event log_named_int          (string key, int val);
     event log_named_uint         (string key, uint val);
+    event log_named_string       (string key, string key2);
 
     bool public IS_TEST;
     bool public failed;
@@ -77,6 +78,17 @@ contract DSTest {
             emit log_bytes32("Error: Wrong `address' value");
             emit log_named_address("  Expected", b);
             emit log_named_address("    Actual", a);
+            fail();
+        }
+        testIndex++;
+    }
+
+    function assertEq(string memory a, string memory b) internal {
+        if (keccak256(abi.encodePacked(a)) != keccak256(abi.encodePacked(b))) {
+            emit log_named_uint("  Index", testIndex);
+            emit log_bytes32("Error: Wrong `string' value");
+            emit log_named_string("  Expected", b);
+            emit log_named_string("    Actual", a);
             fail();
         }
         testIndex++;
