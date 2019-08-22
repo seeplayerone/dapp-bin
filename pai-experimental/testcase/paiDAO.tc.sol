@@ -364,6 +364,5 @@ contract TestCase is Template, DSTest, DSMath {
         string tempStr;
         (tempStr,,,,,,,,,) = voteContract.getVoteInfo(1);
         assertEq(tempStr,"TESTVOTE1");//14
-
     }
 }

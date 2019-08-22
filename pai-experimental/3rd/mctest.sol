@@ -94,7 +94,7 @@ contract DSTest {
             emit log_named_bytes32("    Actual", a);
             fail();
         }
-        testIndex++
+        testIndex++;
     }
 
     function assertEqDecimal(int a, int b, uint decimals) internal {
