@@ -83,6 +83,30 @@ contract TestBase is Template, DSTest, DSMath {
         paiIssuer.mint(1000000000000, this);
         btcIssuer.mint(1000000000000, this);
     }
+
+    function testMoney() returns (uint) {
+        setup();
+
+        address am = new AcceptMoney();
+
+        bytes4 methodId = bytes4(keccak256("updateMoney()"));
+        
+        am.call.value(10000, ASSET_BTC)(abi.encodeWithSignature("updateMoney()")); // works
+
+        am.call.value(20000, ASSET_BTC)(abi.encodeWithSelector(methodId)); // works
+
+        am.call.value(30000, ASSET_BTC)(methodId); // not working
+
+        return AcceptMoney(am).money();
+    }
+}
+
+contract AcceptMoney {
+    uint public money;
+
+    function updateMoney() public payable {
+        money = msg.value;
+    }    
 }
 
 contract CDPTest is TestBase {
