@@ -180,14 +180,14 @@ contract TimefliesVoteSP is PISVoteSpecial,TestTimeflies {
 
 contract TimefliesVoteST is PISVoteStandard,TestTimeflies {
     constructor(address _organizationContract)
-    PISVoteSpecial(_organizationContract)
+    PISVoteStandard(_organizationContract)
     public {
     }
 }
 
 contract TimefliesVoteDir is DirectorVote,TestTimeflies {
     constructor(address _organizationContract)
-    PISVoteSpecial(_organizationContract)
+    DirectorVote(_organizationContract)
     public {
     }
 }
