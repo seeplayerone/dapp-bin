@@ -7,6 +7,8 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/mctest.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_vote_manager.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_special.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_standard.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_director_vote.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/paidao_testcontract.sol";
 
 contract FakePerson is Template {
@@ -169,7 +171,21 @@ contract TestTimeflies is Template {
     }
 }
 
-contract TimefliesVoteU is PISVoteSpecial,TestTimeflies {
+contract TimefliesVoteSP is PISVoteSpecial,TestTimeflies {
+    constructor(address _organizationContract)
+    PISVoteSpecial(_organizationContract)
+    public {
+    }
+}
+
+contract TimefliesVoteST is PISVoteStandard,TestTimeflies {
+    constructor(address _organizationContract)
+    PISVoteSpecial(_organizationContract)
+    public {
+    }
+}
+
+contract TimefliesVoteDir is DirectorVote,TestTimeflies {
     constructor(address _organizationContract)
     PISVoteSpecial(_organizationContract)
     public {
@@ -341,7 +357,7 @@ contract TestCase is Template, DSTest, DSMath {
     function testVoteManager() public {
         FakePaiDao paiDAO;
         PISVoteManager voteManager;
-        TimefliesVoteU voteContract;
+        TimefliesVoteSP voteContract;
         uint96 ASSET_PIS;
         bool tempBool;
         FakePerson p1 = new FakePerson();
@@ -352,7 +368,7 @@ contract TestCase is Template, DSTest, DSMath {
         tempBool = p1.callTempMintPIS(paiDAO,100000000,p1);
         (,ASSET_PIS) = paiDAO.Token(0);
         voteManager = new PISVoteManager(paiDAO);
-        voteContract = new TimefliesVoteU(paiDAO);
+        voteContract = new TimefliesVoteSP(paiDAO);
         assertEq(voteManager.paiDAO(),paiDAO);//0
         assertEq(uint(voteManager.voteAssetGlobalId()),uint(ASSET_PIS));//1
 
@@ -451,5 +467,40 @@ contract TestCase is Template, DSTest, DSMath {
         tempBool = p1.callFunc4(bussineesContract);
         assertTrue(tempBool);//9
         assertEq(bussineesContract.states(),10);//10
+    }
+
+    function testAuthertication() public {
+        FakePaiDao paiDAO;
+        uint96 ASSET_PIS;
+        bool tempBool;
+        FakePerson admin = new FakePerson();
+        FakePerson director1 = new FakePerson();
+        FakePerson director2 = new FakePerson();
+        FakePerson director3 = new FakePerson();
+        FakePerson PISholder1 = new FakePerson();
+        FakePerson PISholder2 = new FakePerson();
+        FakePerson PISholder3 = new FakePerson();
+
+        ///init
+        paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
+        assertEq(paiDAO.tempAdmin(),admin);//0
+        tempBool = admin.callInit(paiDAO);
+        assertTrue(tempBool);//1
+        tempBool = admin.callTempMintPIS(paiDAO,100000000,PISholder1);
+        assertTrue(tempBool);//2
+        tempBool = admin.callTempMintPIS(paiDAO,100000000,PISholder2);
+        assertTrue(tempBool);//3
+        tempBool = admin.callTempMintPIS(paiDAO,100000000,PISholder3);
+        assertTrue(tempBool);//4
+        (,ASSET_PIS) = paiDAO.Token(0);
+        tempBool = admin.callTempConfig(paiDAO,"DIRECTOR",director1,0);
+        assertTrue(tempBool);//5
+        tempBool = admin.callTempConfig(paiDAO,"DIRECTOR",director2,0);
+        assertTrue(tempBool);//6
+        tempBool = admin.callTempConfig(paiDAO,"DIRECTOR",director3,0);
+        assertTrue(tempBool);//7
+
+
+
     }
 }

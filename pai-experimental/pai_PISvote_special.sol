@@ -25,11 +25,11 @@ contract PISVoteSpecial is BasicVote {
         startProportion = RAY / 1000;
     }
 
-    function setPassProportion(uint _new) public authFunctionHash("Special.SetParam") {
+    function setPassProportion(uint _new) public authFunctionHash(StringLib.strConcat(StringLib.convertAddrToStr(this),"SETPARAM")) {
         passProportion = _new;
     }
 
-    function setStartProportion(uint _new) public authFunctionHash("Special.SetParam") {
+    function setStartProportion(uint _new) public authFunctionHash(StringLib.strConcat(StringLib.convertAddrToStr(this),"SETPARAM")) {
         startProportion = _new;
     }
 
