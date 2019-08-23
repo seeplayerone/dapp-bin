@@ -22,6 +22,22 @@ interface Vote {
         )
         external
         returns (uint);
+    function startVote(
+         string _subject,
+           uint _totalVotes,
+           uint _duration,
+        address _targetContract,
+           uint funcIndex, 
+           uint voteNumber
+        )
+        external
+        returns (uint);
+    function getVoteEndTime(uint voteId) external returns (uint);
+}
+
+interface VoteS {
+    function vote(uint voteId, bool attitude, uint voteNumber) external;
+
     function getVoteEndTime(uint voteId) external returns (uint);
 }
 
@@ -65,7 +81,7 @@ contract PISVoteManager is Template, DSMath {
     }
 
     function startVoteTo(
-        address _voteContract, ///todo this param should be deleted
+        address _voteContract,
          string _subject,
            uint _duration,
         address _targetContract,
@@ -86,7 +102,28 @@ contract PISVoteManager is Template, DSMath {
         v.finishTime = Vote(_voteContract).getVoteEndTime(voteId);
         voteStates[msg.sender].push(v);
     }
-
+    
+    function startVoteToStandard(
+        address _voteContract,
+         string _subject,
+           uint _duration,
+        address _targetContract,
+           uint _funcIndex
+           uint _voteNumber
+        )
+        public
+    {
+        require(_voteNumber <= balanceOf[msg.sender], "not enough vote power");
+        uint _totalVotes;
+        (,,,,,_totalVotes) = paiDAO.getAssetInfo(0);
+        uint voteId = Vote(_voteContract).startVote(_subject, _totalVotes, _duration, _targetContract, _funcIndex, _voteNumber);
+        voteInfo memory v;
+        v.voteContract = _voteContract;
+        v.voteId = voteId;
+        v.voteNumber = _voteNumber;
+        v.finishTime = Vote(_voteContract).getVoteEndTime(voteId);
+        voteStates[msg.sender].push(v);
+    }
 
     function voteTo(address _voteContract, uint _voteId, bool attitude, uint _voteNumber) public {
         Vote(_voteContract).vote(_voteId, attitude, _voteNumber);

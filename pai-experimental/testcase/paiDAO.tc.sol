@@ -110,6 +110,30 @@ contract FakePerson is Template {
         bool result = PISVoteManager(voteManager).call(abi.encodeWithSelector(methodId,_voteContract,_voteId,attitude,_voteNumber));
         return result;
     }
+
+    function callFunc1(address bussinessContract) public returns(bool) {
+        bytes4 methodId = bytes4(keccak256("plusOne()"));
+        bool result = TestPaiDAO(bussinessContract).call(abi.encodeWithSelector(methodId));
+        return result;
+    }
+
+    function callFunc2(address bussinessContract) public returns(bool) {
+        bytes4 methodId = bytes4(keccak256("plusTwo()"));
+        bool result = TestPaiDAO(bussinessContract).call(abi.encodeWithSelector(methodId));
+        return result;
+    }
+
+    function callFunc3(address bussinessContract) public returns(bool) {
+        bytes4 methodId = bytes4(keccak256("plusThree()"));
+        bool result = TestPaiDAO(bussinessContract).call(abi.encodeWithSelector(methodId));
+        return result;
+    }
+
+    function callFunc4(address bussinessContract) public returns(bool) {
+        bytes4 methodId = bytes4(keccak256("plusFour()"));
+        bool result = TestPaiDAO(bussinessContract).call(abi.encodeWithSelector(methodId));
+        return result;
+    }
 }
 
 // contract FakePAIIssuer is PAIIssuer {
@@ -398,9 +422,34 @@ contract TestCase is Template, DSTest, DSMath {
 
     function testBuissness() public {
         FakePaiDao paiDAO;
-        paiDAO = new FakePaiDao("PAIDAO", new address[](0));
+        bool tempBool;
+        FakePerson p1 = new FakePerson();
+        FakePerson p2 = new FakePerson();
+        FakePerson p3 = new FakePerson();
+
+        paiDAO = FakePaiDao(p3.createPAIDAO("PAIDAO"));
         paiDAO.init();
         TestPaiDAO bussineesContract = new TestPaiDAO(paiDAO);
-        assertEq(bussineesContract.states(),0);
+        assertEq(bussineesContract.states(),0);//0
+        tempBool = p1.callFunc1(bussineesContract);
+        assertTrue(!tempBool);//1
+        p3.callTempConfig(paiDAO,"DIRECTOR",p1,0);
+        tempBool = p1.callFunc1(bussineesContract);
+        assertTrue(tempBool);//2
+        assertEq(bussineesContract.states(),1);//3
+        tempBool = p1.callFunc2(bussineesContract);
+        assertTrue(!tempBool);//4
+        p3.callTempConfig(paiDAO,"VOTE",p2,0);
+        tempBool = p2.callFunc2(bussineesContract);
+        assertTrue(tempBool);//5
+        tempBool = p2.callFunc3(bussineesContract);
+        assertTrue(tempBool);//6
+        assertEq(bussineesContract.states(),6);//7
+        tempBool = p1.callFunc4(bussineesContract);
+        assertTrue(!tempBool);//8
+        p3.callTempOthersConfig(paiDAO,bussineesContract,p1,"DIRECTOR",0);
+        tempBool = p1.callFunc4(bussineesContract);
+        assertTrue(tempBool);//9
+        assertEq(bussineesContract.states(),10);//10
     }
 }

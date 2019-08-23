@@ -16,9 +16,11 @@ contract DirectorVote is BasicVote {
     PAIDAO public paiDAO;
     uint public passProportion;
     uint public startProportion;
+    uint totalDirectors = 7;
 
     ///
     struct funcData {
+        uint passNumber;
         bytes4 _func;
         bytes _param;
     }
@@ -28,7 +30,8 @@ contract DirectorVote is BasicVote {
 
     constructor(address _organizationContract) public {
         paiDAO = PAIDAO(_organizationContract);
-        voteFuncData[1]._func = hex"68e5c066";
+        voteFuncData[1].passNumber = 3;
+        voteFuncData[1]._func = hex"42eca434";
         voteFuncData[1]._param = hex"";
         passProportion = RAY / 2;
         startProportion = RAY / 1000;
@@ -46,19 +49,16 @@ contract DirectorVote is BasicVote {
  
     function startVote(
          string _subject,
-           uint _totalVotes,
            uint _duration,
         address _targetContract,
            uint funcIndex,
-           uint voteNumber
         )
         public
         //authFunctionHash("VOTE")
         returns (uint)
     {
         //require funcIndex exist;
-        require(voteNumber >= rmul(_totalVotes,startProportion),"not enough weights to start a vote");
-        uint voteId = startVoteInternal(_subject, rmul(_totalVotes, passProportion), _totalVotes,
+        uint voteId = startVoteInternal(_subject, voteFuncData[funcIndex].passNumber, totalDirectors,
                                         timeNow(), add(timeNow(),_duration), _targetContract,
                                         voteFuncData[funcIndex]._func, voteFuncData[funcIndex]._param);
         voteInternal(voteId,true,voteNumber);

@@ -14,11 +14,11 @@ contract PISVoteStandard is BasicVote {
     
     /// params to be init
     PAIDAO public paiDAO;
-    uint public passProportion;
-    uint public startProportion;
 
     ///
     struct funcData {
+        uint startProportion;
+        uint passProportion;
         bytes4 _func;
         bytes _param;
     }
@@ -26,7 +26,9 @@ contract PISVoteStandard is BasicVote {
 
     constructor(address _organizationContract) public {
         paiDAO = PAIDAO(_organizationContract);
-        voteFuncData[1]._func = hex"68e5c066";
+        voteFuncData[1].startProportion = RAY / 1000;
+        voteFuncData[1].passProportion = RAY * 3 / 10;
+        voteFuncData[1]._func = hex"4b28ad80";
         voteFuncData[1]._param = hex"";
         passProportion = RAY / 2;
         startProportion = RAY / 1000;
@@ -51,21 +53,19 @@ contract PISVoteStandard is BasicVote {
            uint voteNumber
         )
         public
-        //authFunctionHash("VOTE")
+        authFunctionHash("VOTE")
         returns (uint)
     {
         //require funcIndex exist;
-        require(voteNumber >= rmul(_totalVotes,startProportion),"not enough weights to start a vote");
-        uint voteId = startVoteInternal(_subject, rmul(_totalVotes, passProportion), _totalVotes,
+        require(voteNumber >= rmul(_totalVotes,voteFuncData[funcIndex].startProportion),"not enough weights to start a vote");
+        uint voteId = startVoteInternal(_subject, rmul(_totalVotes, voteFuncData[funcIndex].passProportion), _totalVotes,
                                         timeNow(), add(timeNow(),_duration), _targetContract,
                                         voteFuncData[funcIndex]._func, voteFuncData[funcIndex]._param);
         voteInternal(voteId,true,voteNumber);
         return voteId;
     }
 
-    function vote(uint voteId, bool attitude, uint voteNumber) public
-    //authFunctionHash("VOTE") 
-    {
+    function vote(uint voteId, bool attitude, uint voteNumber) public authFunctionHash("VOTE") {
         voteInternal(voteId, attitude, voteNumber);
     }
 }
