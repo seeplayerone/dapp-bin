@@ -6,7 +6,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/mctest.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_vote_manager.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_universal.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_special.sol";
 
 contract FakePerson is Template {
     function() public payable {}
@@ -103,6 +103,12 @@ contract FakePerson is Template {
         _voteContract,_subject,_duration,_targetContract,_func,_param,_voteNumber));
         return result;
     }
+
+    function callVoteTo(address voteManager, address _voteContract, uint _voteId, bool attitude, uint _voteNumber) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("voteTo(address,uint256,bool,uint256)"));
+        bool result = PISVoteManager(voteManager).call(abi.encodeWithSelector(methodId,_voteContract,_voteId,attitude,_voteNumber));
+        return result;
+    }
 }
 
 // contract FakePAIIssuer is PAIIssuer {
@@ -138,9 +144,9 @@ contract TestTimeflies is Template {
     }
 }
 
-contract TimefliesVoteU is PISVoteUniversal,TestTimeflies {
+contract TimefliesVoteU is PISVoteSpecial,TestTimeflies {
     constructor(address _organizationContract)
-    PISVoteUniversal(_organizationContract)
+    PISVoteSpecial(_organizationContract)
     public {
     }
 }
@@ -380,9 +386,13 @@ contract TestCase is Template, DSTest, DSMath {
         assertEq(mostVote,0);//23
         tempBool = p1.callWithdraw(voteManager,10000000);
         assertTrue(tempBool);//24
-
-
-
-
+        tempBool = p1.callDeposit(voteManager,40000000,ASSET_PIS);
+        assertTrue(tempBool);//25
+        tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE3",2,paiDAO,hex"e51ed97d",hex"",15000000);
+        assertTrue(tempBool);//26
+        tempBool = p1.callVoteTo(voteManager,voteContract,4,true,15000000);
+        assertTrue(tempBool);//27
+        (mostVote,) = voteManager.getMostVote(p1);
+        assertEq(mostVote,30000000);//28
     }
 }
