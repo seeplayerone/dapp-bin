@@ -108,7 +108,7 @@ contract PISVoteManager is Template, DSMath {
          string _subject,
            uint _duration,
         address _targetContract,
-           uint _funcIndex
+           uint _funcIndex,
            uint _voteNumber
         )
         public

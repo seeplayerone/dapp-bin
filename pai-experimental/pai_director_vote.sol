@@ -51,10 +51,10 @@ contract DirectorVote is BasicVote {
          string _subject,
            uint _duration,
         address _targetContract,
-           uint funcIndex,
+           uint funcIndex
         )
         public
-        //authFunctionHash("VOTE")
+        authFunctionHash("DIRECTOR")
         returns (uint)
     {
         //require funcIndex exist;
@@ -67,13 +67,12 @@ contract DirectorVote is BasicVote {
     }
 
     function vote(uint voteId, bool attitude, uint voteNumber) public
-    //authFunctionHash("VOTE") 
+    authFunctionHash("DIRECTOR") 
     {
         require(!checkVoted(voteId,msg.sender),"already voted");
         voteInternal(voteId, attitude, voteNumber);
         alreadyVoted[voteId].push(msg.sender);
     }
-
 
     function checkVoted(uint voteId, address addr) public view returns (bool) {
         uint len = alreadyVoted[voteId].length;
