@@ -39,7 +39,7 @@ contract TestPaiDAO is Template {
     }
 
     //only director of this contract can call this method;
-    function plusFour() public authFunctionHash(StringLib.strConcat(StringLib.convertAddrToStr(this),func("DIRECTOR")) 
+    function plusFour() public authFunctionHash(StringLib.strConcat(StringLib.convertAddrToStr(this),"DIRECTOR")) 
     {
         states = states + 4;
     }

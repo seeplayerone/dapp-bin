@@ -397,6 +397,10 @@ contract TestCase is Template, DSTest, DSMath {
     }
 
     function testBuissness() public {
-
+        FakePaiDao paiDAO;
+        paiDAO = new FakePaiDao("PAIDAO", new address[](0));
+        paiDAO.init();
+        TestPaiDAO bussineesContract = new TestPaiDAO(paiDAO);
+        assertEq(bussineesContract.states(),0);
     }
 }
