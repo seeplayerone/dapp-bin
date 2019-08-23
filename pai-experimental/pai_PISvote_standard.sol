@@ -30,8 +30,6 @@ contract PISVoteStandard is BasicVote {
         voteFuncData[1].passProportion = RAY * 3 / 10;
         voteFuncData[1]._func = hex"4b28ad80";
         voteFuncData[1]._param = hex"";
-        passProportion = RAY / 2;
-        startProportion = RAY / 1000;
     }
 
     /// @dev ACL through functionHash
