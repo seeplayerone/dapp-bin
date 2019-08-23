@@ -61,16 +61,16 @@ contract DirectorVote is BasicVote {
         uint voteId = startVoteInternal(_subject, voteFuncData[funcIndex].passNumber, totalDirectors,
                                         timeNow(), add(timeNow(),_duration), _targetContract,
                                         voteFuncData[funcIndex]._func, voteFuncData[funcIndex]._param);
-        voteInternal(voteId,true,voteNumber);
+        voteInternal(voteId,true,1);
         alreadyVoted[voteId].push(msg.sender);
         return voteId;
     }
 
-    function vote(uint voteId, bool attitude, uint voteNumber) public
+    function vote(uint voteId, bool attitude) public
     authFunctionHash("DIRECTOR") 
     {
         require(!checkVoted(voteId,msg.sender),"already voted");
-        voteInternal(voteId, attitude, voteNumber);
+        voteInternal(voteId, attitude, 1);
         alreadyVoted[voteId].push(msg.sender);
     }
 
