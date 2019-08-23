@@ -10,15 +10,10 @@ contract TestPaiDAO is Template {
         paiDAO = PAIDAO(_organizationContract);
     }
 
-
     modifier authFunctionHash(string func) {
         require(msg.sender == address(this) ||
                 paiDAO.canPerform(msg.sender, func));
         _;
-    }
-    
-    constructor(address _organizationContract) public {
-        paiDAO = PAIDAO(_organizationContract);
     }
 
     //any diector can call this method.
