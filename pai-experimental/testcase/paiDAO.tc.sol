@@ -499,6 +499,28 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(tempBool);//6
         tempBool = admin.callTempConfig(paiDAO,"DIRECTOR",director3,0);
         assertTrue(tempBool);//7
+        PISVoteManager voteManager = new PISVoteManager(paiDAO);
+        tempBool = PISholder1.callDeposit(voteManager,100000000,ASSET_PIS);
+        assertTrue(tempBool);//8
+        tempBool = PISholder2.callDeposit(voteManager,100000000,ASSET_PIS);
+        assertTrue(tempBool);//9
+        tempBool = PISholder3.callDeposit(voteManager,100000000,ASSET_PIS);
+        assertTrue(tempBool);//10
+        
+
+        // test voteSpecial
+        TimefliesVoteSP vote1 = new TimefliesVoteSP(paiDAO);
+        TestPaiDAO BC = new TestPaiDAO(paiDAO);
+        assertEq(BC.states(),0);//11
+        tempBool = PISholder1.callStartVoteTo(voteManager,vote1,"TEST",10,BC,hex"42eca434",hex"",100000000);
+        assertTrue(!tempBool);//12
+        tempBool = admin.callTempConfig(paiDAO,"VOTEMANAGER",voteManager,0);
+        tempBool = PISholder1.callStartVoteTo(voteManager,vote1,"TEST",10,BC,hex"42eca434",hex"",100000000);
+        assertTrue(tempBool);//13
+        assertEq(uint(vote1.getVoteStatus(1)),1);//14
+        tempBool = PISholder1.callStartVoteTo(voteManager,vote1,"TEST",10,BC,hex"42eca434",hex"",100000000);
+        assertTrue(tempBool);//15
+
 
 
 

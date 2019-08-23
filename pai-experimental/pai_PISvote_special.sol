@@ -53,7 +53,7 @@ contract PISVoteSpecial is BasicVote {
            uint voteNumber
         )
         public
-        authFunctionHash("VOTE")
+        authFunctionHash("VOTEMANAGER")
         returns (uint)
     {
         require(voteNumber >= rmul(_totalVotes,startProportion),"not enough weights to start a vote");
@@ -63,7 +63,7 @@ contract PISVoteSpecial is BasicVote {
         return voteId;
     }
 
-    function vote(uint voteId, bool attitude, uint voteNumber) public authFunctionHash("VOTE") {
+    function vote(uint voteId, bool attitude, uint voteNumber) public authFunctionHash("VOTEMANAGER") {
         voteInternal(voteId, attitude, voteNumber);
     }
 }

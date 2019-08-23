@@ -51,7 +51,7 @@ contract PISVoteStandard is BasicVote {
            uint voteNumber
         )
         public
-        authFunctionHash("VOTE")
+        authFunctionHash("VOTEMANAGER")
         returns (uint)
     {
         //require funcIndex exist;
@@ -63,7 +63,7 @@ contract PISVoteStandard is BasicVote {
         return voteId;
     }
 
-    function vote(uint voteId, bool attitude, uint voteNumber) public authFunctionHash("VOTE") {
+    function vote(uint voteId, bool attitude, uint voteNumber) public authFunctionHash("VOTEMANAGER") {
         voteInternal(voteId, attitude, voteNumber);
     }
 }

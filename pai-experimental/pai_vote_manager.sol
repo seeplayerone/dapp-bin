@@ -27,7 +27,7 @@ interface Vote {
            uint _totalVotes,
            uint _duration,
         address _targetContract,
-           uint funcIndex, 
+           uint funcIndex,
            uint voteNumber
         )
         external
