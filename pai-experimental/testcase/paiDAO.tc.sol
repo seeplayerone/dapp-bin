@@ -7,6 +7,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/mctest.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_vote_manager.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_special.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/paidao_testcontract.sol";
 
 contract FakePerson is Template {
     function() public payable {}
@@ -285,8 +286,7 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(!tempBool);//51
     }
     
-    function testBurn1() public {
-        // unrevert is expected
+    function testBurn() public {
         FakePaiDao paiDAO1;
         FakePaiDao paiDAO2;
         uint96 ASSET_PIS1;
@@ -394,5 +394,9 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(tempBool);//27
         (mostVote,) = voteManager.getMostVote(p1);
         assertEq(mostVote,30000000);//28
+    }
+
+    function testBuissness() public {
+
     }
 }

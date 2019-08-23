@@ -9,28 +9,27 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 /// interface....
 /// @title This is a simple vote contract, everyone has the same vote weights
 /// @dev Every template contract needs to inherit Template contract directly or indirectly
-contract PISVoteSpecial is BasicVote {
+contract PISVoteStandard is BasicVote {
     using StringLib for string;
     
     /// params to be init
     PAIDAO public paiDAO;
-
-    /// vote param
     uint public passProportion;
     uint public startProportion;
 
+    ///
+    struct funcData {
+        bytes4 _func;
+        bytes _param;
+    }
+    mapping(uint => funcData) voteFuncData;
+
     constructor(address _organizationContract) public {
         paiDAO = PAIDAO(_organizationContract);
+        voteFuncData[1]._func = hex"68e5c066";
+        voteFuncData[1]._param = hex"";
         passProportion = RAY / 2;
         startProportion = RAY / 1000;
-    }
-
-    function setPassProportion(uint _new) public authFunctionHash("Special.SetParam") {
-        passProportion = _new;
-    }
-
-    function setStartProportion(uint _new) public authFunctionHash("Special.SetParam") {
-        startProportion = _new;
     }
 
     /// @dev ACL through functionHash
@@ -48,22 +47,25 @@ contract PISVoteSpecial is BasicVote {
            uint _totalVotes,
            uint _duration,
         address _targetContract,
-         bytes4 _func,
-          bytes _param,
+           uint funcIndex,
            uint voteNumber
         )
         public
-        authFunctionHash("VOTE")
+        //authFunctionHash("VOTE")
         returns (uint)
     {
+        //require funcIndex exist;
         require(voteNumber >= rmul(_totalVotes,startProportion),"not enough weights to start a vote");
         uint voteId = startVoteInternal(_subject, rmul(_totalVotes, passProportion), _totalVotes,
-                                        timeNow(), add(timeNow(),_duration), _targetContract, _func, _param);
+                                        timeNow(), add(timeNow(),_duration), _targetContract,
+                                        voteFuncData[funcIndex]._func, voteFuncData[funcIndex]._param);
         voteInternal(voteId,true,voteNumber);
         return voteId;
     }
 
-    function vote(uint voteId, bool attitude, uint voteNumber) public authFunctionHash("VOTE") {
+    function vote(uint voteId, bool attitude, uint voteNumber) public
+    //authFunctionHash("VOTE") 
+    {
         voteInternal(voteId, attitude, voteNumber);
     }
 }
