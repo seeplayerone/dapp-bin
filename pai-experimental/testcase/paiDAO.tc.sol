@@ -355,19 +355,33 @@ contract TestCase is Template, DSTest, DSMath {
         uint mostVote;
         (mostVote,) = voteManager.getMostVote(p1);
         assertEq(mostVote,30000000);//14
-        uint t1 = voteContract.timeNow();
-        assertEq(t1,0);//15
         voteContract.fly(2);
-        assertEq(voteContract.timeNow(),0);//16
+        (mostVote,) = voteManager.getMostVote(p1);
+        assertEq(mostVote,30000000);//15
+        assertEq(voteManager.balanceOf(p1),40000000);
+        tempBool = p1.callWithdraw(voteManager,40000000);
+        assertTrue(!tempBool);//16
+        tempBool = p1.callWithdraw(voteManager,20000000);
+        assertTrue(!tempBool);//17
+        tempBool = p1.callWithdraw(voteManager,10000000);
+        assertTrue(tempBool);//18
+        voteContract.fly(1);
+        (mostVote,) = voteManager.getMostVote(p1);
+        assertEq(mostVote,20000000);//19
+        tempBool = p1.callWithdraw(voteManager,10000000);
+        assertTrue(tempBool);//20
+        voteContract.fly(1);
+        (mostVote,) = voteManager.getMostVote(p1);
+        assertEq(mostVote,10000000);//21
+        tempBool = p1.callWithdraw(voteManager,10000000);
+        assertTrue(tempBool);//22
+        voteContract.fly(1);
+        (mostVote,) = voteManager.getMostVote(p1);
+        assertEq(mostVote,0);//23
+        tempBool = p1.callWithdraw(voteManager,10000000);
+        assertTrue(tempBool);//24
 
-        // (mostVote,) = voteManager.getMostVote(p1);
-        // assertEq(mostVote,30000000);//15
-        // voteContract.fly(3);
-        // (mostVote,) = voteManager.getMostVote(p1);
-        // assertEq(mostVote,30000000);//16
-        // voteContract.fly(4);
-        // (mostVote,) = voteManager.getMostVote(p1);
-        // assertEq(mostVote,30000000);//17
+
 
 
     }

@@ -60,6 +60,7 @@ contract PISVoteManager is Template, DSMath {
         (mostVote,) = getMostVote(msg.sender);
         uint withdrawLimit = sub(balanceOf[msg.sender],mostVote);
         require(withdrawLimit >= amount, "not enough balance or some PIS is still in vote process");
+        balanceOf[msg.sender] = sub(balanceOf[msg.sender],amount);
         msg.sender.transfer(amount, voteAssetGlobalId);
     }
 
