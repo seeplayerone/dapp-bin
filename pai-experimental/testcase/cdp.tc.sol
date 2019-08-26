@@ -41,7 +41,7 @@ contract TestTimeflies is DSNote {
 contract TimefliesCDP is CDP, TestTimeflies {
     constructor(address _issuer, address _oracle, address _liquidator)
         CDP(_issuer, _oracle, _liquidator)
-        public 
+        public
     {
 
     }
