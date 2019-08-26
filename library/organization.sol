@@ -24,9 +24,9 @@ contract Organization is Template, ACL, Asset {
     address[] members;
     address[] invitees;
     string[] memberRoles;
-    /// the following two strings should be internal or public; otherwise other inherited contract can't use them.
-    string private constant MEMBER_ROLE = "MEMBER_ROLE";
-    string private constant SUPER_ADMIN = "SUPER_ADMIN";
+
+    string internal constant MEMBER_ROLE = "MEMBER_ROLE";
+    string internal constant SUPER_ADMIN = "SUPER_ADMIN";
     
     /// existing members, initially there or joined the organization by invitation
     mapping(address => bool) membersMap;
