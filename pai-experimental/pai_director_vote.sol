@@ -14,8 +14,6 @@ contract DirectorVote is BasicVote {
     
     /// params to be init
     PAIDAO public paiDAO;
-    uint public passProportion;
-    uint public startProportion;
     uint totalDirectors = 7;
 
     ///
@@ -33,8 +31,6 @@ contract DirectorVote is BasicVote {
         voteFuncData[1].passNumber = 3;
         voteFuncData[1]._func = hex"42eca434";
         voteFuncData[1]._param = hex"";
-        passProportion = RAY / 2;
-        startProportion = RAY / 1000;
     }
 
     /// @dev ACL through functionHash

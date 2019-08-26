@@ -106,10 +106,37 @@ contract FakePerson is Template {
         _voteContract,_subject,_duration,_targetContract,_func,_param,_voteNumber));
         return result;
     }
+    function callStartVoteToStandard(
+        address voteManager,
+        address _voteContract,
+         string _subject,
+           uint _duration,
+        address _targetContract,
+           uint _funcIndex,
+           uint _voteNumber
+        )
+        public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("startVoteToStandard(address,string,uint256,address,uint256,uint256)"));
+        bool result = PISVoteManager(voteManager).call(abi.encodeWithSelector(methodId,
+        _voteContract,_subject,_duration,_targetContract,_funcIndex,_voteNumber));
+        return result;
+    }
 
     function callVoteTo(address voteManager, address _voteContract, uint _voteId, bool attitude, uint _voteNumber) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("voteTo(address,uint256,bool,uint256)"));
         bool result = PISVoteManager(voteManager).call(abi.encodeWithSelector(methodId,_voteContract,_voteId,attitude,_voteNumber));
+        return result;
+    }
+
+    function callStartVote(address directorVote,string _subject,uint _duration,address _targetContract,uint funcIndex) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("startVote(string,uint256,address,uint256)"));
+        bool result = DirectorVote(directorVote).call(abi.encodeWithSelector(methodId,_subject,_duration,_targetContract,funcIndex));
+        return result;
+    }
+
+    function callVote(address directorVote,uint voteId,bool attitude) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("vote(uint256,bool)"));
+        bool result = DirectorVote(directorVote).call(abi.encodeWithSelector(methodId,voteId,attitude));
         return result;
     }
 
@@ -386,11 +413,11 @@ contract TestCase is Template, DSTest, DSMath {
         p1.callDeposit(voteManager,40000000,ASSET_PIS);
         tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",4,paiDAO,hex"e51ed97d",hex"",10000000);
         assertTrue(!tempBool);//7
-        tempBool = p1.callTempConfig(paiDAO,"Vote",voteManager,0);
+        tempBool = p1.callTempConfig(paiDAO,"VoteManager",voteManager,0);
         assertTrue(tempBool);//8
         tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",4,paiDAO,hex"e51ed97d",hex"",10000000);
         assertTrue(!tempBool);//9
-        tempBool = p1.callTempConfig(paiDAO,"VOTE",voteManager,0);
+        tempBool = p1.callTempConfig(paiDAO,"VOTEMANAGER",voteManager,0);
         assertTrue(tempBool);//10
         tempBool = p1.callStartVoteTo(voteManager,voteContract,"TESTVOTE1",4,paiDAO,hex"e51ed97d",hex"",10000000);
         assertTrue(tempBool);//11
@@ -469,7 +496,7 @@ contract TestCase is Template, DSTest, DSMath {
         assertEq(bussineesContract.states(),10);//10
     }
 
-    function testAuthertication() public {
+    function testVoteSpecial() public {
         FakePaiDao paiDAO;
         uint96 ASSET_PIS;
         bool tempBool;
@@ -518,11 +545,139 @@ contract TestCase is Template, DSTest, DSMath {
         tempBool = PISholder1.callStartVoteTo(voteManager,vote1,"TEST",10,BC,hex"42eca434",hex"",100000000);
         assertTrue(tempBool);//13
         assertEq(uint(vote1.getVoteStatus(1)),1);//14
-        tempBool = PISholder1.callStartVoteTo(voteManager,vote1,"TEST",10,BC,hex"42eca434",hex"",100000000);
+        tempBool = PISholder2.callVoteTo(voteManager,vote1,1,true,100000000);
         assertTrue(tempBool);//15
+        assertEq(uint(vote1.getVoteStatus(1)),2);//16
+        tempBool = vote1.call(abi.encodeWithSelector(vote1.invokeVoteResult.selector,1));
+        assertTrue(!tempBool);//17
+        tempBool = admin.callTempConfig(paiDAO,"VOTE",vote1,0);
+        assertTrue(tempBool);//18
+        tempBool = vote1.call(abi.encodeWithSelector(vote1.invokeVoteResult.selector,1));
+        assertTrue(tempBool);//19
+        assertEq(BC.states(),2);//20
+    }
 
+    function testVoteStandard() public {
+        FakePaiDao paiDAO;
+        uint96 ASSET_PIS;
+        bool tempBool;
+        FakePerson admin = new FakePerson();
+        FakePerson director1 = new FakePerson();
+        FakePerson director2 = new FakePerson();
+        FakePerson director3 = new FakePerson();
+        FakePerson PISholder1 = new FakePerson();
+        FakePerson PISholder2 = new FakePerson();
+        FakePerson PISholder3 = new FakePerson();
 
+        ///init
+        paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
+        assertEq(paiDAO.tempAdmin(),admin);//0
+        tempBool = admin.callInit(paiDAO);
+        assertTrue(tempBool);//1
+        tempBool = admin.callTempMintPIS(paiDAO,100000000,PISholder1);
+        assertTrue(tempBool);//2
+        tempBool = admin.callTempMintPIS(paiDAO,100000000,PISholder2);
+        assertTrue(tempBool);//3
+        tempBool = admin.callTempMintPIS(paiDAO,100000000,PISholder3);
+        assertTrue(tempBool);//4
+        (,ASSET_PIS) = paiDAO.Token(0);
+        tempBool = admin.callTempConfig(paiDAO,"DIRECTOR",director1,0);
+        assertTrue(tempBool);//5
+        tempBool = admin.callTempConfig(paiDAO,"DIRECTOR",director2,0);
+        assertTrue(tempBool);//6
+        tempBool = admin.callTempConfig(paiDAO,"DIRECTOR",director3,0);
+        assertTrue(tempBool);//7
+        PISVoteManager voteManager = new PISVoteManager(paiDAO);
+        tempBool = PISholder1.callDeposit(voteManager,100000000,ASSET_PIS);
+        assertTrue(tempBool);//8
+        tempBool = PISholder2.callDeposit(voteManager,100000000,ASSET_PIS);
+        assertTrue(tempBool);//9
+        tempBool = PISholder3.callDeposit(voteManager,100000000,ASSET_PIS);
+        assertTrue(tempBool);//10
 
+        // test voteStandard
+        TimefliesVoteST vote = new TimefliesVoteST(paiDAO);
+        TestPaiDAO BC = new TestPaiDAO(paiDAO);
+        assertEq(BC.states(),0);//11
+        tempBool = PISholder1.callStartVoteToStandard(voteManager,vote,"TEST",10,BC,1,50000000);
+        assertTrue(!tempBool);//12
+        tempBool = admin.callTempConfig(paiDAO,"VOTEMANAGER",voteManager,0);
+        tempBool = PISholder1.callStartVoteToStandard(voteManager,vote,"TEST",10,BC,1,50000000);
+        assertTrue(tempBool);//13
+        assertEq(uint(vote.getVoteStatus(1)),1);//14
+        tempBool = PISholder2.callVoteTo(voteManager,vote,1,true,40000000);
+        assertTrue(tempBool);//15
+        assertEq(uint(vote.getVoteStatus(1)),2);//16
+        tempBool = vote.call(abi.encodeWithSelector(vote.invokeVoteResult.selector,1));
+        assertTrue(!tempBool);//17
+        tempBool = admin.callTempConfig(paiDAO,"VOTE",vote,0);
+        assertTrue(tempBool);//18
+        tempBool = vote.call(abi.encodeWithSelector(vote.invokeVoteResult.selector,1));
+        assertTrue(tempBool);//19
+        assertEq(BC.states(),3);//20
+    }
 
+    function testDirectorVote() public {
+        FakePaiDao paiDAO;
+        uint96 ASSET_PIS;
+        bool tempBool;
+        FakePerson admin = new FakePerson();
+        FakePerson director1 = new FakePerson();
+        FakePerson director2 = new FakePerson();
+        FakePerson director3 = new FakePerson();
+        FakePerson PISholder1 = new FakePerson();
+        FakePerson PISholder2 = new FakePerson();
+        FakePerson PISholder3 = new FakePerson();
+
+        ///init
+        paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
+        assertEq(paiDAO.tempAdmin(),admin);//0
+        tempBool = admin.callInit(paiDAO);
+        assertTrue(tempBool);//1
+        tempBool = admin.callTempMintPIS(paiDAO,100000000,PISholder1);
+        assertTrue(tempBool);//2
+        tempBool = admin.callTempMintPIS(paiDAO,100000000,PISholder2);
+        assertTrue(tempBool);//3
+        tempBool = admin.callTempMintPIS(paiDAO,100000000,PISholder3);
+        assertTrue(tempBool);//4
+        (,ASSET_PIS) = paiDAO.Token(0);
+        tempBool = admin.callTempConfig(paiDAO,"DIRECTOR",director1,0);
+        assertTrue(tempBool);//5
+        tempBool = admin.callTempConfig(paiDAO,"DIRECTOR",director2,0);
+        assertTrue(tempBool);//6
+        tempBool = admin.callTempConfig(paiDAO,"DIRECTOR",director3,0);
+        assertTrue(tempBool);//7
+        PISVoteManager voteManager = new PISVoteManager(paiDAO);
+        tempBool = PISholder1.callDeposit(voteManager,100000000,ASSET_PIS);
+        assertTrue(tempBool);//8
+        tempBool = PISholder2.callDeposit(voteManager,100000000,ASSET_PIS);
+        assertTrue(tempBool);//9
+        tempBool = PISholder3.callDeposit(voteManager,100000000,ASSET_PIS);
+        assertTrue(tempBool);//10
+
+        // test directorVote
+        TimefliesVoteDir vote = new TimefliesVoteDir(paiDAO);
+        TestPaiDAO BC = new TestPaiDAO(paiDAO);
+        assertEq(BC.states(),0);//11
+        tempBool = PISholder1.callStartVote(vote,"TEST",10,BC,1);
+        assertTrue(!tempBool);//12
+        tempBool = director1.callStartVote(vote,"TEST",10,BC,1);
+        assertTrue(tempBool);//13
+        assertEq(uint(vote.getVoteStatus(1)),1);//14
+        tempBool = director1.callVote(vote,1,true);
+        assertTrue(!tempBool);//15
+        tempBool = director2.callVote(vote,1,true);
+        assertTrue(tempBool);//16
+        assertEq(uint(vote.getVoteStatus(1)),1);//17
+        tempBool = director3.callVote(vote,1,true);
+        assertTrue(tempBool);//18
+        assertEq(uint(vote.getVoteStatus(1)),2);//19
+        tempBool = vote.call(abi.encodeWithSelector(vote.invokeVoteResult.selector,1));
+        assertTrue(!tempBool);//20
+        tempBool = admin.callTempConfig(paiDAO,"VOTE",vote,0);
+        assertTrue(tempBool);//21
+        tempBool = vote.call(abi.encodeWithSelector(vote.invokeVoteResult.selector,1));
+        assertTrue(tempBool);//22
+        assertEq(BC.states(),2);//23
     }
 }
