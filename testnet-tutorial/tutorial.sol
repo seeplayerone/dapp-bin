@@ -39,6 +39,7 @@ contract Tutorial is Template {
             flow.createAsset(0, index, amount);
         }
         
+        totalSupply = totalSupply + amount;
         return assettype;
     }
 
