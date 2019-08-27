@@ -4,9 +4,9 @@ pragma solidity 0.4.25;
 // import "../library/organization.sol";
 // import "./string_utils.sol";
 
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/seeplayerone/dapp-bin/library/organization.sol";
-import "github.com/seeplayerone/dapp-bin/library/string_utils.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/evilcc2018/dapp-bin/library/organization.sol";
+import "github.com/evilcc2018/dapp-bin/library/string_utils.sol";
 
 contract PAIDAO is Organization, DSMath {
     using StringLib for string;
