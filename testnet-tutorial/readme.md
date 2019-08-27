@@ -16,5 +16,5 @@ Contracts included:
 
 Documents:
 
-- [Setup Asilink]()
-- [Asimov Contract Development Guide]()
+- [Setup Asilink](./asilink.md)
+- [Asimov Contract Development Guide](./tutorial-contract.md)
