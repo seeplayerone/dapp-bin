@@ -31,8 +31,8 @@ contract Tutorial is Template {
 
             registered = true;
 
-            uint64 temp1 = uint64(assetType) << 32 | uint64(orgnizationID);
-            uint96 temp2 = uint96(temp1) << 32 | uint96(assetIndex);
+            uint64 temp1 = uint64(0) << 32 | uint64(orgnizationID);
+            uint96 temp2 = uint96(temp1) << 32 | uint96(index);
 
             assettype = temp2;
 
