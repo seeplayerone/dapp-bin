@@ -29,10 +29,16 @@ contract Tutorial is Template {
             Registry reg = Registry(registry);
             orgnizationID = reg.registerOrganization("Tutorial", templateName);
 
-            assettype = uint96(uint64(0) << 32 | uint64(orgnizationID)) << 32 | uint96(index);
+            registered = true;
+
+            uint64 temp1 = uint64(assetType) << 32 | uint64(orgnizationID);
+            uint96 temp2 = uint96(temp1) << 32 | uint96(assetIndex);
+
+            assettype = temp2;
 
             flow.createAsset(0, index, amount);
         }
+        
         return assettype;
     }
 

@@ -9,25 +9,33 @@ contract NamedTutorial is Tutorial {
     }
 }
 
-contract PAIIssuerTest {
+contract TutorialTest is DSTest {
     NamedTutorial private tutorial;
     address private dest = 0x668eb397ce8ccc9caec9fec1b019a31f931725ca94;
 
-    function test() public {
+    uint private SATOSHI = 10**8;
+
+    function test() public returns (bool) {
         tutorial = new NamedTutorial();
 
-        uint assettype = tutorial.mint(10 * 10**8);
-        AssertEq(tutorial.checkBalance(), 10 * 10**8);
+        uint assettype = tutorial.mint(10 * SATOSHI);
+        assertEq(tutorial.checkBalance(), 10 * SATOSHI);
 
-        tutorial.mint(10 * 10**8);
-        AssertEq(tutorial.checkBalance(), 20 * 10**8);
+        tutorial.mint(10 * SATOSHI);
+        assertEq(tutorial.checkBalance(), 20 * SATOSHI);
 
-        tutorial.transfer(dest, 10 * 10**8);
-        AssertEq(tutorial.checkBalance(), 10 * 10**8);
-        AssertEq(tutorial.totalSupply(), 20 * 10**8);
+        tutorial.transfer(dest, 10 * SATOSHI);
+        assertEq(tutorial.checkBalance(), 10 * SATOSHI);
+        assertEq(tutorial.checkTotalSupply(), 20 * SATOSHI);
 
-        tutorial.burn.value(10 * 10**8, assettype);
-        AssertEq(tutorial.checkBalance(), 10 * 10**8);
-        AssertEq(tutorial.totalSupply(), 10 * 10**8);
+        tutorial.burn.value(10 * SATOSHI, assettype)();
+        assertEq(tutorial.checkBalance(), 10 * SATOSHI);
+        assertEq(tutorial.checkTotalSupply(), 10 * SATOSHI);
+
+        return true;
+    }
+
+    function testVoid() public returns (bool) {
+        return true;
     }
 }
