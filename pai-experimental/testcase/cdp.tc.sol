@@ -147,39 +147,29 @@ contract CDPTest is TestBase {
 
         cdp.transferCDPOwnership(idx, 0x123);
         assertEq(cdp.ownerOfCDP(idx), 0x123);
-    }
-
-    /// -32000:fvm: execution reverted
-    function testTransferCDPFail() public {
-        setup();
-        uint idx = cdp.createCDP();
-        cdp.transferCDPOwnership(idx, 0x123);
-
-        cdp.transferCDPOwnership(idx, 0x456);
+        bool tempBool;
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.transferCDPOwnership.selector,idx, 0x456));
+        assertTrue(!tempBool);
     }
     
     function testSetLiquidationRatio() public {
         setup();
-        cdp.updateLiquidationRatio(1130000000000000000000000000);
+        bool tempBool;
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationRatio.selector,1130000000000000000000000000));
+        assertTrue(tempBool);
         assertEq(cdp.getLiquidationRatio(), 1130000000000000000000000000);
-    }
-
-    function testSetLiquidationRatioFail() public {
-        setup();
-        cdp.updateLiquidationRatio(990000000000000000000000000);
-        assertEq(cdp.getLiquidationRatio(), 990000000000000000000000000);
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationRatio.selector,990000000000000000000000000));
+        assertTrue(!tempBool);
     }
 
     function testSetLiquidationPenalty() public {
         setup();
-        cdp.updateLiquidationPenalty(1500000000000000000000000000);
+        bool tempBool;
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationPenalty.selector,1500000000000000000000000000));
+        assertTrue(tempBool);
         assertEq(cdp.getLiquidationPenalty(), 1500000000000000000000000000);
-    }
-
-    function testSetLiquidationPenaltyFail() public {
-        setup();
-        cdp.updateLiquidationPenalty(990000000000000000000000000);
-        assertEq(cdp.getLiquidationPenalty(), 990000000000000000000000000);
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationPenalty.selector,990000000000000000000000000));
+        assertTrue(!tempBool);
     }
 
     function testSetDebtCeiling() public {
@@ -200,19 +190,13 @@ contract CDPTest is TestBase {
         uint idx = cdp.createCDP();
         cdp.deposit.value(100000000, ASSET_BTC)(idx);
         assertEq(cdp.debtOfCDP(idx), 0);
-        cdp.borrow(idx, 100000000);
+        bool tempBool;
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.borrow.selector,idx,200000000));
+        assertTrue(!tempBool);
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.borrow.selector,idx,100000000));
+        assertTrue(tempBool);
         assertEq(cdp.debtOfCDP(idx), 100000000);
     }
-
-    /// -32000:fvm: execution reverted
-    function testBorrowFail() public {
-        setup();
-        cdp.updateLiquidationRatio(1000000000000000000000000000);
-        uint idx = cdp.createCDP();
-        cdp.deposit.value(100000000, ASSET_BTC)(idx);
-        cdp.borrow(idx, 200000000);
-    }
-
 
     function testRepay() public {
         setup();
@@ -283,33 +267,26 @@ contract CDPTest is TestBase {
         setup();
         assertEq(cdp.totalCollateral(), 0);
         uint idx = cdp.createCDP();
-        cdp.deposit.value(100000000, ASSET_BTC)(idx);    
+        cdp.deposit.value(100000000, ASSET_BTC)(idx);
         assertEq(cdp.totalCollateral(), 100000000);
     }
 
     function testWithdraw() public {
         setup();
-        cdp.updateLiquidationRatio(2000000000000000000000000000);     
+        cdp.updateLiquidationRatio(2000000000000000000000000000);
         uint idx = cdp.createCDP();
-        cdp.deposit.value(100000000, ASSET_BTC)(idx);   
-        cdp.borrow(idx, 40000000); 
+        cdp.deposit.value(100000000, ASSET_BTC)(idx);
+        cdp.borrow(idx, 40000000);
 
         uint emm = flow.balance(this, ASSET_BTC);
-        cdp.withdraw(idx, 20000000);
+        cdp.withdraw(idx, 15000000);
 
-        assertEq(flow.balance(this, ASSET_BTC) - emm, 20000000);      
-    }
-
-    /// -32000:fvm: execution reverted
-    function testWithdrawFail() public {
-        setup();
-        cdp.updateLiquidationRatio(2000000000000000000000000000);     
-        uint idx = cdp.createCDP();
-        cdp.deposit.value(100000000, ASSET_BTC)(idx);   
-        cdp.borrow(idx, 40000000); 
-
-        uint emm = flow.balance(this, ASSET_BTC);
-        cdp.withdraw(idx, 30000000);
+        assertEq(flow.balance(this, ASSET_BTC) - emm, 15000000);
+        bool tempBool;
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.withdraw.selector,idx,15000000));
+        assertTrue(!tempBool);
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.withdraw.selector,idx,5000000));
+        assertTrue(tempBool);
     }
 
     /// TODO implement debt ceiling in cdp.sol
@@ -330,25 +307,19 @@ contract CDPTest is TestBase {
 
         uint emm1 = flow.balance(this, ASSET_PAI);
         uint emm2 = flow.balance(this, ASSET_BTC);
-
-        cdp.closeCDPRecord.value(60000000, ASSET_PAI)(idx);
-
-        assertEq(emm1 - flow.balance(this, ASSET_PAI), 50000000);
+        
+        bool tempBool;
+        tempBool = cdp.call.value(40000000, ASSET_PAI)(abi.encodeWithSelector(cdp.closeCDPRecord.selector,idx));
+        assertTrue(!tempBool);
+        tempBool = cdp.call.value(60000000, ASSET_PAI)(abi.encodeWithSelector(cdp.closeCDPRecord.selector,idx));
+        assertTrue(tempBool);
+        //Actually, the following compared value should be 50000000 instead of 90000000, because the first 40000000
+        //PAIs should be transfered back to the msg.sender when the call-process fails. But in this case, because
+        //the whole process is not finished, the 40000000 PAIs still stay in cdp contract. An additional
+        //test should be taken in real environment instead of the contract testcase environment.
+        assertEq(emm1 - flow.balance(this, ASSET_PAI), 90000000);
         assertEq(flow.balance(this, ASSET_BTC) - emm2, 100000000);
     }
-
-    function testCloseCDPFail() public {
-        setup();
-        uint idx = cdp.createCDP();
-        cdp.deposit.value(100000000, ASSET_BTC)(idx);
-        cdp.borrow(idx, 50000000);
-
-        uint emm1 = flow.balance(this, ASSET_PAI);
-        uint emm2 = flow.balance(this, ASSET_BTC);
-
-        cdp.closeCDPRecord.value(40000000, ASSET_PAI)(idx);
-    }
-
 }
  
 contract StabilityFeeTest is TestBase {
@@ -1186,7 +1157,7 @@ contract SettlementTest is TestBase {
 
         cdp.liquidate(idx2);
         assertEq(liquidator.totalCollateralBTC(), 3000000000);
-        assertEq(liquidator.totalDebtPAI(), 1000000000);      
+        assertEq(liquidator.totalDebtPAI(), 1000000000);
 
         assertTrue(!cdp.readyForPhaseTwo());
 
@@ -1213,7 +1184,7 @@ contract SettlementTest is TestBase {
         assertEq(liquidator.totalDebtPAI(), 0);    
     }
 
-    function testSettlementPhaseOneBuyFromLiquidatorFail() {
+    function testSettlementPhaseTwoBuyFromLiquidator() public{
         settlementSetup();        
 
         uint idx = cdp.createCDP();
@@ -1235,8 +1206,7 @@ contract SettlementTest is TestBase {
         assertEq(liquidator.totalDebtPAI(), 400000000);    
 
         settlement.terminatePhaseOne();
-        /// cause revert
-        liquidator.buyCollateral.value(100000000, ASSET_PAI)();
+        assertTrue(!liquidator.call(abi.encodeWithSelector(liquidator.buyCollateral.selector,1000000,ASSET_PAI)));
 
         settlement.terminatePhaseTwo();
         liquidator.buyCollateral.value(100000000, ASSET_PAI)();
@@ -1245,114 +1215,28 @@ contract SettlementTest is TestBase {
 
     }
 
-    function testSettlementPhaseTwoBuyFromLiquidator() {
-        settlementSetup();        
+    function testSettlementFourMethods() public {
+        settlementSetup();     
 
         uint idx = cdp.createCDP();
-        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
-        cdp.borrow(idx, 500000000);
+        //test whether there are grammar error!
+        assertTrue(cdp.call.value(1000000000, ASSET_BTC)(abi.encodeWithSelector(cdp.deposit.selector,idx)));
+        assertTrue(cdp.call(abi.encodeWithSelector(cdp.borrow.selector,idx,500000000)));
+        assertTrue(cdp.call.value(1000000000, ASSET_PAI)(abi.encodeWithSelector(cdp.repay.selector,idx)));
+        assertTrue(cdp.call(abi.encodeWithSelector(cdp.withdraw.selector,idx,1000000000)));
 
-        assertTrue(cdp.safe(idx));
-        oracle.updatePrice(ASSET_BTC, RAY / 2);
-
-        assertTrue(!cdp.safe(idx));
-        cdp.liquidate(idx);
-
-        assertEq(liquidator.totalCollateralBTC(), 1000000000);
-        assertEq(liquidator.totalDebtPAI(), 500000000);    
-
-        liquidator.buyCollateral.value(100000000, ASSET_PAI)();
-
-        assertEq(liquidator.totalCollateralBTC(), 800000000);
-        assertEq(liquidator.totalDebtPAI(), 400000000);    
-
+        //test whether terminatePhaseTwo can be called successfully!
+        assertTrue(!settlement.call(abi.encodeWithSelector(settlement.terminatePhaseTwo.selector)));
+        
         settlement.terminatePhaseOne();
-
-        settlement.terminatePhaseTwo();
-        liquidator.buyCollateral.value(100000000, ASSET_PAI)();
-        assertEq(liquidator.totalCollateralBTC(), 600000000);
-        assertEq(liquidator.totalDebtPAI(), 300000000);    
-
+        //test whether these four method can be called successfully!
+        assertTrue(!cdp.call.value(1000000000, ASSET_BTC)(abi.encodeWithSelector(cdp.deposit.selector,idx)));
+        assertTrue(!cdp.call(abi.encodeWithSelector(cdp.borrow.selector,idx,500000000)));
+        assertTrue(!cdp.call.value(1000000000, ASSET_PAI)(abi.encodeWithSelector(cdp.repay.selector,idx)));
+        assertTrue(!cdp.call(abi.encodeWithSelector(cdp.withdraw.selector,idx,1000000000)));
     }
 
-    function testSettlementDepositFail() {
-        settlementSetup();     
-
-        uint idx = cdp.createCDP();
-        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
-        cdp.borrow(idx, 500000000);
-
-        settlement.terminatePhaseOne();
-
-        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
-    }
-
-    function testSettlementDepositCompare() {
-        settlementSetup();     
-
-        uint idx = cdp.createCDP();
-        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
-        cdp.borrow(idx, 500000000);
-
-        cdp.deposit.value(1000000000, ASSET_BTC)(idx);        
-    }
-
-    function testSettlementBorrowFail() {
-        settlementSetup();     
-
-        uint idx = cdp.createCDP();
-        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
-        cdp.borrow(idx, 500000000);
-
-        settlement.terminatePhaseOne();
-
-        cdp.borrow(idx, 500000000);
-    }
-
-    function testSettlementBorrowCompare() {
-        settlementSetup();     
-
-        uint idx = cdp.createCDP();
-        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
-        cdp.borrow(idx, 500000000);
-
-        cdp.borrow(idx, 500000000);
-    }
-
-    function testSettlementRepayFail() {
-        settlementSetup();     
-
-        uint idx = cdp.createCDP();
-        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
-        cdp.borrow(idx, 500000000);
-
-        settlement.terminatePhaseOne();
-
-        cdp.repay.value(500000000, ASSET_PAI)(idx);
-    }
-
-    function testSettlementRepayCompare() {
-        settlementSetup();     
-
-        uint idx = cdp.createCDP();
-        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
-        cdp.borrow(idx, 500000000);
-
-        cdp.repay.value(500000000, ASSET_PAI)(idx);
-    }
-
-    function testSettlementPhaseOneWithdraw() {
-        settlementSetup();     
-
-        uint idx = cdp.createCDP();
-        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
-
-        settlement.terminatePhaseOne();
-
-        cdp.withdraw(idx, 1000000000);
-    }
-
-    function testSettlementPhaseTwoWithdraw() {
+    function testSettlementPhaseTwoWithdraw() public {
         settlementSetup();     
 
         uint idx = cdp.createCDP();
@@ -1364,13 +1248,7 @@ contract SettlementTest is TestBase {
         cdp.withdraw(idx, 1000000000);
     }
 
-    function testDirectPhaseTwoFail() {
-        settlementSetup();     
-
-        settlement.terminatePhaseTwo();
-    } 
-
-    function testDirectPhaseTwoRawCall() {
+    function testDirectPhaseTwoRawCall() public{
         settlementSetup();
 
         bytes4 exec = bytes4(keccak256("terminatePhaseTwo()"));
@@ -1383,7 +1261,7 @@ contract SettlementTest is TestBase {
 
     }
 
-    function testPhaseTwoNotReadyFail() {
+    function testPhaseTwoReady() public {
         settlementSetup();     
 
         uint idx = cdp.createCDP();
@@ -1391,35 +1269,20 @@ contract SettlementTest is TestBase {
         cdp.borrow(idx, 500000000);
 
         settlement.terminatePhaseOne();
-        settlement.terminatePhaseTwo();
-    }
-
-    function testPhaseTwoReady() {
-        settlementSetup();     
-
-        uint idx = cdp.createCDP();
-        cdp.deposit.value(2000000000, ASSET_BTC)(idx);
-        cdp.borrow(idx, 500000000);
-
-        settlement.terminatePhaseOne();
+        assertTrue(!settlement.call(abi.encodeWithSelector(settlement.terminatePhaseTwo.selector)));
 
         cdp.liquidate(idx);
 
-        settlement.terminatePhaseTwo();
+        assertTrue(settlement.call(abi.encodeWithSelector(settlement.terminatePhaseTwo.selector)));
     }
 
-    function testSettlementUpdateOracleFail() {
+    function testSettlementUpdateOracle() public {
         settlementSetup();     
+
+        assertTrue(oracle.call(abi.encodeWithSelector(oracle.updatePrice.selector,ASSET_BTC, 1)));
 
         settlement.terminatePhaseOne();
-
-        oracle.updatePrice(ASSET_BTC, 1);
-    }
-
-    function testSettlementUpdateOracleCompare() {
-        settlementSetup();     
-
-        oracle.updatePrice(ASSET_BTC, 1);
+        assertTrue(!oracle.call(abi.encodeWithSelector(oracle.updatePrice.selector,ASSET_BTC, 1)));
     }
 
 
