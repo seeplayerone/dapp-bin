@@ -5,7 +5,7 @@ import "github.com/seeplayerone/dapp-bin/testnet-tutorial/test.sol";
 
 /**
     @dev we recommend "test driven development" paradigm for contract developing
-     developers should write though testcases before submit a TEMPLATE on asimov
+     developers should write thorough testcases before submit a TEMPLATE on asimov
 
      test case execution using asimov IDE tool is not state perserving
      and each test case is executed on `zero state` (the chain state of the moment you execute)

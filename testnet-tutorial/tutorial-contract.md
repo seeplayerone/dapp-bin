@@ -1,92 +1,171 @@
-## Document Overview
+# Document Overview
 
-This document provides a brief description of how to develop, deploy, and invoke smart contracts on the Asimov platform.
+This document provides a brief description of how to develop, test, and deploy smart contracts on the Asimov platform.
 
-## Unsupported Solidity Methods
+Prerequistes:
 
-The Asimov virtual machine is compatible with EVM. We recommend using [Solidity](https://solidity.readthedocs.io/en/v0.4.25/) as the development language for smart contracts. Asimov has made some improvements based on EVM and will not support the following Solidity methods:
+- Blockchain and smart contract
+- Ethereum VM and Solidity 
+
+## Develop Contract
+
+The Asimov virtual machine is compatible with EVM. We recommend using [Solidity](https://solidity.readthedocs.io/en/v0.4.25/) as the development language for smart contracts. Developing contracts on Asimov are almost the same as on Ethereum. 
+
+Asimov has made some improvements based on EVM and developers need to be aware of following things:
 
 - ```staticCall``` ```callCode``` ```delegateCall``` These three methods allow the called contract to change the storage space of the calling contract, which is a security risk, and Asimov will no longer support them.
 
-- ```create``` ```new``` Both methods deploy new contracts inside the contract by calling ```opCreate``` instruction. Asimov introduced the design of [TEMPLATE](https://doc.asimov.network/wp/template-design.html), providing a new ```deployContract``` method to support the deployment of new contracts within the contract.
+- ```create``` ```new``` Both methods deploy new contracts inside the contract by calling ```opCreate``` instruction. Asimov introduces the design of TEMPLATE, and provides a new ```deployContract``` method to support the deployment of new contracts within the contract. ```create``` and ```new``` are only avaiable in test mode.
 
-- ```send``` ```transfer``` ```value``` Asimov introduces the design of [MUTXO](https://doc.asimov.network/wp/mutxo-design.html), and asset transfer requires asset type and properties. A new ```transfer``` method is provided to support that.
+- ```send``` ```transfer``` ```value``` Asimov introduces the design of MUTXO, and asset transfer requires an additional **assettype**. New ```transfer``` method and ```call``` method are provided to support that.
 
 > Asimov adpots Solidity version 0.4.25, and Solidity features in newer version will not be supported at this stage.
 
 
-## New features of Asimov
+### TEMPLATE
 
-Compared to EVM, the Asimov virtual machine has been modified to support following designs:
-
-- [TEMPLATE](https://doc.asimov.network/wp/template-design.html)
-- [MUTXO](https://doc.asimov.network/wp/mutxo-design.html)
-
-On the Asimov platform, users need to upload the developed smart contract to the Asimov template warehouse from the Developer Center, which then becomes a template. The corresponding contract instance is then deployed based on the template.
+On the Asimov platform, users need to upload the developed smart contract to the Asimov template warehouse from the [IDE tool](https://ide.asimov.work/#/) or [Developer Center](https://developer.asimov.network/), which then becomes a template. The corresponding contract instance is then deployed based on the template.
 
 Two important things to note related to template when developing smart contracts:
 
-- All template contracts need to inherit the [template.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/template.sol) base contract directly or indirectly.
+- All template contracts need to inherit the [Template](https://github.com/seeplayerone/dapp-bin/blob/master/library/template.sol) base contract directly or indirectly.
 - When deploying new contract inside a contract, use the ```flow.deployContract()``` method.
 
-Based on the MUTXO design, all assets on the Asimov platform are native UTXO assets, and Asimov provides the following two instructions for creating new UTXO assets and for issuing additional UTXO assets.
-
-- Create an asset ```flow.createAsset()```
-- Issue additional asset ```flow.mintAsset()```
-
-At the same time, Asimov provides a new ```to.transfer()``` method to support transfer of different types of native UTXO asset, and a ```msg.asset()``` method for the contract to get the type and properties of the asset from the transaction.
-
-
-## New Methods in Detail
+-------
 
 ```flow.deployContract(uint16 category, string name, bytes params)```
 
 Deploy a new contract inside a contract. 
 
-- **category** Template cateory.
-- **name** Template name. The template category and template name are set when the template is created in the Developer Center.
-- **params** Contract initialization parameters.
+- **category** template cateory.
+- **name** template name. The template category and template name are set when the template is created.
+- **params** contract initialization parameters.
+
+
+### MUTXO
+
+All assets on the Asimov platform are native UTXO assets. We designed **assettype** to distinguish different types of UTXO.
+
+Note a contract needs to register to Asimov platform and get an organization ID before issuing assets. This is demostrated in the [Tutorial](https://github.com/seeplayerone/dapp-bin/blob/master/testnet-tutorial/tutorial.sol).
+
+> Regarding the definition of the above **assettype** parameter, as shown in the following figure: the organization with an Organization ID of 25 (hexadecimal, 00000025 in the middle part) issued two assets, with the index 0 and 1 respectively (00000000 and 00000001 in the right part). Properties are both defaults to 00000000 which is a normal fungible asset (00000000 in the left part).
+
+![](./img/contract-asset-96bit.png)
 
 -------
 
-```flow.createAsset(uint32 assetType, uint32 assetIndex, uint amount)```
+```flow.createAsset(uint32 properties, uint32 index, uint amount)```
 
 Create a new UTXO asset inside the contract.
 
-> The prerequisite for creating and issuing additional UTXO assets is that the contract is registered on the Asimov platform and the organization id is obtained.
-
-- **assetType** corresponds to the AssetType field in the MUTXO design, 32bit.
-- **assetIndex** corresponds to the AssetIndex field in the MUTXO design, 32bit.
-- **amount** The number of assets created. If it is an indivisible asset, it is the ID of the asset.
+- **properties** 32bit long asset properties.
+- **index** 32bit long asset index inside an orgnization.
+- **amount** the number of assets to create.
 
 -------
 
-```flow.mintAsset(uint32 assetIndex, uint amount)```
+```flow.mintAsset(uint32 index, uint amount)```
 
 Issue additional UTXO asset inside the contract.
 
-- **assetIndex** corresponds to the AssetIndex field in the MUTXO design, 32bit.
-- **amount** The number of assets issued. If it is an indivisible asset, it is the ID of the asset.
+- **index** 32bit long asset index inside an orgnization.
+- **amount** the number of assets to mint.
 
 -------
 
-```to.transfer(uint amount, uint96 asset)```
+```flow.balance(address dest, uint96 assettype)```
+
+Get balance of a specific asset on a given address.
+
+- **dest** the address to fetch balance of.
+- **assettype** the assettype to fetch balance of.
+
+-------
+
+```to.transfer(uint amount, uint96 assettype)```
+```to.call.value(uint amount, uint96 assettype)```
 
 Transfer asset to a specific address.
 
 - **to** destination address.
-- **amount** The number of assets transferred. If it is an indivisible asset, it is the ID of the asset.
-- **asset** corresponds to the (AssetType + OrganizationID + AssetIndex) fields in the MUTXO design, each 32bit, a total of 96bit.
+- **amount** the number of assets to transfer. 
+- **assettype** the assettype to transfer.
 
 -------
 
 ```msg.asset()```
 
-Get the asset type and properties of the transaction inside a contract. Returns **asset** as defined in ```transfer()``` method above.
+Get the assettype of the transaction inside a contract. Returns **assettype** as defined above.
 
-> Regarding the definition of the above **asset** parameter, as shown in the following figure: the organization with an Organization ID of 25 (hexadecimal, 00000025 in the middle part) issued two assets, with the AssetIndex 0 and 1 respectively (00000000 and 00000001 in the right part). AssetType are both defaults to 00000000 (00000000 in the left part).
+### Tutorial Project
 
-![](./img/contract-asset-96bit.png)
+We have created a [tutorial project](https://github.com/seeplayerone/dapp-bin/tree/master/testnet-tutorial) to demostrate how to develop a simple contract to experience the exclusive features of Asimov described above.
+
+## Test Contract
+
+We recommend to adopt a **Test Driven Development** paradigm for contract development.
+
+Once finish designing and implementing a smart contract, it is a good practice to write thorough unit tests to fully cover every single function uint of a contract. There are usually two ways to write test cases for a contract, either using other smart contracts or through js library. We are prefering the former one for now as it has better support from the IDE tool.
+
+We have provided a [test contract](https://github.com/seeplayerone/dapp-bin/blob/master/testnet-tutorial/tutorial.tc.sol) in the tutorial project. 
+
+We can run a test contract in "test mode" in IDE tool: we don't need to create a template for the test contract or the target contract it is testing against, and the execution is not state perserving. In order to support that, ```new``` and ```create``` are enabled in "test mode".
+
+### Test in IDE
+
+Go to the IDE [EXECUTION](https://ide.asimov.work/#/contract-call) page: 
+
+- click the file icon to upload the test contract.
+- click ```Compile``` to compile the test contract.
+- click the ```Test``` tab on the right pane. click the ```Console```tab on the bottom pane.
+- select the contract instance to test agianst, as shown in the figure below we choose ```TutorialTest```. 
+- select the specific test function to execute, as shown in the figure below we choose ```test```.
+- click ```Try``` button and you can see the test result in the console.
+- click ```Try All Test``` button will execute all functions with **test** prefix in the selected contract instance.
+
+![](./img/contract-test.png)
+
+## Deploy Contract
+
+After thorough tests, you may deploy your contract through the IDE tool.
+
+As we adpots the TEMPLATE design, there are three sub steps to deploy/run a contract on Asimov.
+
+### Create Contract Template
+
+Go to the IDE [SUBMIT](https://ide.asimov.work/#/contract-template) page:
+
+- click ```Select File``` to upload the developed contract.
+- input template name and choose template category (As shown in the figure below, the name is ```tutorial-1``` and the type is ```Organization```).
+- click ```Compile File``` to compile the contract.
+- choose the contract instance used to create the template (As shown below, ```Tutorial```).
+- click the ```Create Contract Template``` button to invoke the AsiLink wallet plugin to submit the transaction.
+
+![](./img/contract-submit-template.png)
+
+### Deploy Contract Instance
+
+Go to the IDE [DEPLOYMENT](https://ide.asimov.work/#/contract-deploy) page:
+
+- find the contract template you just created.
+- click the ```Deploy``` button and fill in the initialization parameters (none in our sample).
+- click the ```Deploy``` button to invoke the AsiLink wallet plugin to submit the transaction.
+
+After the contract instance is deployed successfully, the AsiLink wallet will return the address of the instance and please save the address for the next steps.
+
+![](./img/contract-deploy-contract-success.png)
+
+### Call Contract Functions
+
+
+Go to the IDE [EXECUTION](https://ide.asimov.work/#/contract-call) page:
+
+- input the contract address saved in the previous step and click ```Search Contract```.
+- after loading the contract template, select the contract instance and select the function you want to execute on the right (As shown in the figure below, the contract instance is ```Tutorial``` and the function is ```mint```).
+- click the ```Call``` button to invoke the AsiLink wallet plugin to submit the transaction.
+- click the ```Balance``` tab on the buttom pane to verify the asset has been mint.
+
+![](./img/contract-call-contract.png)
 
 ## Basic Contracts
 
@@ -113,45 +192,9 @@ The [asset](https://github.com/seeplayerone/dapp-bin/blob/master/library/asset.s
 
 The [organization](https://github.com/seeplayerone/dapp-bin/blob/master/library/organization.sol) contract inherits the template, acl, and asset contracts. And provides a simple organization structure: several members with the same rights, and new members are added by invitation. We recommend that third-party organization contracts inherit [organization.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/organization.sol) for development to streamline processes and improve standards.
 
-## Samples
+
+### Samples
 
 Asimov's official website provides a simple autonomous organization implementation, the corresponding organization contract is [dao_asimov.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/dao_asimov.sol). The contract inherits organization.sol and adds a "president" role to its organizational structure to manage the organization.
 
 Another example of an organization contract [simple_organization.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/simple_organization.sol) is much simpler.
-
-## Create Contract Template
-
-After the contract is developed, developers can create contract template, deploy contract instance, and call contract methods through the [Asimov Developer Center](https://ide.asimov.work).
-
-The specific steps to create a template are as follows:
-
-- Upload the developed contract.
-- Input template name and choose template category (As shown in the figure below, the name is ```simple_organization_fun``` and the type is ```Organization```).
-- Compile the contract.
-- Choose the contract class used to create the template (As shown below, ```SimpleOrganization```).
-- Click the ```Create Contract Template``` button to invoke the AsiLink wallet plugin to submit the transaction.
-
-![](./img/contract-submit-template.png)
-
-## Deploy Contract Instance
-
-The specific steps to deploy a contract instance are as follows:
-
-- On the Developer Center's [DEPLOYMENT](https://ide.asimov.work/#/contract-deploy) page, find the contract template you just created.
-- Click the ```Deploy``` button and fill in the initialization parameters (As shown in the figure below, the organization name is "jack", and the initial member list is empty).
-- Click the ```Deploy``` button to invoke the AsiLink wallet plugin to submit the transaction.
-
-After the contract instance is deployed successfully, the AsiLink wallet will return the address of the instance and please save the address for the next steps.
-
-![](./img/contract-deploy-contract-success.png)
-
-## Call Contract Methods
-
-The specific steps to call contract methods are as follows:
-
-- On the Developer Center's [EXECUTION](https://ide.asimov.work/#/contract-call) page, input the contract address saved in the previous step to search.
-- After loading the contract template, select the contract class and select the method you want to execute on the right.
-- Click the ```Call``` button to invoke the AsiLink wallet plugin to submit the transaction.
-- Verify the result. In the example below, we call the ```registerMe``` method to register the organization, then call ```issueNewAsset``` to issue a new asset, and you can see from the left bottom conner that the asset has been created successfully.
-
-![](./img/contract-call-contract.png)
