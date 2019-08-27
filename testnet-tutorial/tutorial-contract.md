@@ -15,7 +15,7 @@ Asimov has made some improvements based on EVM and developers need to be aware o
 
 - ```staticCall``` ```callCode``` ```delegateCall``` These three methods allow the called contract to change the storage space of the calling contract, which is a security risk, and Asimov will no longer support them.
 
-- ```create``` ```new``` Both methods deploy new contracts inside the contract by calling ```opCreate``` instruction. Asimov introduces the design of TEMPLATE, and provides a new ```deployContract``` method to support the deployment of new contracts within the contract. ```create``` and ```new``` are only avaiable in test mode.
+- ```create``` ```new``` Both methods deploy new contracts inside the contract by calling ```opCreate``` instruction. Asimov introduces the design of TEMPLATE, and provides a new ```deployContract``` method to support the deployment of new contracts within the contract. ```create``` and ```new``` are only available in test mode.
 
 - ```send``` ```transfer``` ```value``` Asimov introduces the design of MUTXO, and asset transfer requires an additional **assettype**. New ```transfer``` method and ```call``` method are provided to support that.
 
@@ -136,7 +136,7 @@ As we adpots the TEMPLATE design, there are three sub steps to deploy/run a cont
 Go to the IDE [SUBMIT](https://ide.asimov.work/#/contract-template) page:
 
 - click ```Select File``` to upload the developed contract.
-- input template name and choose template category (As shown in the figure below, the name is ```tutorial-1``` and the type is ```Organization```).
+- input template name and choose template category (As shown in the figure below, the name is ```tutorial-1``` and the category is ```Organization```).
 - click ```Compile File``` to compile the contract.
 - choose the contract instance used to create the template (As shown below, ```Tutorial```).
 - click the ```Create Contract Template``` button to invoke the AsiLink wallet plugin to submit the transaction.
@@ -161,13 +161,13 @@ After the contract instance is deployed successfully, the AsiLink wallet will re
 Go to the IDE [EXECUTION](https://ide.asimov.work/#/contract-call) page:
 
 - input the contract address saved in the previous step and click ```Search Contract```.
-- after loading the contract template, select the contract instance and select the function you want to execute on the right (As shown in the figure below, the contract instance is ```Tutorial``` and the function is ```mint```).
+- after loading the contract template, select the contract instance and select the function you want to execute on the right pane (As shown in the figure below, the contract instance is ```Tutorial``` and the function is ```mint```).
 - click the ```Call``` button to invoke the AsiLink wallet plugin to submit the transaction.
 - click the ```Balance``` tab on the buttom pane to verify the asset has been mint.
 
 ![](./img/contract-call-contract.png)
 
-## Basic Contracts
+## APPENDIX: Basic Contracts
 
 In theory, developers familiar with the Solidity language can combine the above-mentioned new features of Asimov to complete the development of various smart contracts from scratch. But in order to alleviate the developer's workload and make better use of the capabilities provided by Asimov, we offer the following basic contracts.
 
@@ -186,11 +186,11 @@ Through a set of configuration methods to manage the links between (role - addre
 The [asset](https://github.com/seeplayerone/dapp-bin/blob/master/library/asset.sol) contract stores detailed information about all assets issued by the organization, including:
 
 1. Basic information of the asset, name, code, description, total amount, etc.;
-2. The basic properties of the asset, whether it can be divided, whether it is restricted in circulation, whether it is anonymous or not (corresponds to the AssetType field in the MUTXO design);
+2. The basic properties of the asset, whether it can be divided, whether it is restricted in circulation, whether it is anonymous or not (corresponds to the **assettype** set when creating the asset);
 3. Address whitelist of an asset;
 4. The initial and additional issuance history of assets.
 
-The [organization](https://github.com/seeplayerone/dapp-bin/blob/master/library/organization.sol) contract inherits the template, acl, and asset contracts. And provides a simple organization structure: several members with the same rights, and new members are added by invitation. We recommend that third-party organization contracts inherit [organization.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/organization.sol) for development to streamline processes and improve standards.
+The [organization](https://github.com/seeplayerone/dapp-bin/blob/master/library/organization.sol) contract inherits the template, acl, and asset contracts. And provides a simple organization structure: several members with the same rights, and new members are added by invitation. We recommend that third-party organization contracts inherit [organization.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/organization.sol) for development.
 
 
 ### Samples
