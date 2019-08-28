@@ -9,7 +9,7 @@ pragma solidity 0.4.25;
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/test.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/mctest.sol"; //mctest should be changed back when push up
 import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
 
@@ -1286,5 +1286,49 @@ contract SettlementTest is TestBase {
     }
 
 
+
+}
+
+contract MultipleInterestTest is TestBase {
+    function setup() internal {
+        oracle = new PriceOracle();
+
+        paiIssuer = new FakePAIIssuer();
+        paiIssuer.init("sb");
+        ASSET_PAI = paiIssuer.getAssetType();
+
+        btcIssuer = new FakeBTCIssuer();
+        btcIssuer.init("sb2");
+        ASSET_BTC = btcIssuer.getAssetType();
+
+        liquidator = new Liquidator(oracle, paiIssuer);
+        liquidator.setAssetBTC(ASSET_BTC);
+
+        cdp = new TimefliesCDP(paiIssuer, oracle, liquidator);
+        cdp.setAssetBTC(ASSET_BTC);
+
+        oracle.updatePrice(ASSET_BTC, RAY);
+
+        paiIssuer.mint(1000000000000, this);
+        btcIssuer.mint(1000000000000, this);
+    }
+
+    function testALL() public {
+        setup();
+        assertEq(cdp.floatation(1), 110000000000000000000000000);
+        // cdp.floatation[2] = RAY * 12 / 10;
+        // floatation[3] = RAY * 13 / 10;
+        // floatation[4] = RAY * 14 / 10;
+        // floatation[5] = RAY * 15 / 10;
+        // floatation[6] = RAY * 16 / 10;
+        // term[uint8(CDPType._7DAYS)] = 7 days;
+        // term[uint8(CDPType._30DAYS)] = 30 days;
+        // term[uint8(CDPType._60DAYS)] = 60 days;
+        // term[uint8(CDPType._90DAYS)] = 90 days;
+        // term[uint8(CDPType._180DAYS)] = 180 days;
+        // term[uint8(CDPType._360DAYS)] = 360 days;
+
+
+    }
 
 }

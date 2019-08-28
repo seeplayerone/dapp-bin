@@ -35,6 +35,11 @@ contract CDP is DSMath, DSNote, Template {
     uint private stabilityFee; /// stability fee is calculated for liquidation, the fee is pre issued and sent to liquidator whenever rates change
     uint private governanceFee; /// governance fee is not calculated for liquidation, the fee is deducted whenever users repay the borrows
 
+    //There are 7 kinds of cdps, one is current lending and the others are time lending. All time lending cdp will be liquidated when expire.
+    enum CDPType {CURRENT,_7DAYS,_30DAYS,_60DAYS,_90DAYS,_180DAYS,_360DAYS}
+    mapping(uint8 => uint) public floatation;
+    mapping(uint8 => uint) public term;
+
     uint private lastTimestamp;
     uint private accumulatedRates1; /// accumulated rates of stability fees
     uint private accumulatedRates2; /// accumulated rates of stability fees + governance fees
@@ -60,12 +65,24 @@ contract CDP is DSMath, DSNote, Template {
     struct CDPRecord {
         address owner; /// owner of the CDP
         uint256 collateral; /// collateral in form of BTC'
+        /// accumulatedDebt1 represents two meanings:
+        /// 1. CDP is current lending:
+        /// The interest will grow over time
         /// accumulated debts: principal + stability fees; 
         /// accumulatedDebt1 * accumulatedRates1 represents the debt with stability fees in real time
+        /// 2. CDP is time lending:
+        /// The interest is fixed, it is calculated when the cdp is created.
+        /// accumulatedDebt1 itself represents the debt
         uint256 accumulatedDebt1; 
+        /// accumulatedDebt1 represents two meanings:
+        /// 1. CDP is current lending:
         /// accumulated debts: principal + stability fees + governance fees; 
         /// accumulatedDebt2 * accumulatedRates2 represents the debt with stability fees and governance fees in real time
+        /// 2. CDP is time lending:
+        /// it always be equal to zero and represents no meaning
         uint256 accumulatedDebt2; 
+        /// endTime only works when cdp is time lending.
+        uint256 endTime;
     }
 
     constructor(address _issuer, address _oracle, address _liquidator) public {
@@ -75,6 +92,19 @@ contract CDP is DSMath, DSNote, Template {
         accumulatedRates2 = RAY;
         liquidationRatio = 1500000000000000000000000000;
         liquidationPenalty = 1130000000000000000000000000;
+        floatation[uint8(CDPType._7DAYS)] = RAY * 11 / 10;
+        floatation[uint8(CDPType._30DAYS)] = RAY * 12 / 10;
+        floatation[uint8(CDPType._60DAYS)] = RAY * 13 / 10;
+        floatation[uint8(CDPType._90DAYS)] = RAY * 14 / 10;
+        floatation[uint8(CDPType._180DAYS)] = RAY * 15 / 10;
+        floatation[uint8(CDPType._360DAYS)] = RAY * 16 / 10;
+        term[uint8(CDPType._7DAYS)] = 7 days;
+        term[uint8(CDPType._30DAYS)] = 30 days;
+        term[uint8(CDPType._60DAYS)] = 60 days;
+        term[uint8(CDPType._90DAYS)] = 90 days;
+        term[uint8(CDPType._180DAYS)] = 180 days;
+        term[uint8(CDPType._360DAYS)] = 360 days;
+
 
         debtCeiling = 0;
 
@@ -118,6 +148,12 @@ contract CDP is DSMath, DSNote, Template {
 
     function getGovernanceFee() public view returns (uint) {
         return governanceFee;
+    }
+
+    function pudateFloatation(CDPType _type, uint _newfloatation) public {
+        require(_newfloatation >= RAY);
+        require(_type != CDPType.CURRENT);
+        floatation[uint8(_type)] = _newfloatation;
     }
 
     function updateLiquidationRatio(uint newRatio) public {
