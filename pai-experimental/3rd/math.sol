@@ -90,4 +90,18 @@ contract DSMath {
             }
         }
     }
+
+    function rlog2(uint x) internal pure returns (uint z) {
+        require(x < RAY * 2);
+
+        if (x > RAY) {
+            for (uint8 i = 127; i > 0; --i) {
+                x = (x * x) / RAY; // now 1 < x < 4
+                if (x >= RAY * 2) {
+                    x >>= 1; // now 1 < x < 2
+                    z += 1 << (i - 1);
+                }
+            }
+        }
+    }
 }
