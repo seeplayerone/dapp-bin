@@ -17,94 +17,102 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
 contract CDP is DSMath, DSNote, Template {
 
     event CreateCDP(uint _index);
-    event DepositBTC(uint collateral, uint debt1, uint debt2, uint _index, uint depositAmount);
-    event WithdrawBTC(uint collateral, uint debt1, uint debt2, uint _index, uint withdrawAmount);
-    event BorrowPAI(uint collateral, uint debt1, uint debt2, uint _index, uint borrowAmount);
-    event RepayPAI(uint collateral, uint debt1, uint debt2, uint _index, uint repayAmount, uint repayAmount1, uint repayAmount2);
+    event DepositCollateral(uint collateral, uint principal, uint debt, uint _index, uint depositAmount);
+    //event WithdrawCollateral(uint collateral, uint principal, uint debt, uint _index, uint withdrawAmount);
+    event BorrowPAI(uint collateral, uint principal, uint debt, uint _index, uint borrowAmount);
+    event RepayPAI(uint collateral, uint principal, uint debt, uint _index, uint repayAmount, uint repayAmount1, uint repayAmount2);
     event CloseCDP(uint _index);
-    event DebtOfCDP(uint _debt);
-    event DebtOfCDPWithGovernanceFee(uint _debt);
-    event TotalDebt(uint _debt);
+    event DebtOfCDP(uint principal, uint interest);
+    //event DebtOfCDPWithGovernanceFee(uint _debt);
     event Safe(bool _safe);
-    event Liquidate(uint collateral, uint debt1, uint debt2, uint _index, uint debtToLiquidator, uint collateralToLiquidator);
+    event Liquidate(uint collateral, uint principal, uint debt, uint _index, uint collateralToLiquidator);
 
     uint256 private CDPIndex = 0; /// how many CDPs have been created
     uint256 private liquidatedCDPIndex = 0; /// how many CDPs have been liquidated, only happens when the business is in settlement process 
 
-    /// usually we only set one of them
-    uint private stabilityFee; /// stability fee is calculated for liquidation, the fee is pre issued and sent to liquidator whenever rates change
-    uint private governanceFee; /// governance fee is not calculated for liquidation, the fee is deducted whenever users repay the borrows
+    uint public baseInterestRate;///actually, the value is (1 + base interest rate)
 
     //There are 7 kinds of cdps, one is current lending and the others are time lending. All time lending cdp will be liquidated when expire.
     enum CDPType {CURRENT,_7DAYS,_30DAYS,_60DAYS,_90DAYS,_180DAYS,_360DAYS}
-    mapping(uint8 => uint) public floatation;
+    mapping(uint8 => uint) public cutDown;
+    mapping(uint8 => uint) public adjustedInterestRate;
     mapping(uint8 => uint) public term;
+    uint public overdueBufferPeriod = 1 days;
+
+    //The CollateralRatio limit when cdp is created;
+    uint public createCollateralRatio = 2 * RAY;
+    uint public createRatioTolerance = RAY / 20;  //5%
+
+    //data for CDP exchange
+    struct approval{
+        address canBuyAddr;
+        uint price;
+    }
+    mapping(uint => approval) approvals;
+
+    //If the difference between the money paid and the debt is less than one hour's interest,
+    //The close request is still accepted
+    uint public closeCDPToleranceTime = 1 hours;
 
     uint private lastTimestamp;
-    uint private accumulatedRates1; /// accumulated rates of stability fees
-    uint private accumulatedRates2; /// accumulated rates of stability fees + governance fees
+    uint private accumulatedRates; /// accumulated rates of current lending fees
 
-    uint private totalNormalizedDebt; /// total debts of the CDP, calculated on accumulatedRates1
+    uint public totalPrincipal; /// total principal of all CDPs
 
-    uint private liquidationRatio; /// liquidation ratio
-    uint private liquidationPenalty; /// liquidation penalty
+    uint public liquidationRatio; /// liquidation ratio
+    uint public liquidationPenalty; /// liquidation penalty
 
-    uint private debtCeiling; /// debt ceiling
+    uint public debtCeiling; /// debt ceiling
 
     bool private settlement; /// the business is in settlement stage
 
-    Liquidator private liquidator; /// address of the liquidator;
-    PriceOracle private priceOracle; /// price oracle of BTC'/PAI and PIS/PAI
-    PAIIssuer private issuer; /// contract to mint/burn PAI stable coin
+    Liquidator public liquidator; /// address of the liquidator;
+    PriceOracle public priceOracle; /// price oracle of BTC'/PAI and PIS/PAI
+    PAIIssuer public issuer; /// contract to mint/burn PAI stable coin
 
-    uint private ASSET_BTC;
+    uint private ASSET_COLLATERAL;
     uint private ASSET_PAI;
 
-    mapping (uint => CDPRecord) private CDPRecords; /// all CDP records
+    mapping (uint => CDPRecord) public CDPRecords; /// all CDP records
 
     struct CDPRecord {
+        CDPType cdpType; ///see comments of enum CDPType
         address owner; /// owner of the CDP
-        uint256 collateral; /// collateral in form of BTC'
-        /// accumulatedDebt1 represents two meanings:
+        uint256 collateral; /// collateral amount
+        uint256 principal; 
+        /// accumulatedDebt represents two meanings:
         /// 1. CDP is current lending:
-        /// The interest will grow over time
-        /// accumulated debts: principal + stability fees; 
-        /// accumulatedDebt1 * accumulatedRates1 represents the debt with stability fees in real time
+        /// accumulatedDebt * accumulatedRates represents the debt composed by principal + interests
         /// 2. CDP is time lending:
-        /// The interest is fixed, it is calculated when the cdp is created.
-        /// accumulatedDebt1 itself represents the debt
-        uint256 accumulatedDebt1; 
-        /// accumulatedDebt1 represents two meanings:
-        /// 1. CDP is current lending:
-        /// accumulated debts: principal + stability fees + governance fees; 
-        /// accumulatedDebt2 * accumulatedRates2 represents the debt with stability fees and governance fees in real time
-        /// 2. CDP is time lending:
-        /// it always be equal to zero and represents no meaning
-        uint256 accumulatedDebt2; 
+        /// accumulatedDebt represents represents the debt composed by principal + interests, and need no more transformation
+        uint256 accumulatedDebt; 
         /// endTime only works when cdp is time lending.
         uint256 endTime;
     }
 
     constructor(address _issuer, address _oracle, address _liquidator) public {
-        stabilityFee = RAY;
-        governanceFee = RAY;
-        accumulatedRates1 = RAY;
-        accumulatedRates2 = RAY;
+        baseInterestRate = RAY * 12/10;
+        accumulatedRates = RAY;
         liquidationRatio = 1500000000000000000000000000;
         liquidationPenalty = 1130000000000000000000000000;
-        floatation[uint8(CDPType._7DAYS)] = RAY * 11 / 10;
-        floatation[uint8(CDPType._30DAYS)] = RAY * 12 / 10;
-        floatation[uint8(CDPType._60DAYS)] = RAY * 13 / 10;
-        floatation[uint8(CDPType._90DAYS)] = RAY * 14 / 10;
-        floatation[uint8(CDPType._180DAYS)] = RAY * 15 / 10;
-        floatation[uint8(CDPType._360DAYS)] = RAY * 16 / 10;
+        cutDown[uint8(CDPType._7DAYS)] = RAY * 2 / 1000 ;
+        cutDown[uint8(CDPType._30DAYS)] = RAY * 4 / 1000;
+        cutDown[uint8(CDPType._60DAYS)] = RAY * 6 / 1000;
+        cutDown[uint8(CDPType._90DAYS)] = RAY * 8 / 1000;
+        cutDown[uint8(CDPType._180DAYS)] = RAY * 10 / 1000;
+        cutDown[uint8(CDPType._360DAYS)] = RAY * 12 / 1000;
+        updateInterestRate(CDPType._7DAYS);
+        updateInterestRate(CDPType._30DAYS);
+        updateInterestRate(CDPType._60DAYS);
+        updateInterestRate(CDPType._90DAYS);
+        updateInterestRate(CDPType._180DAYS);
+        updateInterestRate(CDPType._360DAYS);
         term[uint8(CDPType._7DAYS)] = 7 days;
         term[uint8(CDPType._30DAYS)] = 30 days;
         term[uint8(CDPType._60DAYS)] = 60 days;
         term[uint8(CDPType._90DAYS)] = 90 days;
         term[uint8(CDPType._180DAYS)] = 180 days;
         term[uint8(CDPType._360DAYS)] = 360 days;
-
 
         debtCeiling = 0;
 
@@ -114,7 +122,7 @@ contract CDP is DSMath, DSNote, Template {
         priceOracle = PriceOracle(_oracle);
         liquidator = Liquidator(_liquidator);
 
-        ASSET_BTC = 0;
+        ASSET_COLLATERAL = 0;
         ASSET_PAI = issuer.getAssetType();
     }
 
@@ -122,38 +130,45 @@ contract CDP is DSMath, DSNote, Template {
         ASSET_PAI = assetType;
     } 
 
-    function setAssetBTC(uint assetType) public {
-        ASSET_BTC = assetType;
+    function setAssetCollateral(uint assetType) public {
+        ASSET_COLLATERAL = assetType;
     }
 
     function era() public view returns (uint) {
         return block.timestamp;
     }
 
-    function updateStabilityFee(uint newFee) public {
-        require(newFee >= RAY);
+    function updateBaseInterestRate(uint newRate) public {
+        require(newRate >= RAY);
         updateRates();
-        stabilityFee = newFee;
+        baseInterestRate = newRate;
+        updateInterestRate(CDPType._7DAYS);
+        updateInterestRate(CDPType._30DAYS);
+        updateInterestRate(CDPType._60DAYS);
+        updateInterestRate(CDPType._90DAYS);
+        updateInterestRate(CDPType._180DAYS);
+        updateInterestRate(CDPType._360DAYS);
     }
 
-    function getStabilityFee() public view returns (uint) {
-        return stabilityFee;
-    }
-
-    function updateGovernanceFee(uint newFee) public {
-        require(newFee >= RAY);
-        updateRates();
-        governanceFee = newFee;
-    }
-
-    function getGovernanceFee() public view returns (uint) {
-        return governanceFee;
-    }
-
-    function pudateFloatation(CDPType _type, uint _newfloatation) public {
-        require(_newfloatation >= RAY);
+    function updateInterestRate(CDPType _type) internal {
         require(_type != CDPType.CURRENT);
-        floatation[uint8(_type)] = _newfloatation;
+        // TODO the following formula is temporary
+        adjustedInterestRate[uint8(_type)] = baseInterestRate - cutDown[uint8(_type)] / 86400 / 365;
+        require(adjustedInterestRate[uint8(_type)] >= RAY);
+    }
+
+    function updateCutDown(CDPType _type, uint _newCutDown) public {
+        require(_newCutDown >= RAY);
+        require(_type != CDPType.CURRENT);
+        cutDown[uint8(_type)] = _newCutDown;
+        updateInterestRate(_type);
+    }
+
+    function updateCreateCollateralRatio(uint _newRatio, uint _newTolerance) public {
+        require(_newRatio - _newTolerance >= liquidationRatio);
+        require(_newTolerance < RAY / 10);
+        createCollateralRatio = _newRatio;
+        createRatioTolerance = _newTolerance; 
     }
 
     function updateLiquidationRatio(uint newRatio) public {
@@ -161,47 +176,45 @@ contract CDP is DSMath, DSNote, Template {
         liquidationRatio = newRatio;
     }
 
-    function getLiquidationRatio() public view returns (uint) {
-        return liquidationRatio;
-    }
-
     function updateLiquidationPenalty(uint newPenalty) public {
         require(newPenalty >= RAY);
         liquidationPenalty = newPenalty;
-    }
-
-    function getLiquidationPenalty() public view returns (uint) {
-        return liquidationPenalty;
     }
 
     function updateDebtCeiling(uint newCeiling) public {
         debtCeiling = newCeiling;
     }
 
-    function getDebtCeiling() public view returns (uint) {
-        return debtCeiling;
-    }
-
     /// @dev CDP base operations
     /// create a CDP
-    function createCDP() public note returns(uint record) {
-        return createCDPInternal();
-    }
-
-    function createCDPInternal() internal returns (uint record) {
+    function createCDPInternal(CDPType _type) internal returns (uint record) {
         require(!settlement);
         CDPIndex = add(CDPIndex, 1);
         record = CDPIndex;
         CDPRecords[record].owner = msg.sender;
+        CDPRecords[record].cdpType = _type;
         emit CreateCDP(record);
     }
 
     /// transfer ownership of a CDP
-    function transferCDPOwnership(uint record, address newOwner) public note {
+    function transferCDPOwnership(uint record, address newOwner, uint _price) public note {
         require(CDPRecords[record].owner == msg.sender);
         require(newOwner != msg.sender);
         require(newOwner != 0x0);
-        CDPRecords[record].owner = newOwner;
+        if(0 == _price) {
+            CDPRecords[record].owner = newOwner;
+        } else {
+            approvals[record].canBuyAddr = newOwner;
+            approvals[record].price = _price;
+        }
+    }
+
+    function buyCDP(uint record) public payable note {
+        require(msg.assettype == ASSET_PAI);
+        require(msg.sender == approvals[record].canBuyAddr);
+        require(msg.value == approvals[record].price);
+        CDPRecords[record].owner = msg.sender;
+        delete approvals[record];
     }
 
     /// deposit BTC
@@ -211,58 +224,50 @@ contract CDP is DSMath, DSNote, Template {
 
     function depositInternal(uint record) internal {
         require(!settlement);
-        require(msg.assettype == ASSET_BTC);
+        require(msg.assettype == ASSET_COLLATERAL);
         require(CDPRecords[record].owner == msg.sender);
 
         CDPRecords[record].collateral = add(CDPRecords[record].collateral, msg.value);
 
         CDPRecord storage data = CDPRecords[record];
-        emit DepositBTC(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, msg.value);        
-    }
-
-    /// withdraw BTC
-    function withdraw(uint record, uint amount) public note {
-        require(CDPRecords[record].owner == msg.sender);
-        
-        CDPRecords[record].collateral = sub(CDPRecords[record].collateral, amount);
-
-        require(safe(record));
-        msg.sender.transfer(amount, ASSET_BTC);
-
-        CDPRecord storage data = CDPRecords[record];
-        emit WithdrawBTC(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, amount);
+        if (CDPType.CURRENT == data.cdpType) {
+            emit DepositCollateral(data.collateral, data.principal, rmul(data.accumulatedDebt, accumulatedRates), record, msg.value);
+        } else {
+            emit DepositCollateral(data.collateral, data.principal, data.accumulatedDebt, record, msg.value);
+        }
     }
 
     /// borrow PAI
-    function borrow(uint record, uint amount) public note {
-        borrowInternal(record, amount);
-    }
-
     function borrowInternal(uint record, uint amount) internal {
         require(!settlement);
         require(CDPRecords[record].owner == msg.sender);
+        require(amount > 0);
 
-        uint newDebt1 = rdiv(amount, updateAndFetchRates1());
-        require(newDebt1 > 0);
-
-        CDPRecords[record].accumulatedDebt1 = add(CDPRecords[record].accumulatedDebt1, newDebt1);
-        totalNormalizedDebt = add(totalNormalizedDebt, newDebt1);
-
-        uint newDebt2 = rdiv(amount, updateAndFetchRates2());
-        CDPRecords[record].accumulatedDebt2 = add(CDPRecords[record].accumulatedDebt2, newDebt2);
-
+        CDPRecord storage data = CDPRecords[record];
+        data.principal = add(data.principal, amount);
+        totalPrincipal = add(totalPrincipal, amount);
+        uint newDebt;
+        if (CDPType.CURRENT == data.cdpType) {
+            newDebt = rdiv(amount, updateAndFetchRates());
+            data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
+            emit BorrowPAI(data.collateral, data.principal,rmul(data.accumulatedDebt, accumulatedRates), record, amount);
+        } else {
+            newDebt = rmul(amount, rpow(adjustedInterestRate[uint8(data.cdpType)], term[uint8(data.cdpType)]));
+            data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
+            CDPRecords[record].endTime = add(era(), term[uint8(data.cdpType)]);
+            emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount);
+        }
         require(safe(record));
         /// TODO debt ceiling check
 
         issuer.mint(amount, msg.sender);
-
-        CDPRecord storage data = CDPRecords[record];
-        emit BorrowPAI(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, amount);
     }
 
     /// create CDP + deposit BTC + borrow PAI
-    function createDepositBorrow(uint amount) public payable note {
-        uint id = createCDPInternal();
+    function createDepositBorrow(uint amount, CDPType _type) public payable note {
+        require(mul(msg.value, priceOracle.getPrice(ASSET_COLLATERAL)) / amount >= sub(createCollateralRatio,createRatioTolerance));
+        require(mul(msg.value, priceOracle.getPrice(ASSET_COLLATERAL)) / amount <= add(createCollateralRatio,createRatioTolerance));
+        uint id = createCDPInternal(_type);
         depositInternal(id);
         borrowInternal(id, amount);
     }
@@ -275,152 +280,102 @@ contract CDP is DSMath, DSNote, Template {
     function repayInternal(uint record) internal {
         require(!settlement);
         require(msg.assettype == ASSET_PAI);
-       
-        uint change;
-        uint newRepay1;
-        uint newRepay2 = rdiv(msg.value, updateAndFetchRates2());
-        require(newRepay2 > 0);
-
-        uint repay1Ratio = rdiv(debtOfCDP(record), debtOfCDPwithGovernanceFee(record));
-        /// there could be precision loss
-        if(repay1Ratio > RAY) {
-            repay1Ratio = RAY; 
-        }
-
-        if(newRepay2 > CDPRecords[record].accumulatedDebt2) {
-            /// note change is calculated in rates2
-            change = rmul(sub(newRepay2, CDPRecords[record].accumulatedDebt2), updateAndFetchRates2());
-            msg.sender.transfer(change, ASSET_PAI);
-            newRepay1 = CDPRecords[record].accumulatedDebt1;     
-            newRepay2 = CDPRecords[record].accumulatedDebt2;       
-        } else {
-            //uint debtAmount = rmul(msg.value, repay1Ratio);
-            newRepay1 = rdiv(rmul(msg.value, repay1Ratio), updateAndFetchRates1());
-        }
-
-        uint amount1 = rmul(sub(msg.value, change), repay1Ratio);
-        uint amount2 = sub(sub(msg.value, change), amount1);
-        
-        CDPRecords[record].accumulatedDebt1 = sub(CDPRecords[record].accumulatedDebt1, newRepay1);
-        totalNormalizedDebt = sub(totalNormalizedDebt, newRepay1);
-
-        CDPRecords[record].accumulatedDebt2 = sub(CDPRecords[record].accumulatedDebt2, newRepay2);
-        
-        /// burn pai
-        if(amount1 > 0) {
-            issuer.burn.value(amount1, ASSET_PAI)();
-        }
-
-        /// governance fee to liquidator
-        if(amount2 > 0) {
-            address(liquidator).transfer(amount2, ASSET_PAI);
-        }
-
+        require(msg.value > 0);
         CDPRecord storage data = CDPRecords[record];
-        emit RepayPAI(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, msg.value, amount1, amount2);
-
-    }
-
-    /// close CDP
-    function closeCDPRecord(uint record) public payable note {
-        require(!settlement);
-        require(CDPRecords[record].owner == msg.sender);
-
-        if(CDPRecords[record].accumulatedDebt2 > 0) {
-            repayInternal(record);
+        //uint change;
+        (uint principal,uint interest) = debtOfCDP(record);
+        uint payForPrincipal;
+        uint payForInterest;
+        if(rmul(msg.value,rpow(baseInterestRate,closeCDPToleranceTime)) >= add(principal,interest)) {
+            //Actually there are little difference between Current and Time lending, but considering the
+            //huge improvement in logic predication, the difference is ignored.
+            //This will cause a little loss in interest income of Time lending.
+            uint change = 0;
+            if(msg.value > add(principal,interest)) {
+                change = sub(msg.value,add(principal,interest));
+                msg.sender.transfer(change, ASSET_PAI);
+            }
+            payForPrincipal = principal;
+            payForInterest = sub(msg.value,add(change,principal));
+            if(data.collateral > 0) {
+                msg.sender.transfer(data.collateral, ASSET_COLLATERAL);
+            }
+            liquidator.transfer(payForInterest, ASSET_PAI);
+            emit RepayPAI(data.collateral, 0, 0, record, msg.value, payForPrincipal, payForInterest);
+            delete CDPRecords[record];
+            emit CloseCDP(record);
+        } else {
+            uint repayRatio = rdiv(principal, add(principal,interest));
+            /// there could be precision loss
+            if(repayRatio > RAY) {
+                repayRatio = RAY;
+            }
+            payForPrincipal = rmul(msg.value, repayRatio);
+            payForInterest = sub(msg.value, payForPrincipal);
+            data.principal = sub(data.principal,payForPrincipal);
+            data.accumulatedDebt = sub(data.accumulatedDebt, rdiv(payForInterest,updateAndFetchRates()));
+            emit RepayPAI(data.collateral, data.principal, rmul(data.accumulatedDebt, accumulatedRates), record, msg.value, payForPrincipal, payForInterest);
         }
-
-        require(debtOfCDP(record) == 0 && debtOfCDPwithGovernanceFee(record) == 0);
-
-        if(collateralOfCDP(record) > 0) {
-            withdraw(record, collateralOfCDP(record));
-        }
-        delete CDPRecords[record];
-
-        emit CloseCDP(record);
+        totalPrincipal = sub(totalPrincipal,payForPrincipal);
+        issuer.burn.value(payForPrincipal, ASSET_PAI)();
+        liquidator.transfer(payForInterest, ASSET_PAI);
+        // TODO transfer to Financial Contracts directly
     }
 
     /// debt of CDP, include principal + stability fees
-    function debtOfCDP(uint record) public returns (uint256) {
+    function debtOfCDP(uint record) public returns (uint256,uint256) {
         CDPRecord storage data = CDPRecords[record];
         require(data.owner != 0x0);
-        uint debt = rmul(data.accumulatedDebt1, updateAndFetchRates1());
-        emit DebtOfCDP(debt);
-        return debt;
-    }
-
-    /// debt of CDP, include principal + stability fees + governance fees
-    function debtOfCDPwithGovernanceFee(uint record) public returns (uint256) {
-        CDPRecord storage data = CDPRecords[record];
-        require(data.owner != 0x0);
-        uint debt = rmul(data.accumulatedDebt2, updateAndFetchRates2());
-        emit DebtOfCDPWithGovernanceFee(debt);
-        return debt;
-    }
-
-    function ownerOfCDP(uint record) public view returns (address) {
-        return CDPRecords[record].owner;
-    }
-
-    function collateralOfCDP(uint record) public view returns (uint256) {
-        return CDPRecords[record].collateral;
-    }
-
-    function totalDebt() public returns (uint256) {
-        return rmul(totalNormalizedDebt, updateAndFetchRates1());
+        uint debt;
+        if(CDPType.CURRENT == data.cdpType) {
+            debt = rmul(data.accumulatedDebt, updateAndFetchRates());
+        } else {
+            debt = data.accumulatedDebt;
+        }
+        uint interest = sub(debt,data.principal);
+        emit DebtOfCDP(data.principal,interest);
+        return (data.principal,interest);
     }
 
     function totalCollateral() public view returns (uint256) {
-        return flow.balance(this, ASSET_BTC);
+        return flow.balance(this, ASSET_COLLATERAL);
     }
 
     function setPriceOracle(PriceOracle newPriceOracle) public {
         priceOracle = newPriceOracle;
     }
 
-    function getPriceOracle() public view returns (address) {
-        return priceOracle;
-    }
-
     function getCollateralPrice() public view returns (uint256 wad){
-        return priceOracle.getPrice(ASSET_BTC);
+        return priceOracle.getPrice(ASSET_COLLATERAL);
     }
 
     function setLiquidator(Liquidator newLiquidator) public {
         liquidator = newLiquidator;
     }
 
-    function getLiquidator() public view returns (address) {
-        return liquidator;
-    }
-
     function setPAIIssuer(PAIIssuer newIssuer) public {
         issuer = newIssuer;
-    }
-
-    function getPAIIssuer() public view returns (address) {
-        return issuer;
     }
 
     function safe(uint record) public returns (bool) {
         CDPRecord storage data = CDPRecords[record];
         require(data.owner != 0x0);
+        if(CDPType.CURRENT == data.cdpType && add(data.endTime,overdueBufferPeriod) > era()) {
+            emit Safe(false);
+            return false;
+        }
 
-        uint256 collateralValue = rmul(data.collateral, priceOracle.getPrice(ASSET_BTC));
-        uint256 debtValue = rmul(debtOfCDP(record), liquidationRatio);
+        uint256 collateralValue = rmul(data.collateral, priceOracle.getPrice(ASSET_COLLATERAL));
+        (,uint debt) = debtOfCDP(record);
+        uint256 debtValue = rmul(debt, liquidationRatio);
 
         emit Safe(collateralValue >= debtValue);
         return collateralValue >= debtValue;
     }
 
-    function updateAndFetchRates1() public returns (uint256) {
+    function updateAndFetchRates() public returns (uint256) {
         updateRates();
-        return accumulatedRates1;
-    }
-
-    function updateAndFetchRates2() public returns (uint256) {
-        updateRates();
-        return accumulatedRates2;
+        return accumulatedRates;
     }
 
     /// update `accumulatedRates1` and `accumulatedRates2` when borrow or repay happens
@@ -429,52 +384,30 @@ contract CDP is DSMath, DSNote, Template {
 
         uint256 currentTimestamp = era();
         uint256 deltaSeconds = currentTimestamp - lastTimestamp;
-        if (deltaSeconds == 0) return; 
+        if (deltaSeconds == 0) return;
+
         lastTimestamp = currentTimestamp;
-
-        uint256 temp = RAY;
-
-        /// if stability fee is required
-        if (stabilityFee != RAY) { 
-            uint256 previousAccumulatedRates1 = accumulatedRates1;
-            temp = rpow(stabilityFee, deltaSeconds);
-            accumulatedRates1 = rmul(accumulatedRates1, temp);
-            if(temp > 0 && totalNormalizedDebt > 0) {
-                issuer.mint(rmul(sub(accumulatedRates1,previousAccumulatedRates1), totalNormalizedDebt), address(liquidator));
-                liquidator.cancelDebt();
-            }
+        if (baseInterestRate != RAY) {
+            accumulatedRates = rmul(accumulatedRates, rpow(baseInterestRate, deltaSeconds));
         }
-
-        // if governance fee is required
-        if (governanceFee != RAY) {
-            temp = rmul(temp, rpow(governanceFee, deltaSeconds));
-        }
-        if (temp != RAY) {
-            accumulatedRates2 = rmul(accumulatedRates2, temp);
-        }
-
     }
 
     /// liquidate a CDP
     function liquidate(uint record) public note {
         require(!safe(record) || settlement);
-
-        uint256 debt = debtOfCDP(record);
-        liquidator.addDebt(debt);
-        totalNormalizedDebt = sub(totalNormalizedDebt, CDPRecords[record].accumulatedDebt1);
-        CDPRecords[record].accumulatedDebt1 = 0;
-        CDPRecords[record].accumulatedDebt2 = 0;
-
-        uint256 collateralToLiquidator = rdiv(rmul(debt, liquidationPenalty), priceOracle.getPrice(ASSET_BTC));
-        if(collateralToLiquidator > CDPRecords[record].collateral) {
-            collateralToLiquidator = CDPRecords[record].collateral;
-        }
-        
-        CDPRecords[record].collateral = sub(CDPRecords[record].collateral, collateralToLiquidator);
-        address(liquidator).transfer(collateralToLiquidator, ASSET_BTC);
-
         CDPRecord storage data = CDPRecords[record];
-        emit Liquidate(data.collateral, rmul(data.accumulatedDebt1, accumulatedRates1), rmul(data.accumulatedDebt2, accumulatedRates2), record, debt, collateralToLiquidator);
+        (uint principal, uint interest) = debtOfCDP(record);
+        liquidator.addDebt(principal);
+        totalPrincipal = sub(totalPrincipal, principal);
+
+        uint256 collateralToLiquidator = rdiv(add(rmul(principal, liquidationPenalty),interest), priceOracle.getPrice(ASSET_COLLATERAL));
+        if(collateralToLiquidator > data.collateral) {
+            collateralToLiquidator = data.collateral;
+        }
+        uint leftCollateral = sub(data.collateral, collateralToLiquidator);
+        msg.sender.transfer(leftCollateral, ASSET_COLLATERAL);
+        liquidator.transfer(collateralToLiquidator, ASSET_COLLATERAL);
+        emit Liquidate(data.collateral, data.principal, add(principal,interest), record, collateralToLiquidator);
     }
 
     function terminate() public note {
@@ -490,7 +423,7 @@ contract CDP is DSMath, DSNote, Template {
         require(liquidatedCDPIndex != CDPIndex);
         uint upperLimit = min(add(liquidatedCDPIndex, _num), CDPIndex);
         for(uint i = add(liquidatedCDPIndex,1); i <= upperLimit; i = add(i,1)) {
-            if(CDPRecords[i].accumulatedDebt1 > 0)
+            if(CDPRecords[i].principal > 0)
                 liquidate(i);
         }
         liquidatedCDPIndex = upperLimit;
@@ -503,7 +436,7 @@ contract CDP is DSMath, DSNote, Template {
 
     /// all debt cleared, ready for phase two
     function readyForPhaseTwo() public view returns (bool) {
-        return totalNormalizedDebt == 0 || liquidatedCDPIndex == CDPIndex;
+        return totalPrincipal == 0 || liquidatedCDPIndex == CDPIndex;
     }
 
     function totalNumberOfCDP() public view returns (uint) {

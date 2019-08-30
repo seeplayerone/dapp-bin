@@ -1290,45 +1290,33 @@ contract SettlementTest is TestBase {
 }
 
 contract MultipleInterestTest is TestBase {
-    function setup() internal {
-        oracle = new PriceOracle();
 
-        paiIssuer = new FakePAIIssuer();
-        paiIssuer.init("sb");
-        ASSET_PAI = paiIssuer.getAssetType();
-
-        btcIssuer = new FakeBTCIssuer();
-        btcIssuer.init("sb2");
-        ASSET_BTC = btcIssuer.getAssetType();
-
-        liquidator = new Liquidator(oracle, paiIssuer);
-        liquidator.setAssetBTC(ASSET_BTC);
-
-        cdp = new TimefliesCDP(paiIssuer, oracle, liquidator);
-        cdp.setAssetBTC(ASSET_BTC);
-
-        oracle.updatePrice(ASSET_BTC, RAY);
-
-        paiIssuer.mint(1000000000000, this);
-        btcIssuer.mint(1000000000000, this);
-    }
-
-    function testALL() public {
+    function testMultiInterest() public {
         setup();
-        assertEq(cdp.floatation(1), 110000000000000000000000000);
-        // cdp.floatation[2] = RAY * 12 / 10;
-        // floatation[3] = RAY * 13 / 10;
-        // floatation[4] = RAY * 14 / 10;
-        // floatation[5] = RAY * 15 / 10;
-        // floatation[6] = RAY * 16 / 10;
-        // term[uint8(CDPType._7DAYS)] = 7 days;
-        // term[uint8(CDPType._30DAYS)] = 30 days;
-        // term[uint8(CDPType._60DAYS)] = 60 days;
-        // term[uint8(CDPType._90DAYS)] = 90 days;
-        // term[uint8(CDPType._180DAYS)] = 180 days;
-        // term[uint8(CDPType._360DAYS)] = 360 days;
+        assertEq(cdp.floatation(1), 1100000000000000000000000000);
+        assertEq(cdp.floatation(2), 1200000000000000000000000000);
+        assertEq(cdp.floatation(3), 1300000000000000000000000000);
+        assertEq(cdp.floatation(4), 1400000000000000000000000000);
+        assertEq(cdp.floatation(5), 1500000000000000000000000000);
+        assertEq(cdp.floatation(6), 1600000000000000000000000000);
+        assertEq(cdp.term(1), 7 days);
+        assertEq(cdp.term(2), 30 days);
+        assertEq(cdp.term(3), 60 days);
+        assertEq(cdp.term(4), 90 days);
+        assertEq(cdp.term(5), 180 days);
+        assertEq(cdp.term(6), 360 days);
 
-
+        cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,1,1250000000000000000000000000));
+        assertEq(cdp.floatation(1), 1250000000000000000000000000);
+        bool tempBool;
+        //Only allowed enumeration values can modify parameters
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,0,1250000000000000000000000000));
+        assertTrue(!tempBool);
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,7,1250000000000000000000000000));
+        assertTrue(!tempBool);
+        //The parameters can't be set below 1.
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,1,990000000000000000000000000));
+        assertTrue(!tempBool);
     }
 
 }
