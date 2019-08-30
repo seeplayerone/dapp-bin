@@ -4,7 +4,7 @@ import "github.com/seeplayerone/dapp-bin/pai-experimental/mathPI.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/mctest.sol";
 
 
-contract testLog2 is DSTest, MathPI {
+contract TestMath is DSTest, MathPI {
     uint256 private constant FIXED_1 = 0x080000000000000000000000000000000;
     uint256 private constant FIXED_2 = 0x100000000000000000000000000000000;
     uint8 private constant MAX_PRECISION = 127;
@@ -22,8 +22,6 @@ contract testLog2 is DSTest, MathPI {
         assertEq(generalLog(RAY * 18/10),0);
         assertEq(generalLog(RAY * 19/10),0);
 
-        assertEq(generalLog(RAY), 888);
-        assertEq(generalLog(RAY * 9 / 10), 888);
         assertEq(generalLog(RAY * 2), 888);
         assertEq(generalLog(RAY * 4), 888);
         assertEq(generalLog(RAY * 8), 888);

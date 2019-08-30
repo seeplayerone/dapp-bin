@@ -9,6 +9,8 @@ contract MathPI is DSMath {
     uint256 private constant ONE = 1;
 
     function generalLog(uint256 x) internal pure returns (uint256) {
+        require(x >= RAY);
+
         uint256 res = 0;
         x = mul(FIXED_1,x) / RAY;
 
