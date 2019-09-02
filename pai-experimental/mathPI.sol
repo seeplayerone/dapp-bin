@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/evilcc/dapp-bin/pai-experimental/3rd/math.sol";
 
 contract MathPI is DSMath {
     uint256 private constant FIXED_1 = 0x080000000000000000000000000000000;
@@ -32,7 +32,7 @@ contract MathPI is DSMath {
             }
         }
 
-        return res * RAY / FIXED_1;
+        return mul(res, RAY) / FIXED_1;
     }
     function floorLog2(uint256 _n) internal pure returns (uint8) {
         uint8 res = 0;

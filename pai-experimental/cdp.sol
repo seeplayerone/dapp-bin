@@ -7,14 +7,14 @@ pragma solidity 0.4.25;
 // import "./price_oracle.sol";
 // import "./pai_issuer.sol";
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/mathPI.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/liquidator.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
 
-contract CDP is DSMath, DSNote, Template {
+contract CDP is MathPI, DSNote, Template {
 
     event CreateCDP(uint _index);
     event DepositCollateral(uint collateral, uint principal, uint debt, uint _index, uint depositAmount);
@@ -152,8 +152,7 @@ contract CDP is DSMath, DSNote, Template {
 
     function updateInterestRate(CDPType _type) internal {
         require(_type != CDPType.CURRENT);
-        // TODO the following formula is temporary
-        adjustedInterestRate[uint8(_type)] = baseInterestRate - cutDown[uint8(_type)] / 86400 / 365;
+        adjustedInterestRate[uint8(_type)] = 2 ** (generalLog(rpow(baseInterestRate, 1 years) - cutDown[uint8(_type)])/ 1 years);
         require(adjustedInterestRate[uint8(_type)] >= RAY);
     }
 
