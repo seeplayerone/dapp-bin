@@ -1,10 +1,10 @@
 ## Document Overview
 
-This document briefly describes the use of the AsiLink wallet. AsiLink is the official Chrome-based plug-in wallet provided by Asimov, which is designed for basic scenarios such as autonomous organization, validator and developer center in Asimov.
+This document briefly describes the use of the AsiLink wallet. AsiLink is the official Chrome-based plug-in wallet provided by Asimov.
 
 ## Download and Install
 
-[Download](https://asimov.network/wallet) AsiLink plugin wallet from the Asimov official website, open the Chrome browser extensions (chrome://extensions/) page, drag in the newly downloaded wallet crx file for installation. Verify that the plugin wallet is installed successfully, as shown below:
+[Download](https://asimov.network/wallet) AsiLink plugin wallet from the Asimov official website, open the Chrome browser extensions (chrome://extensions/) page, drag in the newly downloaded wallet crx file (after unzip) for installation. Verify that the plugin wallet is installed successfully, as shown below:
 
 ![](./img/asilink-installed.png)
 
@@ -28,15 +28,15 @@ Verify the mnemonic words.
 
 Click the ```Confirm``` button to create the wallet.
 
-## Obtain ASC on TestNet
+## Obtain Asim from Faucet
 
-After the wallet is created successfully, switch to the Test Network. Initially there are no assets. Go to [faucet](https://ide.asimov.work/#/receive) page on TestNet to get some test ASC. Input the wallet address created above and receive 10 test ASC.
+After the wallet is created successfully, switch to the Dev1 Network or Test Network. Initially there are no assets. Go to [faucet](https://ide.asimov.work/#/receive) page to get some test Asim. Input the wallet address created above to receive some test Asim.
 
 ![](./img/faucet.png)
 
-Open AsiLink to confirm the test ASC is received.
+Open AsiLink to confirm the test Asim is received.
 
-![](./img/asilink-asc.png)
+![](./img/asilink-ASC.png)
 
 ## Transfer
 
@@ -48,6 +48,6 @@ Close AsiLink, wait for the block to to confirmed, and reopen it after 5 seconds
 
 ![](./img/asilink-verify.png)
 
-You can also open the AScan page and search for wallet address to confirm the transfer action.
+You can also open the Ascan page and search for wallet address to confirm the transfer action.
 
 ![](./img/asilink-confirm.png)
