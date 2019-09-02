@@ -263,12 +263,13 @@ contract CDP is MathPI, DSNote, Template {
     }
 
     /// create CDP + deposit BTC + borrow PAI
-    function createDepositBorrow(uint amount, CDPType _type) public payable note {
+    function createDepositBorrow(uint amount, CDPType _type) public payable note returns(uint) {
         require(mul(msg.value, priceOracle.getPrice(ASSET_COLLATERAL)) / amount >= sub(createCollateralRatio,createRatioTolerance));
         require(mul(msg.value, priceOracle.getPrice(ASSET_COLLATERAL)) / amount <= add(createCollateralRatio,createRatioTolerance));
         uint id = createCDPInternal(_type);
         depositInternal(id);
         borrowInternal(id, amount);
+        return id;
     }
 
     function repay(uint record) public payable note {
