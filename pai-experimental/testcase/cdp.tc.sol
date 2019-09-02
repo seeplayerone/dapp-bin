@@ -110,9 +110,8 @@ contract CDPTest is TestBase {
         assertEq(cdp.totalCollateral(), 0);
         assertEq(cdp.totalPrincipal(), 0);
 
-        cdp.updateCreateCollateralRatio(RAY * 16 / 10, RAY / 10);
         uint idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
-        // assertEq(idx,1);
+        assertEq(idx,1);
         // assertEq(cdp.collateralOfCDP(idx), 0);
         // assertEq(cdp.debtOfCDP(idx), 0);
         // assertEq(cdp.debtOfCDPwithGovernanceFee(idx), 0);
