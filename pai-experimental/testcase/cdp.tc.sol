@@ -1,15 +1,9 @@
 pragma solidity 0.4.25;
 
-// import "../../library/template.sol";
-// import "../cdp.sol";
-// import "../fake_btc_issuer.sol";
-// import "../3rd/test.sol";
-// import "../3rd/math.sol";
-
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/mctest.sol"; //mctest should be changed back when push up
+import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
 
