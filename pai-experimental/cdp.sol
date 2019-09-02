@@ -165,7 +165,7 @@ contract CDP is MathPI, DSNote, Template {
 
     function updateCreateCollateralRatio(uint _newRatio, uint _newTolerance) public {
         require(_newRatio - _newTolerance >= liquidationRatio);
-        require(_newTolerance < RAY / 10);
+        require(_newTolerance <= RAY / 10);
         createCollateralRatio = _newRatio;
         createRatioTolerance = _newTolerance; 
     }

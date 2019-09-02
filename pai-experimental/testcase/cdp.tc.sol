@@ -58,24 +58,24 @@ contract TestBase is Template, DSTest, DSMath {
     function setup() public {
         oracle = new PriceOracle();
 
-        // paiIssuer = new FakePAIIssuer();
-        // paiIssuer.init("sb");
-        // ASSET_PAI = paiIssuer.getAssetType();
+        paiIssuer = new FakePAIIssuer();
+        paiIssuer.init("sb");
+        ASSET_PAI = paiIssuer.getAssetType();
 
-        // btcIssuer = new FakeBTCIssuer();
-        // btcIssuer.init("sb2");
-        // ASSET_BTC = btcIssuer.getAssetType();
+        btcIssuer = new FakeBTCIssuer();
+        btcIssuer.init("sb2");
+        ASSET_BTC = btcIssuer.getAssetType();
 
-        // liquidator = new Liquidator(oracle, paiIssuer);
-        // liquidator.setAssetBTC(ASSET_BTC);
+        liquidator = new Liquidator(oracle, paiIssuer);
+        liquidator.setAssetBTC(ASSET_BTC);
 
-        // cdp = new TimefliesCDP(paiIssuer, oracle, liquidator);
-        // cdp.setAssetCollateral(ASSET_BTC);
+        cdp = new TimefliesCDP(paiIssuer, oracle, liquidator);
+        cdp.setAssetCollateral(ASSET_BTC);
 
-        // oracle.updatePrice(ASSET_BTC, RAY);
+        oracle.updatePrice(ASSET_BTC, RAY);
 
-        // paiIssuer.mint(1000000000000, this);
-        // btcIssuer.mint(1000000000000, this);
+        paiIssuer.mint(1000000000000, this);
+        btcIssuer.mint(1000000000000, this);
     }
 
     function testMoney() returns (uint) {
@@ -110,8 +110,9 @@ contract CDPTest is TestBase {
         assertEq(cdp.totalCollateral(), 0);
         assertEq(cdp.totalPrincipal(), 0);
 
+        cdp.updateCreateCollateralRatio(RAY * 16 / 10, RAY / 10);
         uint idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
-        assertEq(idx,1);
+        // assertEq(idx,1);
         // assertEq(cdp.collateralOfCDP(idx), 0);
         // assertEq(cdp.debtOfCDP(idx), 0);
         // assertEq(cdp.debtOfCDPwithGovernanceFee(idx), 0);
