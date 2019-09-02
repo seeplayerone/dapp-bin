@@ -142,10 +142,10 @@ contract CDPTest is TestBase {
         assertEq(interest, 0);
 
         cdp.repay.value(50000000, ASSET_PAI)(idx);
-        assertEq(cdp.totalCollateral(), 0);  //15
-        assertEq(cdp.totalPrincipal(), 0);   //16
+        assertEq(cdp.totalCollateral(), 0);
+        assertEq(cdp.totalPrincipal(), 0);
         assertEq(flow.balance(this, ASSET_PAI),emm);
-        assertEq(flow.balance(this, ASSET_BTC),emm);//18
+        assertEq(flow.balance(this, ASSET_BTC),emm);
         bool tempBool;
         tempBool = cdp.call(abi.encodeWithSelector(cdp.debtOfCDP.selector,idx));
         assertTrue(!tempBool);
