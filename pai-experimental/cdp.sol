@@ -91,7 +91,7 @@ contract CDP is MathPI, DSNote, Template {
     }
 
     constructor(address _issuer, address _oracle, address _liquidator) public {
-        baseInterestRate = RAY * 12/10;
+        baseInterestRate = 1000000005781380000000000000; // Annual interest rate = 20 %
         accumulatedRates = RAY;
         liquidationRatio = 1500000000000000000000000000;
         liquidationPenalty = 1130000000000000000000000000;
