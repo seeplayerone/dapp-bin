@@ -1,3 +1,5 @@
+pragma solidity 0.4.25;
+
 /// @dev the Registry interface
 ///  Registry is a system contract, an organization needs to register before issuing assets
 interface Registry {
