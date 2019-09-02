@@ -1285,8 +1285,6 @@ contract SettlementTest is TestBase {
         assertTrue(!oracle.call(abi.encodeWithSelector(oracle.updatePrice.selector,ASSET_BTC, 1)));
     }
 
-
-
 }
 
 contract MultipleInterestTest is TestBase {

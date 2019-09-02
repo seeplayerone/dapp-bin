@@ -17,4 +17,6 @@ Contracts included:
 Documents:
 
 - [Setup Asilink](./asilink.md)
-- [Asimov Contract Development Guide](./tutorial-contract.md)
+- [Contract Development Guide](./tutorial-contract.md)
+- [Setup Asimov Fullnode](./node.md)
+- [Asimov IDE Tool](./ide-tool.md)
