@@ -152,7 +152,7 @@ contract CDP is MathPI, DSNote, Template {
 
     function updateInterestRate(CDPType _type) internal {
         require(_type != CDPType.CURRENT);
-        adjustedInterestRate[uint8(_type)] = optimalExp(generalLog(rpow(baseInterestRate, 1 years) - cutDown[uint8(_type)])/ 1 years);
+        adjustedInterestRate[uint8(_type)] = optimalExp(sub(generalLog(rpow(baseInterestRate, 1 years), cutDown[uint8(_type)])) / 1 years);
         require(adjustedInterestRate[uint8(_type)] >= RAY);
     }
 
@@ -312,7 +312,7 @@ contract CDP is MathPI, DSNote, Template {
             payForPrincipal = rmul(msg.value, repayRatio);
             payForInterest = sub(msg.value, payForPrincipal);
             data.principal = sub(data.principal,payForPrincipal);
-            data.accumulatedDebt = sub(data.accumulatedDebt, rdiv(payForInterest,updateAndFetchRates()));
+            data.accumulatedDebt = sub(data.accumulatedDebt, rdiv(msg.value,updateAndFetchRates()));
             emit RepayPAI(data.collateral, data.principal, rmul(data.accumulatedDebt, accumulatedRates), record, msg.value, payForPrincipal, payForInterest);
         }
         totalPrincipal = sub(totalPrincipal,payForPrincipal);
