@@ -95,20 +95,6 @@ contract CDP is MathPI, DSNote, Template {
         accumulatedRates = RAY;
         liquidationRatio = 1500000000000000000000000000;
         liquidationPenalty = 1130000000000000000000000000;
-
-        debtCeiling = 0;
-
-        lastTimestamp = era();
-
-        issuer = PAIIssuer(_issuer);
-        priceOracle = PriceOracle(_oracle);
-        liquidator = Liquidator(_liquidator);
-
-        ASSET_COLLATERAL = 0;
-        ASSET_PAI = issuer.getAssetType();
-    }
-
-    function init() public {
         cutDown[uint8(CDPType._7DAYS)] = RAY * 2 / 1000;
         cutDown[uint8(CDPType._30DAYS)] = RAY * 4 / 1000;
         cutDown[uint8(CDPType._60DAYS)] = RAY * 6 / 1000;
@@ -127,6 +113,17 @@ contract CDP is MathPI, DSNote, Template {
         term[uint8(CDPType._90DAYS)] = 90 days;
         term[uint8(CDPType._180DAYS)] = 180 days;
         term[uint8(CDPType._360DAYS)] = 360 days;
+
+        debtCeiling = 0;
+
+        lastTimestamp = era();
+
+        issuer = PAIIssuer(_issuer);
+        priceOracle = PriceOracle(_oracle);
+        liquidator = Liquidator(_liquidator);
+
+        ASSET_COLLATERAL = 0;
+        ASSET_PAI = issuer.getAssetType();
     }
 
     function setAssetPAI(uint assetType) public {
@@ -155,7 +152,7 @@ contract CDP is MathPI, DSNote, Template {
 
     function updateInterestRate(CDPType _type) internal {
         require(_type != CDPType.CURRENT);
-        adjustedInterestRate[uint8(_type)] = 2 ** (generalLog(rpow(baseInterestRate, 1 years) - cutDown[uint8(_type)])/ 1 years);
+        adjustedInterestRate[uint8(_type)] = optimalExp(generalLog(rpow(baseInterestRate, 1 years) - cutDown[uint8(_type)])/ 1 years);
         require(adjustedInterestRate[uint8(_type)] >= RAY);
     }
 
