@@ -69,8 +69,8 @@ contract TestBase is Template, DSTest, DSMath {
         liquidator = new Liquidator(oracle, paiIssuer);
         liquidator.setAssetBTC(ASSET_BTC);
 
-        //cdp = new TimefliesCDP(paiIssuer, oracle, liquidator);
-        //cdp.setAssetCollateral(ASSET_BTC);
+        cdp = new TimefliesCDP(paiIssuer, oracle, liquidator);
+        cdp.setAssetCollateral(ASSET_BTC);
 
         oracle.updatePrice(ASSET_BTC, RAY);
 
@@ -107,6 +107,7 @@ contract CDPTest is TestBase {
 
     function testBasic() public  {
         setup();
+        cdp.updateCutDown(CDP.CDPType._7DAYS,RAY * 2 / 1000);
         // assertEq(cdp.totalCollateral(), 0);
         // assertEq(cdp.totalPrincipal(), 0);
 
