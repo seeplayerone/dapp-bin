@@ -152,7 +152,7 @@ contract CDP is MathPI, DSNote, Template {
 
     function updateInterestRate(CDPType _type) internal {
         require(_type != CDPType.CURRENT);
-        adjustedInterestRate[uint8(_type)] = optimalExp(sub(generalLog(rpow(baseInterestRate, 1 years), cutDown[uint8(_type)])) / 1 years);
+        adjustedInterestRate[uint8(_type)] = optimalExp(generalLog(sub(rpow(baseInterestRate, 1 years), cutDown[uint8(_type)])) / 1 years);
         require(adjustedInterestRate[uint8(_type)] >= RAY);
     }
 
