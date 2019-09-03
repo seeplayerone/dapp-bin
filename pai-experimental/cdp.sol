@@ -309,10 +309,10 @@ contract CDP is MathPI, DSNote, Template {
             //     liquidator.addDebt(sub(principal,payForPrincipal));
             //     //liquidator.cancelDebt();
             // }
-            // if(payForInterest > 0) {
-            //     liquidator.transfer(payForInterest, ASSET_PAI);
-            //     //liquidator.cancelDebt();
-            // }
+            if(payForInterest > 0) {
+                liquidator.transfer(payForInterest, ASSET_PAI);
+                //liquidator.cancelDebt();
+            }
             emit RepayPAI(data.collateral, 0, 0, record, msg.value, payForPrincipal, payForInterest);
             delete CDPRecords[record];
             emit CloseCDP(record);
