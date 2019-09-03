@@ -250,10 +250,10 @@ contract CDP is MathPI, DSNote, Template {
             data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
             emit BorrowPAI(data.collateral, data.principal,rmul(data.accumulatedDebt, accumulatedRates), record, amount);
         } else {
-            newDebt = rmul(amount, rpow(adjustedInterestRate[uint8(data.cdpType)], term[uint8(data.cdpType)]));
-            data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
-            CDPRecords[record].endTime = add(era(), term[uint8(data.cdpType)]);
-            emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount);
+            // newDebt = rmul(amount, rpow(adjustedInterestRate[uint8(data.cdpType)], term[uint8(data.cdpType)]));
+            // data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
+            // CDPRecords[record].endTime = add(era(), term[uint8(data.cdpType)]);
+            // emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount);
         }
         //require(safe(record));
         /// TODO debt ceiling check
@@ -371,7 +371,7 @@ contract CDP is MathPI, DSNote, Template {
     function safe(uint record) public returns (bool) {
         CDPRecord storage data = CDPRecords[record];
         require(data.owner != 0x0);
-        if(CDPType.CURRENT != data.cdpType && add(data.endTime,overdueBufferPeriod) > era()) {
+        if(CDPType.CURRENT != data.cdpType && add(data.endTime,overdueBufferPeriod) < era()) {
             emit Safe(false);
             return false;
         }
