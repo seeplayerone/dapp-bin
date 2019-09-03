@@ -250,12 +250,12 @@ contract CDP is MathPI, DSNote, Template {
             data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
             emit BorrowPAI(data.collateral, data.principal,rmul(data.accumulatedDebt, accumulatedRates), record, amount);
         } else {
-            // newDebt = rmul(amount, rpow(adjustedInterestRate[uint8(data.cdpType)], term[uint8(data.cdpType)]));
-            // data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
-            // CDPRecords[record].endTime = add(era(), term[uint8(data.cdpType)]);
-            // emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount);
+            newDebt = rmul(amount, rpow(adjustedInterestRate[uint8(data.cdpType)], term[uint8(data.cdpType)]));
+            data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
+            CDPRecords[record].endTime = add(era(), term[uint8(data.cdpType)]);
+            emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount);
         }
-        //require(safe(record));
+        require(safe(record));
         /// TODO debt ceiling check
 
         issuer.mint(amount, msg.sender);
