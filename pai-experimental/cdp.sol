@@ -305,10 +305,9 @@ contract CDP is MathPI, DSNote, Template {
             if(data.collateral > 0) {
                 msg.sender.transfer(data.collateral, ASSET_COLLATERAL);
             }
-            // if(payForPrincipal < principal){
-            //     liquidator.addDebt(sub(principal,payForPrincipal));
-            //     //liquidator.cancelDebt();
-            // }
+            if( principal > payForPrincipal){
+                liquidator.addDebt(sub(principal, payForPrincipal));
+            }
             if(payForInterest > 0) {
                 liquidator.transfer(payForInterest, ASSET_PAI);
                 //liquidator.cancelDebt();
