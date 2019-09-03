@@ -173,67 +173,95 @@ contract CDPTest is TestBase {
         cdp.transferCDPOwnership(idx, p1,100000000);
         (,owner,,,,) = cdp.CDPRecords(idx);
         assertEq(owner, this);
+        tempBool = p1.callBuyCDP(cdp,idx,50000000,uint96(ASSET_PAI));
+        assertTrue(!tempBool);
+        tempBool = p1.callBuyCDP(cdp,idx,110000000,uint96(ASSET_PAI));
+        assertTrue(!tempBool);
         tempBool = p1.callBuyCDP(cdp,idx,100000000,uint96(ASSET_PAI));
         assertTrue(tempBool);
+        (,owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p1);
     }
     
-    // function testSetLiquidationRatio() public {
-    //     setup();
-    //     bool tempBool;
-    //     tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationRatio.selector,1130000000000000000000000000));
-    //     assertTrue(tempBool);
-    //     assertEq(cdp.getLiquidationRatio(), 1130000000000000000000000000);
-    //     tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationRatio.selector,990000000000000000000000000));
-    //     assertTrue(!tempBool);
-    // }
+    function testSetLiquidationRatio() public {
+        setup();
+        bool tempBool;
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationRatio.selector,1130000000000000000000000000));
+        assertTrue(tempBool);
+        assertEq(cdp.liquidationRatio(), 1130000000000000000000000000);
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationRatio.selector,990000000000000000000000000));
+        assertTrue(!tempBool);
+    }
 
-    // function testSetLiquidationPenalty() public {
-    //     setup();
-    //     bool tempBool;
-    //     tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationPenalty.selector,1500000000000000000000000000));
-    //     assertTrue(tempBool);
-    //     assertEq(cdp.getLiquidationPenalty(), 1500000000000000000000000000);
-    //     tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationPenalty.selector,990000000000000000000000000));
-    //     assertTrue(!tempBool);
-    // }
+    function testSetLiquidationPenalty() public {
+        setup();
+        bool tempBool;
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationPenalty.selector,1500000000000000000000000000));
+        assertTrue(tempBool);
+        assertEq(cdp.liquidationPenalty(), 1500000000000000000000000000);
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationPenalty.selector,990000000000000000000000000));
+        assertTrue(!tempBool);
+    }
 
-    // function testSetDebtCeiling() public {
-    //     setup();
-    //     cdp.updateDebtCeiling(1000000000000);
-    //     assertEq(cdp.getDebtCeiling(), 1000000000000);
-    // }
+    function testSetDebtCeiling() public {
+        setup();
+        cdp.updateDebtCeiling(1000000000000);
+        assertEq(cdp.debtCeiling(), 1000000000000);
+    }
 
-    // function testSetPriceOracle() public {
-    //     setup();
-    //     cdp.setPriceOracle(PriceOracle(0x123));
-    //     assertEq(cdp.getPriceOracle(), 0x123);
-    // }
+    function testSetPriceOracle() public {
+        setup();
+        cdp.setPriceOracle(PriceOracle(0x123));
+        assertEq(cdp.priceOracle(), 0x123);
+    }
 
-    // function testBorrow() public {
-    //     setup();
-    //     cdp.updateLiquidationRatio(1000000000000000000000000000);
-    //     uint idx = cdp.createCDP();
-    //     cdp.deposit.value(100000000, ASSET_BTC)(idx);
-    //     assertEq(cdp.debtOfCDP(idx), 0);
-    //     bool tempBool;
-    //     tempBool = cdp.call(abi.encodeWithSelector(cdp.borrow.selector,idx,200000000));
-    //     assertTrue(!tempBool);
-    //     tempBool = cdp.call(abi.encodeWithSelector(cdp.borrow.selector,idx,100000000));
-    //     assertTrue(tempBool);
-    //     assertEq(cdp.debtOfCDP(idx), 100000000);
-    // }
+    function testRepay() public {
+        setup();
+        uint emm = 1000000000000;
+        uint idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
+        cdp.repay.value(50000000, ASSET_PAI)(idx);
 
-    // function testRepay() public {
-    //     setup();
-    //     cdp.updateLiquidationRatio(1000000000000000000000000000);
-    //     uint idx = cdp.createCDP();
-    //     cdp.deposit.value(100000000, ASSET_BTC)(idx);
-    //     assertEq(cdp.debtOfCDP(idx), 0);
-    //     cdp.borrow(idx, 100000000);
-    //     assertEq(cdp.debtOfCDP(idx), 100000000);
-    //     cdp.repay.value(50000000, ASSET_PAI)(idx);
-    //     assertEq(cdp.debtOfCDP(idx), 50000000);
-    // }
+        assertEq(cdp.totalCollateral(), 200000000);
+        assertEq(cdp.totalPrincipal(), 50000000);
+        assertEq(flow.balance(this, ASSET_PAI),emm + 50000000);
+        assertEq(flow.balance(this, ASSET_BTC),emm - 200000000);
+        (uint principal,uint interest) = cdp.debtOfCDP(idx);
+        assertEq(principal, 50000000);
+        assertEq(interest, 0);
+
+        cdp.repay.value(50000000, ASSET_PAI)(idx);
+        assertEq(cdp.totalCollateral(), 0);
+        assertEq(cdp.totalPrincipal(), 0);
+        assertEq(flow.balance(this, ASSET_PAI),emm);
+        assertEq(flow.balance(this, ASSET_BTC),emm);
+        bool tempBool;
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.debtOfCDP.selector,idx));//test closed
+        assertTrue(!tempBool);
+
+        //overpayed
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
+        cdp.repay.value(200000000, ASSET_PAI)(idx);
+        assertEq(flow.balance(this, ASSET_PAI),emm);
+        assertEq(flow.balance(this, ASSET_BTC),emm);
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.debtOfCDP.selector,idx));//test closed
+        assertTrue(!tempBool);
+
+        //tolerance
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal, 1234567);
+        assertEq(interest, 1234568);
+        uint tempUint;
+        assertEq(cdp.baseInterestRate(),0);
+        assertEq(cdp.closeCDPToleranceTime(),0);
+        tempUint = rmul(99999999,rpow(cdp.baseInterestRate(),cdp.closeCDPToleranceTime()));
+        assertEq(tempUint,0);
+
+        cdp.repay.value(99999999, ASSET_PAI)(idx);//100000000/(1000000005781380000000000000^3600) = 99997918
+        // assertEq(flow.balance(this, ASSET_PAI),emm);
+        // assertEq(flow.balance(this, ASSET_BTC),emm);
+
+    }
 
     // function testUnsafe() public {
     //     setup();
