@@ -316,9 +316,10 @@ contract CDP is MathPI, DSNote, Template {
             if(data.collateral > 0) {
                 msg.sender.transfer(data.collateral, ASSET_COLLATERAL);
             }
-            if( principal > payForPrincipal){
+            if(principal > payForPrincipal){
                 liquidator.addDebt(sub(principal, payForPrincipal));
             }
+            totalPrincipal = sub(totalPrincipal,principal);
             emit RepayPAI(data.collateral, 0, 0, record, msg.value, payForPrincipal, payForInterest);
             delete CDPRecords[record];
             emit CloseCDP(record);
@@ -331,6 +332,7 @@ contract CDP is MathPI, DSNote, Template {
                 payForPrincipal = 0;
             }
             data.principal = sub(data.principal,payForPrincipal);
+            totalPrincipal = sub(totalPrincipal,payForPrincipal);
             if(CDPType.CURRENT == data.cdpType) {
                 data.accumulatedDebt = sub(data.accumulatedDebt, rdiv(msg.value,updateAndFetchRates()));
                 emit RepayPAI(data.collateral, data.principal, rmul(data.accumulatedDebt, accumulatedRates), record, msg.value, payForPrincipal, payForInterest);
@@ -339,7 +341,6 @@ contract CDP is MathPI, DSNote, Template {
                 emit RepayPAI(data.collateral, data.principal, data.accumulatedDebt, record, msg.value, payForPrincipal, payForInterest);
             }
         }
-        totalPrincipal = sub(totalPrincipal,payForPrincipal);
         if (payForPrincipal > 0) {
             issuer.burn.value(payForPrincipal, ASSET_PAI)();
         }

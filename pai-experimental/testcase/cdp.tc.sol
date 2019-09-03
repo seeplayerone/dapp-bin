@@ -984,12 +984,12 @@ contract MultipleInterestTest is TestBase {
         assertEq(rpow(rate,1 years),RAY * 1190 / 1000);
         rate = cdp.adjustedInterestRate(6);
         assertEq(rpow(rate,1 years),RAY * 1188 / 1000);
-        assertEq(cdp.term(1), 7 days);
-        assertEq(cdp.term(2), 30 days);
-        assertEq(cdp.term(3), 60 days);
-        assertEq(cdp.term(4), 90 days);
-        assertEq(cdp.term(5), 180 days);
-        assertEq(cdp.term(6), 360 days);
+        assertEq(cdp.term(1), 7 * 86400);
+        assertEq(cdp.term(2), 30 * 86400);
+        assertEq(cdp.term(3), 60 * 86400);
+        assertEq(cdp.term(4), 90 * 86400);
+        assertEq(cdp.term(5), 180 * 86400);
+        assertEq(cdp.term(6), 360 * 86400);
 
         cdp.call(abi.encodeWithSelector(cdp.updateCutDown.selector,1,RAY /10));
         rate = cdp.adjustedInterestRate(1);
@@ -997,12 +997,64 @@ contract MultipleInterestTest is TestBase {
 
         bool tempBool;
         //Only allowed enumeration values can modify parameters
-        tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,0,1250000000000000000000000000));
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.updateCutDown.selector,0,RAY /10));
         assertTrue(!tempBool);
-        tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,7,1250000000000000000000000000));
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.updateCutDown.selector,7,RAY /10));
         assertTrue(!tempBool);
         //The parameters can't be set below 1.
-        tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,1,RAY /4));
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.updateCutDown.selector,1,RAY /4));
         assertTrue(!tempBool);
     }
+
+    function testTimeLending() public {
+        setup();
+        bool tempBool;
+        tempBool = cdp.call.value(19500, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,10000,CDP.CDPType._7DAYS));
+        assertTrue(tempBool);
+        tempBool = cdp.call.value(19000, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,10000,CDP.CDPType._7DAYS));
+        assertTrue(!tempBool);
+
+        uint idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._7DAYS);
+        (uint principal, uint interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,100000000);
+        assertEq(interest,347060);
+        cdp.repay.value(47060, ASSET_PAI)(idx);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,100000000);
+        assertEq(interest,300000);
+        cdp.repay.value(400000, ASSET_PAI)(idx);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,99900000);
+        assertEq(interest,0);
+
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._30DAYS);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,100000000);
+        assertEq(interest,1481964);
+
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._60DAYS);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,100000000);
+        assertEq(interest,2957562);
+
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._90DAYS);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,100000000);
+        assertEq(interest,4425809);
+
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._180DAYS);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,100000000);
+        assertEq(interest,8957228);
+
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._360DAYS);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,100000000);
+        assertEq(interest,18519982);
+    }
+
+    function testRepayPrecisely() public {
+        setup();
+    }
+
 }
