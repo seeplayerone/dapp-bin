@@ -272,7 +272,7 @@ contract CDPTest is TestBase {
         oracle.updatePrice(ASSET_BTC, RAY / 2);
         assertTrue(!cdp.safe(idx));
 
-        // idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._7DAYS);
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._7DAYS);
         // assertTrue(cdp.safe(idx));
         // cdp.fly(7 days);
         // assertTrue(cdp.safe(idx));
@@ -1352,12 +1352,12 @@ contract CDPTest is TestBase {
 
 //     function testMultiInterest() public {
 //         setup();
-//         assertEq(cdp.floatation(1), 1100000000000000000000000000);
-//         assertEq(cdp.floatation(2), 1200000000000000000000000000);
-//         assertEq(cdp.floatation(3), 1300000000000000000000000000);
-//         assertEq(cdp.floatation(4), 1400000000000000000000000000);
-//         assertEq(cdp.floatation(5), 1500000000000000000000000000);
-//         assertEq(cdp.floatation(6), 1600000000000000000000000000);
+//         assertEq(cdp.adjustedInterestRate(1), 0);
+//         assertEq(cdp.adjustedInterestRate(2), 0);
+//         assertEq(cdp.adjustedInterestRate(3), 0);
+//         assertEq(cdp.adjustedInterestRate(4), 0);
+//         assertEq(cdp.adjustedInterestRate(5), 0);
+//         assertEq(cdp.adjustedInterestRate(6), 0);
 //         assertEq(cdp.term(1), 7 days);
 //         assertEq(cdp.term(2), 30 days);
 //         assertEq(cdp.term(3), 60 days);
@@ -1365,17 +1365,16 @@ contract CDPTest is TestBase {
 //         assertEq(cdp.term(5), 180 days);
 //         assertEq(cdp.term(6), 360 days);
 
-//         cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,1,1250000000000000000000000000));
-//         assertEq(cdp.floatation(1), 1250000000000000000000000000);
-//         bool tempBool;
-//         //Only allowed enumeration values can modify parameters
-//         tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,0,1250000000000000000000000000));
-//         assertTrue(!tempBool);
-//         tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,7,1250000000000000000000000000));
-//         assertTrue(!tempBool);
-//         //The parameters can't be set below 1.
-//         tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,1,990000000000000000000000000));
-//         assertTrue(!tempBool);
+//         // cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,1,1250000000000000000000000000));
+//         // assertEq(cdp.floatation(1), 1250000000000000000000000000);
+//         // bool tempBool;
+//         // //Only allowed enumeration values can modify parameters
+//         // tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,0,1250000000000000000000000000));
+//         // assertTrue(!tempBool);
+//         // tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,7,1250000000000000000000000000));
+//         // assertTrue(!tempBool);
+//         // //The parameters can't be set below 1.
+//         // tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,1,990000000000000000000000000));
+//         // assertTrue(!tempBool);
 //     }
-
 // }

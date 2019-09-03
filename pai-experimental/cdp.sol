@@ -255,7 +255,7 @@ contract CDP is MathPI, DSNote, Template {
             CDPRecords[record].endTime = add(era(), term[uint8(data.cdpType)]);
             emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount);
         }
-        require(safe(record));
+        //require(safe(record));
         /// TODO debt ceiling check
 
         issuer.mint(amount, msg.sender);
