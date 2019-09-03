@@ -416,7 +416,9 @@ contract CDP is MathPI, DSNote, Template {
             collateralToLiquidator = data.collateral;
         }
         uint leftCollateral = sub(data.collateral, collateralToLiquidator);
-        msg.sender.transfer(leftCollateral, ASSET_COLLATERAL);
+        data.owner.transfer(leftCollateral, ASSET_COLLATERAL);
+        delete CDPRecords[record];
+        emit CloseCDP(record);
         liquidator.transfer(collateralToLiquidator, ASSET_COLLATERAL);
         emit Liquidate(data.collateral, data.principal, add(principal,interest), record, collateralToLiquidator);
     }

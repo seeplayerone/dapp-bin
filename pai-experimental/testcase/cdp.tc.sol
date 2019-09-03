@@ -272,58 +272,55 @@ contract CDPTest is TestBase {
         oracle.updatePrice(ASSET_BTC, RAY / 2);
         assertTrue(!cdp.safe(idx));
 
-        oracle.updatePrice(ASSET_BTC, RAY );
+        oracle.updatePrice(ASSET_BTC, RAY);
         idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._7DAYS);
-        // assertTrue(cdp.safe(idx));
-        // cdp.fly(7 days);
-        // assertTrue(cdp.safe(idx));
-        // cdp.fly(1 days);
-        // assertTrue(cdp.safe(idx));
-        // cdp.fly(1);
-        // assertTrue(!cdp.safe(idx));
+        assertTrue(cdp.safe(idx));
+        cdp.fly(7 days);
+        assertTrue(cdp.safe(idx));
+        cdp.fly(1 days);
+        assertTrue(cdp.safe(idx));
+        cdp.fly(1);
+        assertTrue(!cdp.safe(idx));
     }
 
-    // function testLiquidationCase1() public {
-    //     setup();
-    //     cdp.updateLiquidationRatio(1000000000000000000000000000);
-    //     uint idx = cdp.createCDP();
-    //     cdp.deposit.value(100000000, ASSET_BTC)(idx);   
-    //     cdp.borrow(idx, 50000000);      
-    //     oracle.updatePrice(ASSET_BTC, RAY / 4);
+    function testLiquidationCase1() public {
+        setup();
+        cdp.updateLiquidationRatio(1000000000000000000000000000);
+        uint idx = cdp.createDepositBorrow.value(100000000, ASSET_BTC)(50000000,CDP.CDPType.CURRENT);
+        oracle.updatePrice(ASSET_BTC, RAY / 4);
 
-    //     assertEq(liquidator.totalCollateralBTC(), 0);
-    //     cdp.liquidate(idx);
-    //     assertEq(liquidator.totalCollateralBTC(), 100000000);
-    // }
+        assertEq(liquidator.totalCollateralBTC(), 0);
+        cdp.liquidate(idx);
+        assertEq(liquidator.totalCollateralBTC(), 100000000);
+    }
 
-    // function testLiquidationCase2() public {
-    //     setup();
-    //     cdp.updateLiquidationRatio(2000000000000000000000000000);     
-    //     cdp.updateLiquidationPenalty(1000000000000000000000000000);
-    //     uint idx = cdp.createCDP();
-    //     cdp.deposit.value(100000000, ASSET_BTC)(idx);   
+    function testLiquidationCase2() public {
+        setup();
+        cdp.updateCreateCollateralRatio(5 * RAY / 2, RAY / 20);
+        uint idx = cdp.createDepositBorrow.value(100000000, ASSET_BTC)(40000000,CDP.CDPType.CURRENT);
+        cdp.updateLiquidationRatio(2000000000000000000000000000);
+        cdp.updateLiquidationPenalty(1000000000000000000000000000);
 
-    //     cdp.borrow(idx, 40000000);      
-    //     assertTrue(cdp.safe(idx));
-    //     oracle.updatePrice(ASSET_BTC, RAY / 2);
-    //     assertTrue(!cdp.safe(idx));
+        assertTrue(cdp.safe(idx));
+        oracle.updatePrice(ASSET_BTC, RAY / 2);
+        assertTrue(!cdp.safe(idx));
 
-    //     assertEq(cdp.totalPrincipal(), 40000000);
-    //     assertEq(cdp.debtOfCDP(idx), 40000000);
-    //     assertEq(liquidator.totalCollateralBTC(), 0);
-    //     assertEq(liquidator.totalPrincipalPAI(), 0);
+        assertEq(cdp.totalPrincipal(), 40000000);
+        (uint principal,uint interest) = cdp.debtOfCDP(idx);
+        assertEq(add(principal,interest), 40000000);
+        assertEq(liquidator.totalCollateralBTC(), 0);
+        assertEq(liquidator.totalDebtPAI(), 0);
 
-    //     cdp.liquidate(idx);
-    //     assertEq(cdp.totalPrincipal(), 0);
-    //     assertEq(cdp.debtOfCDP(idx), 0);
-    //     assertEq(liquidator.totalCollateralBTC(), 80000000);
-    //     assertEq(liquidator.totalPrincipalPAI(), 40000000);
+        cdp.liquidate(idx);
+        assertEq(cdp.totalPrincipal(), 0);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(add(principal,interest), 0);
+        assertEq(liquidator.totalCollateralBTC(), 80000000);
+        assertEq(liquidator.totalDebtPAI(), 40000000);
 
-    //     uint emm = flow.balance(this, ASSET_BTC);
-    //     cdp.withdraw(idx, 10000000);
-
-    //     assertEq(flow.balance(this, ASSET_BTC) - emm, 10000000);
-    // }
+        uint emm = flow.balance(this, ASSET_BTC);
+        assertEq(flow.balance(this, ASSET_BTC) - emm, 10000000);
+    }
 
     // function testDeposit() public {
     //     setup();
