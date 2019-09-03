@@ -16,7 +16,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
 
 contract CDP is MathPI, DSNote, Template {
 
-    event SetParam(uint type, uint param);
+    event SetParam(uint paramType, uint param);
     //please check specific meaning of type in each method
     event SetCutDown(CDPType _type, uint _newCutDown);
     event PostCDP(uint CDPid, address newOwner, uint price);
@@ -336,7 +336,7 @@ contract CDP is MathPI, DSNote, Template {
             }
             data.principal = sub(data.principal,payForPrincipal);
             data.accumulatedDebt = sub(data.accumulatedDebt, rdiv(msg.value,updateAndFetchRates()));
-            if(CDPType.CURRENT == data.type) {
+            if(CDPType.CURRENT == data.cdpType) {
                 emit RepayPAI(data.collateral, data.principal, rmul(data.accumulatedDebt, accumulatedRates), record, msg.value, payForPrincipal, payForInterest);
             } else {
                 emit RepayPAI(data.collateral, data.principal, data.accumulatedDebt, record, msg.value, payForPrincipal, payForInterest);
@@ -436,11 +436,11 @@ contract CDP is MathPI, DSNote, Template {
             penaltyOfCollateral = 0;
         } else if (data.collateral <= add(principalOfCollateral,interestOfCollateral)) {
             collateralToLiquidator = data.collateral;
-            interestOfCollateral = sub(data.collateral - principalOfCollateral);
+            interestOfCollateral = sub(data.collateral, principalOfCollateral);
             penaltyOfCollateral = 0;
         } else if (data.collateral <= add(add(principalOfCollateral,interestOfCollateral),penaltyOfCollateral)) {
             collateralToLiquidator = data.collateral;
-            penaltyOfCollateral = sub(sub(data.collateral - principalOfCollateral),interestOfCollateral);
+            penaltyOfCollateral = sub(sub(data.collateral, principalOfCollateral),interestOfCollateral);
         } else {
             collateralToLiquidator = add(add(principalOfCollateral,interestOfCollateral),penaltyOfCollateral);
             collateralLeft = sub(data.collateral, collateralToLiquidator);

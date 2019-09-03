@@ -386,19 +386,28 @@ contract baseInterestRateTest is TestBase {
 
         assertEq(cdp.totalPrincipal(), 10000000000);
         (principal, interest) = cdp.debtOfCDP(idx);
-        assertEq(add(principal,interest), 10500000000);
+        assertEq(principal, 10000000000);
+        assertEq(interest,500000000);
 
         cdp.repay.value(5000000000, ASSET_PAI)(idx);
         assertEq(cdp.totalPrincipal(), 5000000000);
         (principal, interest) = cdp.debtOfCDP(idx);
-        assertEq(add(principal,interest), 5500000000);
+        assertEq(principal, 5500000000);
+        assertEq(interest, 0);
 
         cdp.fly(1 days);
         cdp.updateRates();
 
-        assertEq(cdp.totalPrincipal(), 5000000000);
+        assertEq(cdp.totalPrincipal(), 5775000000);
         (principal, interest) = cdp.debtOfCDP(idx);
-        assertEq(add(principal,interest), 5775000000);
+        assertEq(principal, 5500000000);
+        assertEq(interest, 275000000);
+
+        //pay for interest first
+        cdp.repay.value(5000000, ASSET_PAI)(idx);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal, 5500000000);
+        assertEq(interest, 270000000);
     }
 
 //     function testFeeSafe() {
