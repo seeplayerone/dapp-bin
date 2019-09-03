@@ -147,9 +147,9 @@ contract CDPTest is TestBase {
         assertEq(cdp.totalPrincipal(), 0);
         assertEq(flow.balance(this, ASSET_PAI),emm);
         assertEq(flow.balance(this, ASSET_BTC),emm);
-        bool tempBool;
-        tempBool = cdp.call(abi.encodeWithSelector(cdp.debtOfCDP.selector,idx));
-        assertTrue(!tempBool);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal, 0);
+        assertEq(interest, 0);
     }
 
     function testTransferCDP() public {
@@ -235,17 +235,18 @@ contract CDPTest is TestBase {
         assertEq(cdp.totalPrincipal(), 0);
         assertEq(flow.balance(this, ASSET_PAI),emm);
         assertEq(flow.balance(this, ASSET_BTC),emm);
-        bool tempBool;
-        tempBool = cdp.call(abi.encodeWithSelector(cdp.debtOfCDP.selector,idx));//test closed
-        assertTrue(!tempBool);
+        (principal,interest) = cdp.debtOfCDP(idx);
+        assertEq(principal, 0);
+        assertEq(interest, 0);
 
         //overpayed
         idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
         cdp.repay.value(200000000, ASSET_PAI)(idx);
         assertEq(flow.balance(this, ASSET_PAI),emm);
         assertEq(flow.balance(this, ASSET_BTC),emm);
-        tempBool = cdp.call(abi.encodeWithSelector(cdp.debtOfCDP.selector,idx));//test closed
-        assertTrue(!tempBool);
+        (principal,interest) = cdp.debtOfCDP(idx);
+        assertEq(principal, 0);
+        assertEq(interest, 0);
 
         //tolerance
         //100000000/(1.000000005781380000000000000^3600) = 99997918.72 which means when repayed with amount bigger than 99997918,
@@ -313,9 +314,8 @@ contract CDPTest is TestBase {
         uint emm = flow.balance(this, ASSET_BTC);
         cdp.liquidate(idx);
         assertEq(cdp.totalPrincipal(), 0);
-        bool tempBool;
-        tempBool = cdp.call(abi.encodeWithSelector(cdp.debtOfCDP.selector,idx));
-        assertTrue(!tempBool);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(add(principal,interest), 0);
         assertEq(liquidator.totalCollateralBTC(), 80000000);
         assertEq(liquidator.totalDebtPAI(), 40000000);
         assertEq(flow.balance(this, ASSET_BTC) - emm, 20000000);//100000000 - 80000000 = 20000000
@@ -429,814 +429,580 @@ contract baseInterestRateTest is TestBase {
         assertEq(liquidator.totalDebtPAI(), 10000000000);
     }
 
-//     function testFeeLiquidateRounding() {
-//         uint idx = feeSetup();
-//         oracle.updatePrice(ASSET_BTC, RAY);
-//         cdp.updateLiquidationRatio(1500000000000000000000000000);
-//         cdp.updateLiquidationPenalty(1400000000000000000000000000);
-//         cdp.updateStabilityFee(1000000001547126000000000000);
-//         for (uint i=0; i<=50; i++) {
-//             cdp.fly(10);
-//         }
-//         uint256 debtAfterFly = rmul(10000000000, rpow(cdp.getStabilityFee(), 510));
-//         assertEq(cdp.debtOfCDP(idx), debtAfterFly);
-//         cdp.liquidate(idx);
-//         assertEq(cdp.debtOfCDP(idx), 0);
-//         assertEq(liquidator.totalPrincipalPAI(), 10000000000);
-//     }
+    function testFeeLiquidateRounding() {
+        uint idx = feeSetup();
+        oracle.updatePrice(ASSET_BTC, RAY);
+        cdp.updateLiquidationRatio(1500000000000000000000000000);
+        cdp.updateLiquidationPenalty(1400000000000000000000000000);
+        cdp.updateBaseInterestRate(1100000000000000000000000000);
+        for (uint i = 0; i <= 50; i ++) {
+            cdp.fly(10);
+        }
+        uint256 debtAfterFly = rmul(10000000000, rpow(cdp.baseInterestRate(), 510));
+        (uint principal, uint interest) = cdp.debtOfCDP(idx);
+        assertEq(add(principal,interest), debtAfterFly);
+        cdp.liquidate(idx);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(add(principal,interest), 0);
+        assertEq(liquidator.totalDebtPAI(), 10000000000);
+    }
 }
 
-// contract GovernanceFeeTest is TestBase {
-//     function feeSetup() public returns (uint) {
-//         setup();
-//         oracle.updatePrice(ASSET_BTC, RAY * 10);
-//         cdp.updateGovernanceFee(1000000564701133626865910626);
-//         cdp.updateLiquidationRatio(RAY);
-//         uint idx = cdp.createCDP();
-//         cdp.deposit.value(10000000000, ASSET_BTC)(idx);
-//         cdp.borrow(idx, 10000000000);
+contract LiquidationPenaltyTest is TestBase {
+    function penaltySetup() public returns (uint) {
+        setup();
+        oracle.updatePrice(ASSET_BTC, RAY);
+        cdp.updateLiquidationRatio(RAY * 2);
 
-//         return idx;
-//     }
+        uint idx = cdp.createDepositBorrow.value(2000000000, ASSET_BTC)(1000000000,CDP.CDPType.CURRENT);
 
-//     function testFeeSetup() public {
-//         feeSetup();
-//         assertEq(cdp.updateAndFetchRates1(), RAY);
-//         assertEq(cdp.updateAndFetchRates2(), RAY);
-//     }
+        return idx;
+    }
 
-//     function testFeeFly() public {
-//         feeSetup();
-//         cdp.fly(1 days);
-//         assertEq(cdp.updateAndFetchRates1(), RAY);
-//         assertEq(cdp.updateAndFetchRates2(), RAY * 105 / 100);
-//     }
-
-//     function testFeeIce() public {
-//         uint idx = feeSetup();
-
-//         assertEq(cdp.totalPrincipal(), 10000000000);
-//         assertEq(cdp.debtOfCDP(idx), 10000000000);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 0);
-
-//         cdp.fly(1 days);
-
-//         assertEq(cdp.totalPrincipal(), 10000000000);
-//         assertEq(cdp.debtOfCDP(idx), 10000000000);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 500000000);        
-//     }
-
-//     function testFeeBorrow() public {
-//         uint idx = feeSetup(); 
-
-//         cdp.fly(1 days);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 500000000);
-
-//         cdp.borrow(idx, 10000000000);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 500000000);
-
-//         cdp.fly(1 days);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 1525000000);
-//     }
-
-//     function testFeeRepay() public {
-//         uint idx = feeSetup(); 
-
-//         cdp.fly(1 days);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 500000000);
-
-//         cdp.repay.value(5250000000, ASSET_PAI)(idx);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 250000000);
-
-//         cdp.fly(1 days);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 512500000);
-//     }
-
-//     function testFeeRepayAll() public {
-//         uint idx = feeSetup(); 
-
-//         cdp.fly(1 days);
-//         assertEq(cdp.debtOfCDP(idx), 10000000000);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 500000000);
-
-//         uint emm = flow.balance(this, ASSET_PAI);
-//         cdp.repay.value(20000000000, ASSET_PAI)(idx);
-//         assertEq(emm - flow.balance(this, ASSET_PAI), 10500000000);
-
-//         assertEq(cdp.debtOfCDP(idx), 0);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 0);
-//     }
-
-//     function testFeeCloseCDP() public {
-//         uint idx = feeSetup(); 
-
-//         cdp.fly(1 days);
-//         assertEq(cdp.debtOfCDP(idx), 10000000000);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 500000000);
-
-//         uint emm1 = flow.balance(this, ASSET_PAI);
-//         uint emm2 = flow.balance(this, ASSET_BTC);
-
-//         cdp.closeCDPRecord.value(20000000000, ASSET_PAI)(idx);
-//         assertEq(emm1 - flow.balance(this, ASSET_PAI), 10500000000);
-//         assertEq(flow.balance(this, ASSET_BTC) - emm2, 10000000000);        
-//     }
-
-// }
-
-// contract DoubleFeeTest is TestBase {
-//     function feeSetup() public returns (uint) {
-//         setup();
-//         oracle.updatePrice(ASSET_BTC, RAY * 10);
-//         cdp.updateStabilityFee(1000000564701133626865910626);
-//         cdp.updateGovernanceFee(1000000564701133626865910626);
-//         cdp.updateLiquidationRatio(RAY);
-//         uint idx = cdp.createCDP();
-//         cdp.deposit.value(10000000000, ASSET_BTC)(idx);
-//         cdp.borrow(idx, 10000000000);
-
-//         return idx;
-//     }    
-
-//     function testDoubleFeeFly() {
-//         feeSetup();
-//         cdp.fly(1 days);
-//         assertEq(cdp.updateAndFetchRates1(), RAY * 105 / 100);
-//         assertEq(cdp.updateAndFetchRates2(), RAY * 11025 / 10000);        
-//     }
-
-//     function testDoubleFeeIce() {
-//         uint idx = feeSetup();
-//         assertEq(cdp.totalPrincipal(), 10000000000);
-//         assertEq(cdp.debtOfCDP(idx), 10000000000);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 0);
-//         assertEq(liquidator.totalAssetPAI(), 0);
-
-//         cdp.fly(1 days);
-//         cdp.updateRates();
-
-//         assertEq(cdp.totalPrincipal(), 10500000000);
-//         assertEq(cdp.debtOfCDP(idx), 10500000000);
-//         assertEq(liquidator.totalAssetPAI(), 500000000);  
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 525000000);               
-//     }
-
-//     function testDoubleFeeBorrow() {
-//         uint idx = feeSetup();
-//         cdp.fly(1 days);
-//         assertEq(cdp.debtOfCDP(idx), 10500000000);
-//         cdp.borrow(idx, 10000000000);
-//         assertEq(cdp.debtOfCDP(idx), 20500000000);
-//     }
-
-//     function testDoubleFeeRepay() {
-//         uint idx = feeSetup();
-
-//         cdp.fly(1 days);
-//         assertEq(cdp.debtOfCDP(idx), 10500000000);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 525000000);               
-
-//         cdp.repay.value(5512500000, ASSET_PAI)(idx);
-
-//         assertEq(cdp.debtOfCDP(idx), 5250000000);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 262500000);               
-
-//         /// all stability fees + half governance fees
-//         assertEq(liquidator.totalAssetPAI(), 762500000);
-//     }
-
-//     function testDoubleFeeRepayAll() {
-//         uint idx = feeSetup();
-
-//         cdp.fly(1 days);
-//         assertEq(cdp.debtOfCDP(idx), 10500000000);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 525000000);               
-
-//         uint emm = flow.balance(this, ASSET_PAI);
-//         cdp.repay.value(20000000000, ASSET_PAI)(idx);
-//         assertEq(emm - flow.balance(this, ASSET_PAI), 11025000000);
-
-//         assertEq(cdp.debtOfCDP(idx), 0);
-//         assertEq(sub(cdp.debtOfCDPwithGovernanceFee(idx), cdp.debtOfCDP(idx)), 0);               
-
-//         assertEq(liquidator.totalAssetPAI(), 1025000000);
-//     }
-// }
-
-// contract LiquidationPenaltyTest is TestBase {
-//     function penaltySetup() public returns (uint) {
-//         setup();
-//         oracle.updatePrice(ASSET_BTC, RAY);
-//         cdp.updateLiquidationRatio(RAY * 2);
-
-//         uint idx = cdp.createCDP();
-//         cdp.deposit.value(2000000000, ASSET_BTC)(idx);
-//         cdp.borrow(idx, 1000000000);
-
-//         return idx;
-//     }
-
-//     function testPenaltyCase1() {
-//         uint idx = penaltySetup();
+    function testPenaltyCase1() public {
+        uint idx = penaltySetup();
     
-//         cdp.updateLiquidationRatio(RAY * 21 / 10);
-//         cdp.updateLiquidationPenalty(RAY * 15 / 10);
-
-//         assertEq(cdp.collateralOfCDP(idx), 2000000000);
-//         cdp.liquidate(idx);
-//         assertEq(cdp.collateralOfCDP(idx), 500000000);
-//     }
-
-//     function testPenaltyCase2() {
-//         uint idx = penaltySetup();
-
-//         cdp.updateLiquidationPenalty(RAY * 15 / 10);
-//         oracle.updatePrice(ASSET_BTC, RAY * 8 / 10);
-
-//         assertEq(cdp.collateralOfCDP(idx), 2000000000);
-//         cdp.liquidate(idx);
-//         assertEq(cdp.collateralOfCDP(idx), 125000000);
-//     }
-
-//     function testPenaltyParity() {
-//         uint idx = penaltySetup();
-
-//         cdp.updateLiquidationPenalty(RAY * 15 / 10);
-//         oracle.updatePrice(ASSET_BTC, RAY * 5 / 10);
-
-//         assertEq(cdp.collateralOfCDP(idx), 2000000000);
-//         cdp.liquidate(idx);
-//         assertEq(cdp.collateralOfCDP(idx), 0);
-//     }
-
-//     function testPenaltyUnder() {
-//         uint idx = penaltySetup();
+        cdp.updateLiquidationRatio(RAY * 21 / 10);
+        cdp.updateLiquidationPenalty(RAY * 15 / 10);
+
+        (,,uint collateral,,,) = cdp.CDPRecords(idx);
+        assertEq(collateral, 2000000000);
+        uint emm = flow.balance(this,ASSET_BTC);
+        cdp.liquidate(idx);
+        assertEq(flow.balance(this,ASSET_BTC) - emm, 500000000);
+    }
+
+    function testPenaltyCase2() public {
+        uint idx = penaltySetup();
+
+        cdp.updateLiquidationPenalty(RAY * 15 / 10);
+        oracle.updatePrice(ASSET_BTC, RAY * 8 / 10);
+
+        (,,uint collateral,,,) = cdp.CDPRecords(idx);
+        assertEq(collateral, 2000000000);
+        uint emm = flow.balance(this,ASSET_BTC);
+        cdp.liquidate(idx);
+        assertEq(flow.balance(this,ASSET_BTC) - emm, 125000000);
+    }
+
+    function testPenaltyParity() public {
+        uint idx = penaltySetup();
+
+        cdp.updateLiquidationPenalty(RAY * 15 / 10);
+        oracle.updatePrice(ASSET_BTC, RAY * 5 / 10);
+
+        (,,uint collateral,,,) = cdp.CDPRecords(idx);
+        assertEq(collateral, 2000000000);
+        uint emm = flow.balance(this,ASSET_BTC);
+        cdp.liquidate(idx);
+        assertEq(flow.balance(this,ASSET_BTC), emm);
+    }
+
+    function testPenaltyUnder() public {
+        uint idx = penaltySetup();
+
+        cdp.updateLiquidationPenalty(RAY * 15 / 10);
+        oracle.updatePrice(ASSET_BTC, RAY * 4 / 10);
+
+        (,,uint collateral,,,) = cdp.CDPRecords(idx);
+        assertEq(collateral, 2000000000);
+        uint emm = flow.balance(this,ASSET_BTC);
+        cdp.liquidate(idx);
+        assertEq(flow.balance(this,ASSET_BTC), emm);
+    }
+
+    function testSettlementWithPenalty() public {
+        uint idx = penaltySetup();
 
-//         cdp.updateLiquidationPenalty(RAY * 15 / 10);
-//         oracle.updatePrice(ASSET_BTC, RAY * 4 / 10);
-
-//         assertEq(cdp.collateralOfCDP(idx), 2000000000);
-//         cdp.liquidate(idx);
-//         assertEq(cdp.collateralOfCDP(idx), 0);
-//     }
-
-//     function testSettlementWithPenalty() {
-//         uint idx = penaltySetup();
-
-//         cdp.updateLiquidationPenalty(RAY * 15 / 10);
-        
-//         assertEq(cdp.collateralOfCDP(idx), 2000000000);
-//         cdp.terminate();
-
-//         cdp.liquidate(idx);
-//         assertEq(cdp.collateralOfCDP(idx), 1000000000);
-//     }
+        cdp.updateLiquidationPenalty(RAY * 15 / 10);
+
+        (,,uint collateral,,,) = cdp.CDPRecords(idx);
+        assertEq(collateral, 2000000000);
+        cdp.terminate();
 
-//     function testSettlementWithoutPenalty() {
-//         uint idx = penaltySetup();
+        uint emm = flow.balance(this,ASSET_BTC);
+        cdp.liquidate(idx);
+        assertEq(flow.balance(this,ASSET_BTC) - emm, 1000000000);
+    }
 
-//         cdp.updateLiquidationPenalty(RAY);
-        
-//         assertEq(cdp.collateralOfCDP(idx), 2000000000);
-//         cdp.terminate();
+    function testSettlementWithoutPenalty() public {
+        uint idx = penaltySetup();
 
-//         cdp.liquidate(idx);
-//         assertEq(cdp.collateralOfCDP(idx), 1000000000);
-//     }
-// }
+        cdp.updateLiquidationPenalty(RAY);
 
-// contract LiquidationTest is TestBase {
-//     function liquidationSetup() {
-//         setup();   
-//         oracle.updatePrice(ASSET_BTC, RAY);
-//         cdp.updateLiquidationRatio(RAY);
-//         cdp.updateLiquidationPenalty(RAY);
-//     }
+        (,,uint collateral,,,) = cdp.CDPRecords(idx);
+        assertEq(collateral, 2000000000);
+        cdp.terminate();
 
-//     function liq(uint idx) internal returns (uint256) {
-//         uint256 collateralValue = cdp.collateralOfCDP(idx);
-//         uint256 debtValue = rmul(cdp.debtOfCDP(idx), cdp.getLiquidationRatio()); 
-//         return adiv(debtValue, collateralValue);
-//     }
+        uint emm = flow.balance(this,ASSET_BTC);
+        cdp.liquidate(idx);
+        assertEq(flow.balance(this,ASSET_BTC) - emm, 1000000000);
+    }
+}
 
-//     function collat(uint idx) internal returns (uint256) {
-//         uint256 collateralValue = rmul(cdp.collateralOfCDP(idx), oracle.getPrice(ASSET_BTC));
-//         uint256 debtValue = cdp.debtOfCDP(idx);
-//         return adiv(collateralValue, debtValue);
-//     }
+contract LiquidationTest is TestBase {
+    function liquidationSetup() public {
+        setup();
+        oracle.updatePrice(ASSET_BTC, RAY);
+        cdp.updateLiquidationRatio(RAY);
+        cdp.updateLiquidationPenalty(RAY);
+    }
 
-//     function testLiq() public {
-//         liquidationSetup();
-//         oracle.updatePrice(ASSET_BTC, RAY * 2);
+    function liq(uint idx) internal returns (uint256) {
+        (,,uint collateral,,,) = cdp.CDPRecords(idx);
+        (uint principal, uint interest) = cdp.debtOfCDP(idx);
+        uint debtValue = rmul(add(principal,interest), cdp.liquidationRatio());
+        return adiv(debtValue, collateral);
+    }
 
-//         uint idx = cdp.createCDP();
-//         cdp.deposit.value(1000000000, ASSET_BTC)(idx);
-//         cdp.borrow(idx, 1000000000);
+    function collat(uint idx) internal returns (uint256) {
+        (,,uint collateral,,,) = cdp.CDPRecords(idx);
+        uint256 collateralValue = rmul(collateral, oracle.getPrice(ASSET_BTC));
+        (uint principal, uint interest) = cdp.debtOfCDP(idx);
+        uint256 debtValue = add(principal,interest);
+        return adiv(collateralValue, debtValue);
+    }
 
-//         cdp.updateLiquidationRatio(RAY);
-//         assertEq(liq(idx), ASI);
+    function testLiq() public {
+        liquidationSetup();
+        oracle.updatePrice(ASSET_BTC, RAY * 2);
 
-//         cdp.updateLiquidationRatio(RAY * 3 / 2);
-//         assertEq(liq(idx), ASI * 3 / 2);
+        uint idx = cdp.createDepositBorrow.value(1000000000, ASSET_BTC)(1000000000,CDP.CDPType.CURRENT);
 
-//         oracle.updatePrice(ASSET_BTC, RAY * 6);
-//         assertEq(liq(idx), ASI * 3 / 2);
+        cdp.updateLiquidationRatio(RAY);
+        assertEq(liq(idx), ASI);
 
-//         cdp.borrow(idx, 3000000000);
-//         assertEq(liq(idx), ASI * 6);
+        cdp.updateLiquidationRatio(RAY * 3 / 2);
+        assertEq(liq(idx), ASI * 3 / 2);
 
-//         cdp.deposit.value(1000000000, ASSET_BTC)(idx);
-//         assertEq(liq(idx), ASI * 3);
-//     }
+        oracle.updatePrice(ASSET_BTC, RAY * 6);
+        assertEq(liq(idx), ASI * 3 / 2);
 
-//     function testCollat() {
-//         liquidationSetup();
-//         oracle.updatePrice(ASSET_BTC, RAY * 2);
+        cdp.deposit.value(1000000000, ASSET_BTC)(idx);
+        assertEq(liq(idx), ASI * 3 / 4);
+    }
 
-//         uint idx = cdp.createCDP();
-//         cdp.deposit.value(1000000000, ASSET_BTC)(idx);
-//         cdp.borrow(idx, 1000000000);
-//         assertEq(collat(idx), ASI * 2);
+    function testCollat() public {
+        liquidationSetup();
+        oracle.updatePrice(ASSET_BTC, RAY * 2);
 
-//         oracle.updatePrice(ASSET_BTC, RAY * 4);
-//         assertEq(collat(idx), ASI * 4);
+        uint idx = cdp.createDepositBorrow.value(1000000000, ASSET_BTC)(1000000000,CDP.CDPType.CURRENT);
 
-//         cdp.borrow(idx, 1500000000);
-//         assertEq(collat(idx), ASI * 8 / 5);
+        assertEq(collat(idx), ASI * 2);
 
-//         oracle.updatePrice(ASSET_BTC, RAY * 5);
-//         cdp.withdraw(idx, 500000000);
-//         assertEq(collat(idx), ASI);
+        oracle.updatePrice(ASSET_BTC, RAY * 4);
+        assertEq(collat(idx), ASI * 4);
 
-//         oracle.updatePrice(ASSET_BTC, RAY * 4);
-//         assertEq(collat(idx), ASI * 4 / 5);
+        cdp.repay.value(500000000, ASSET_PAI)(idx);
+        assertEq(collat(idx), ASI * 8);
+    }
 
-//         cdp.repay.value(900000000, ASSET_PAI)(idx);
-//         assertEq(collat(idx), ASI * 5 / 4);
-//     }
+    function testLiquidationCase1() public {
+        liquidationSetup();
+        cdp.updateLiquidationRatio(RAY * 3 / 2);
+        oracle.updatePrice(ASSET_BTC, RAY * 3);
+        liquidator.setDiscount(RAY);
 
-//     function testLiquidationCase1() {
-//         liquidationSetup();
-//         cdp.updateLiquidationRatio(RAY * 3 / 2);
-//         oracle.updatePrice(ASSET_BTC, RAY * 2);
-//         liquidator.setDiscount(RAY);
+        cdp.updateCreateCollateralRatio(RAY * 3 / 2, 0);
+        uint idx = cdp.createDepositBorrow.value(1000000000, ASSET_BTC)(1600000000,CDP.CDPType.CURRENT);
+        oracle.updatePrice(ASSET_BTC, RAY * 2);
 
-//         uint idx = cdp.createCDP();
-//         cdp.deposit.value(1000000000, ASSET_BTC)(idx);
+        assertTrue(!cdp.safe(idx));
 
-//         oracle.updatePrice(ASSET_BTC, RAY * 3);     
-//         cdp.borrow(idx, 1600000000);
-//         oracle.updatePrice(ASSET_BTC, RAY * 2);
+        cdp.liquidate(idx);
 
-//         assertTrue(!cdp.safe(idx));     
+        assertEq(liquidator.totalCollateralBTC(), 800000000);
 
-//         cdp.liquidate(idx);
+        uint emm1 = flow.balance(this, ASSET_PAI);
+        uint emm2 = flow.balance(this, ASSET_BTC);
 
-//         assertEq(liquidator.totalCollateralBTC(), 800000000);
+        liquidator.buyCollateral.value(400000000, ASSET_PAI)();
 
-//         uint emm1 = flow.balance(this, ASSET_PAI);
-//         uint emm2 = flow.balance(this, ASSET_BTC);
+        assertEq(emm1 - flow.balance(this, ASSET_PAI), 400000000);
+        assertEq(flow.balance(this, ASSET_BTC) - emm2, 200000000);
 
-//         liquidator.buyCollateral.value(400000000, ASSET_PAI)();
+        oracle.updatePrice(ASSET_BTC, RAY);
 
-//         assertEq(emm1 - flow.balance(this, ASSET_PAI), 400000000);
-//         assertEq(flow.balance(this, ASSET_BTC) - emm2, 200000000);
+        liquidator.buyCollateral.value(600000000, ASSET_PAI)();
+        assertEq(liquidator.totalCollateralBTC(), 0);
+    }
 
-//         oracle.updatePrice(ASSET_BTC, RAY);
+    function testLiquidationCase2() public {
+        liquidationSetup();
+        cdp.updateLiquidationRatio(RAY * 2);
+        cdp.updateLiquidationPenalty(RAY * 3 / 2);
+        oracle.updatePrice(ASSET_BTC, RAY * 20);
+        liquidator.setDiscount(RAY);
 
-//         liquidator.buyCollateral.value(600000000, ASSET_PAI)();
-//         assertEq(liquidator.totalCollateralBTC(), 0);
-//     }
+        uint idx = cdp.createDepositBorrow.value(1000000000, ASSET_BTC)(10000000000,CDP.CDPType.CURRENT);
 
-//     function testLiquidationCase2() {
-//         liquidationSetup();
-//         cdp.updateLiquidationRatio(RAY * 2);
-//         cdp.updateLiquidationPenalty(RAY * 3 / 2);
-//         oracle.updatePrice(ASSET_BTC, RAY * 20);
-//         liquidator.setDiscount(RAY);
+        oracle.updatePrice(ASSET_BTC, RAY * 15);
 
-//         uint idx = cdp.createCDP();
-//         cdp.deposit.value(1000000000, ASSET_BTC)(idx);
-//         cdp.borrow(idx, 10000000000);
+        cdp.liquidate(idx);
 
-//         oracle.updatePrice(ASSET_BTC, RAY * 15);
+        assertEq(liquidator.totalDebtPAI(), 10000000000);
+        assertEq(liquidator.totalCollateralBTC(), 1000000000);
 
-//         cdp.liquidate(idx);
+        idx = cdp.createDepositBorrow.value(1000000000, ASSET_BTC)(5000000000,CDP.CDPType.CURRENT);
 
-//         assertEq(cdp.debtOfCDP(idx), 0);
-//         assertEq(cdp.collateralOfCDP(idx), 0);
+        liquidator.buyCollateral.value(15000000000, ASSET_PAI)();
+        assertEq(liquidator.totalDebtPAI(), 0);
+        assertEq(liquidator.totalCollateralBTC(), 0);
+        assertEq(liquidator.totalAssetPAI(), 5000000000);
+    }
+}
 
-//         assertEq(liquidator.totalPrincipalPAI(), 10000000000);
-//         assertEq(liquidator.totalCollateralBTC(), 1000000000);
+contract LiquidatorTest is TestBase {
+    function liquidatorSetup() public {
+        setup();
+        liquidator.setDiscount(RAY);
+    }
 
-//         idx = cdp.createCDP();
-//         cdp.deposit.value(1000000000, ASSET_BTC)(idx);
-//         cdp.borrow(idx, 5000000000);
+    function testCancelDebt() public {
+        liquidatorSetup();
 
-//         liquidator.buyCollateral.value(15000000000, ASSET_PAI)();
-//         assertEq(liquidator.totalPrincipalPAI(), 0);
-//         assertEq(liquidator.totalCollateralBTC(), 0);      
-//         assertEq(liquidator.totalAssetPAI(), 5000000000);
-//     }
-// }
+        liquidator.addDebt(5000000000);
+        paiIssuer.mint(6000000000, liquidator);
 
-// contract LiquidatorTest is TestBase {
-//     function liquidatorSetup() public {
-//         setup();
-//         liquidator.setDiscount(RAY);
-//     }
+        assertEq(liquidator.totalAssetPAI(), 6000000000);
+        assertEq(liquidator.totalDebtPAI(), 5000000000);
 
-//     function testCancelDebt() public {
-//         liquidatorSetup(); 
+        liquidator.cancelDebt();
+        assertEq(liquidator.totalAssetPAI(), 1000000000);
+        assertEq(liquidator.totalDebtPAI(), 0);
+    }
 
-//         liquidator.addDebt(5000000000);
-//         paiIssuer.mint(6000000000, liquidator);
+    function testBuyCollateral() public {
+        liquidatorSetup();
 
-//         assertEq(liquidator.totalAssetPAI(), 6000000000);
-//         assertEq(liquidator.totalPrincipalPAI(), 5000000000);
+        btcIssuer.mint(5000000000, liquidator);
 
-//         liquidator.cancelDebt();
-//         assertEq(liquidator.totalAssetPAI(), 1000000000);
-//         assertEq(liquidator.totalPrincipalPAI(), 0);
-//     }
+        uint emm1 = flow.balance(this, ASSET_PAI);
+        uint emm2 = flow.balance(this, ASSET_BTC);
 
-//     function testBuyCollateral() public {
-//         liquidatorSetup();
+        liquidator.buyCollateral.value(3000000000, ASSET_PAI)();
 
-//         btcIssuer.mint(5000000000, liquidator);
+        assertEq(emm1 - flow.balance(this, ASSET_PAI), 3000000000);
+        assertEq(flow.balance(this, ASSET_BTC) - emm2, 3000000000);
+    }
 
-//         uint emm1 = flow.balance(this, ASSET_PAI);
-//         uint emm2 = flow.balance(this, ASSET_BTC);
+    function testBuyCollateralAll() public {
+        liquidatorSetup();
 
-//         liquidator.buyCollateral.value(3000000000, ASSET_PAI)();
+        btcIssuer.mint(5000000000, liquidator);
 
-//         assertEq(emm1 - flow.balance(this, ASSET_PAI), 3000000000);
-//         assertEq(flow.balance(this, ASSET_BTC) - emm2, 3000000000);
-//     }
+        uint emm1 = flow.balance(this, ASSET_PAI);
+        uint emm2 = flow.balance(this, ASSET_BTC);
 
-//     function testBuyCollateralAll() public {
-//         liquidatorSetup();
+        liquidator.buyCollateral.value(6000000000, ASSET_PAI)();        
 
-//         btcIssuer.mint(5000000000, liquidator);
+        assertEq(emm1 - flow.balance(this, ASSET_PAI), 5000000000);
+        assertEq(flow.balance(this, ASSET_BTC) - emm2, 5000000000);
+    }
 
-//         uint emm1 = flow.balance(this, ASSET_PAI);
-//         uint emm2 = flow.balance(this, ASSET_BTC);
+    function testCancelDebtAfterBuy1() public {
+        liquidatorSetup(); 
 
-//         liquidator.buyCollateral.value(6000000000, ASSET_PAI)();        
+        liquidator.addDebt(2000000000);
+        paiIssuer.mint(1000000000, liquidator);
+        btcIssuer.mint(5000000000, liquidator);
 
-//         assertEq(emm1 - flow.balance(this, ASSET_PAI), 5000000000);
-//         assertEq(flow.balance(this, ASSET_BTC) - emm2, 5000000000);
-//     }
+        liquidator.buyCollateral.value(1500000000, ASSET_PAI)();
 
-//     function testCancelDebtAfterBuy1() public {
-//         liquidatorSetup(); 
+        assertEq(liquidator.totalAssetPAI(), 500000000);
+        assertEq(liquidator.totalDebtPAI(), 0);
+    }
 
-//         liquidator.addDebt(2000000000);
-//         paiIssuer.mint(1000000000, liquidator);
-//         btcIssuer.mint(5000000000, liquidator);
+    function testCancelDebtAfterBuy2() public {
+        liquidatorSetup(); 
 
-//         liquidator.buyCollateral.value(1500000000, ASSET_PAI)();        
+        liquidator.addDebt(2000000000);
+        paiIssuer.mint(1000000000, liquidator);
+        btcIssuer.mint(5000000000, liquidator);
 
-//         assertEq(liquidator.totalAssetPAI(), 500000000);
-//         assertEq(liquidator.totalPrincipalPAI(), 0);
-//     }
+        liquidator.buyCollateral.value(500000000, ASSET_PAI)();        
 
-//     function testCancelDebtAfterBuy2() public {
-//         liquidatorSetup(); 
-
-//         liquidator.addDebt(2000000000);
-//         paiIssuer.mint(1000000000, liquidator);
-//         btcIssuer.mint(5000000000, liquidator);
-
-//         liquidator.buyCollateral.value(500000000, ASSET_PAI)();        
-
-//         assertEq(liquidator.totalAssetPAI(), 0);
-//         assertEq(liquidator.totalPrincipalPAI(), 500000000);
-//     }
+        assertEq(liquidator.totalAssetPAI(), 0);
+        assertEq(liquidator.totalDebtPAI(), 500000000);
+    }
     
-//     function testDiscountBuyPartial() public {
-//         liquidatorSetup();
+    function testDiscountBuyPartial() public {
+        liquidatorSetup();
 
-//         liquidator.setDiscount(RAY * 9 / 10);
-//         oracle.updatePrice(ASSET_BTC, RAY * 2);
+        liquidator.setDiscount(RAY * 9 / 10);
+        oracle.updatePrice(ASSET_BTC, RAY * 2);
 
-//         btcIssuer.mint(1000000000, liquidator);
+        btcIssuer.mint(1000000000, liquidator);
 
-//         uint emm1 = flow.balance(this, ASSET_PAI);
-//         uint emm2 = flow.balance(this, ASSET_BTC);
+        uint emm1 = flow.balance(this, ASSET_PAI);
+        uint emm2 = flow.balance(this, ASSET_BTC);
 
-//         liquidator.buyCollateral.value(900000000, ASSET_PAI)();
+        liquidator.buyCollateral.value(900000000, ASSET_PAI)();
 
-//         assertEq(emm1 - flow.balance(this, ASSET_PAI), 900000000);
-//         assertEq(flow.balance(this, ASSET_BTC) - emm2, 500000000);
+        assertEq(emm1 - flow.balance(this, ASSET_PAI), 900000000);
+        assertEq(flow.balance(this, ASSET_BTC) - emm2, 500000000);
 
-//         assertEq(liquidator.totalAssetPAI(), 900000000);
-//         assertEq(liquidator.totalCollateralBTC(), 500000000);
-//     }
+        assertEq(liquidator.totalAssetPAI(), 900000000);
+        assertEq(liquidator.totalCollateralBTC(), 500000000);
+    }
 
-//     function testDiscountBuyAll() public {
-//         liquidatorSetup();
+    function testDiscountBuyAll() public {
+        liquidatorSetup();
 
-//         liquidator.setDiscount(RAY * 9 / 10);
-//         oracle.updatePrice(ASSET_BTC, RAY * 2);
+        liquidator.setDiscount(RAY * 9 / 10);
+        oracle.updatePrice(ASSET_BTC, RAY * 2);
 
-//         btcIssuer.mint(1000000000, liquidator);
+        btcIssuer.mint(1000000000, liquidator);
 
-//         uint emm1 = flow.balance(this, ASSET_PAI);
-//         uint emm2 = flow.balance(this, ASSET_BTC);
+        uint emm1 = flow.balance(this, ASSET_PAI);
+        uint emm2 = flow.balance(this, ASSET_BTC);
 
-//         liquidator.buyCollateral.value(9000000000, ASSET_PAI)();
+        liquidator.buyCollateral.value(9000000000, ASSET_PAI)();
 
-//         assertEq(emm1 - flow.balance(this, ASSET_PAI), 1800000000);
-//         assertEq(flow.balance(this, ASSET_BTC) - emm2, 1000000000);
+        assertEq(emm1 - flow.balance(this, ASSET_PAI), 1800000000);
+        assertEq(flow.balance(this, ASSET_BTC) - emm2, 1000000000);
 
-//         assertEq(liquidator.totalAssetPAI(), 1800000000);
-//         assertEq(liquidator.totalCollateralBTC(), 0);
-//     }
-// }
+        assertEq(liquidator.totalAssetPAI(), 1800000000);
+        assertEq(liquidator.totalCollateralBTC(), 0);
+    }
+}
 
-// contract SettlementTest is TestBase {
-//     Settlement settlement;
+contract SettlementTest is TestBase {
+    Settlement settlement;
 
-//     function settlementSetup() public {
-//         setup();
-//         oracle.updatePrice(ASSET_BTC, RAY);
-//         cdp.updateLiquidationRatio(RAY * 2);
-//         cdp.updateLiquidationPenalty(RAY * 3 / 2);
-//         liquidator.setDiscount(RAY);
+    function settlementSetup() public {
+        setup();
+        oracle.updatePrice(ASSET_BTC, RAY);
+        cdp.updateLiquidationRatio(RAY * 2);
+        cdp.updateLiquidationPenalty(RAY * 3 / 2);
+        liquidator.setDiscount(RAY);
 
-//         settlement = new Settlement(oracle, cdp, liquidator);
-//     }
+        settlement = new Settlement(oracle, cdp, liquidator);
+    }
 
-//     function testSettlementNormal() public {
-//         settlementSetup();
+    function testSettlementNormal() public {
+        settlementSetup();
 
-//         uint idx = cdp.createCDP();
-//         cdp.deposit.value(2000000000, ASSET_BTC)(idx);
-//         cdp.borrow(idx, 500000000);
+        uint idx = cdp.createDepositBorrow.value(2000000000, ASSET_BTC)(500000000,CDP.CDPType.CURRENT);
 
-//         settlement.terminatePhaseOne();
+        settlement.terminatePhaseOne();
 
-//         assertTrue(!cdp.readyForPhaseTwo());
-//         cdp.liquidate(idx);
-//         assertEq(liquidator.totalCollateralBTC(), 500000000);
-//         assertEq(liquidator.totalPrincipalPAI(), 500000000);
-//         assertTrue(cdp.readyForPhaseTwo());
-//         assertEq(cdp.totalCollateral(), 1500000000);
-//         assertEq(cdp.totalPrincipal(), 0);
+        assertTrue(!cdp.readyForPhaseTwo());
+        cdp.liquidate(idx);
+        assertEq(liquidator.totalCollateralBTC(), 500000000);
+        assertEq(liquidator.totalDebtPAI(), 500000000);
+        assertTrue(cdp.readyForPhaseTwo());
+        assertEq(cdp.totalCollateral(), 0);
+        assertEq(cdp.totalPrincipal(), 0);
 
-//         cdp.withdraw(idx, 500000000);
-//         assertEq(cdp.totalCollateral(), 1000000000);
-//         assertEq(cdp.totalPrincipal(), 0);
+        settlement.terminatePhaseTwo();
+        liquidator.buyCollateral.value(500000000, ASSET_PAI)();
+        assertEq(liquidator.totalCollateralBTC(), 0);
+        assertEq(liquidator.totalDebtPAI(), 0);
+    }
 
-//         settlement.terminatePhaseTwo();
-//         cdp.withdraw(idx, 500000000);
-//         assertEq(cdp.totalCollateral(), 500000000);
-//         assertEq(cdp.totalPrincipal(), 0);
+    function testSettlementMultipleCDPOverCollateral() public {
+        settlementSetup();
 
-//         liquidator.buyCollateral.value(500000000, ASSET_PAI)();
-//         assertEq(liquidator.totalCollateralBTC(), 0);
-//         assertEq(liquidator.totalPrincipalPAI(), 0);
-//     }
+        uint idx = cdp.createDepositBorrow.value(2000000000, ASSET_BTC)(500000000,CDP.CDPType.CURRENT);
+        uint idx2 = cdp.createDepositBorrow.value(3000000000, ASSET_BTC)(1000000000,CDP.CDPType.CURRENT);
+        uint idx3 = cdp.createDepositBorrow.value(5000000000, ASSET_BTC)(2000000000,CDP.CDPType.CURRENT);
+        uint emm = flow.balance(this,ASSET_BTC);
 
-//     function testSettlementMultipleCDPOverCollateral() public {
-//         settlementSetup();
+        assertEq(cdp.totalCollateral(), 10000000000);
+        assertEq(cdp.totalPrincipal(), 3500000000);
+
+        oracle.updatePrice(ASSET_BTC, RAY * 2);
+        assertTrue(cdp.safe(idx));
+        assertTrue(cdp.safe(idx2));
+        assertTrue(cdp.safe(idx3));
+
+        settlement.terminatePhaseOne();
+
+        cdp.liquidate(idx2);
+        assertEq(liquidator.totalCollateralBTC(), 500000000);
+        assertEq(liquidator.totalDebtPAI(), 1000000000);
+
+        assertTrue(!cdp.readyForPhaseTwo());
+
+        cdp.quickLiquidate(2);
+        assertEq(liquidator.totalCollateralBTC(), 750000000);
+        assertEq(liquidator.totalDebtPAI(), 1500000000);
+
+        assertTrue(!cdp.readyForPhaseTwo());
+
+        cdp.quickLiquidate(3);
+        assertEq(liquidator.totalCollateralBTC(), 1750000000);
+        assertEq(liquidator.totalDebtPAI(), 3500000000);
+
+        assertTrue(cdp.totalPrincipal() == 0);
+        assertEq(flow.balance(this,ASSET_BTC),emm + 1750000000 + 2500000000 + 4000000000);
+        assertTrue(cdp.readyForPhaseTwo());
+
+        settlement.terminatePhaseTwo();
+
+        liquidator.buyCollateral.value(3500000000, ASSET_PAI)();
+        assertEq(liquidator.totalCollateralBTC(), 0);
+        assertEq(liquidator.totalDebtPAI(), 0);
+    }
+
+    function testSettlementMultipleCDPUnderCollateral() public {
+        settlementSetup();
+
+        uint idx = cdp.createDepositBorrow.value(2000000000, ASSET_BTC)(500000000,CDP.CDPType.CURRENT);
+        uint idx2 = cdp.createDepositBorrow.value(3000000000, ASSET_BTC)(1000000000,CDP.CDPType.CURRENT);
+        uint idx3 = cdp.createDepositBorrow.value(5000000000, ASSET_BTC)(2000000000,CDP.CDPType.CURRENT);
+        uint emm = flow.balance(this,ASSET_BTC);
+
+        assertEq(cdp.totalCollateral(), 10000000000);
+        assertEq(cdp.totalPrincipal(), 3500000000);
+
+        oracle.updatePrice(ASSET_BTC, RAY / 10);
+        assertTrue(!cdp.safe(idx));
+        assertTrue(!cdp.safe(idx2));
+        assertTrue(!cdp.safe(idx3));
+
+        settlement.terminatePhaseOne();
+
+        cdp.liquidate(idx2);
+        assertEq(liquidator.totalCollateralBTC(), 3000000000);
+        assertEq(liquidator.totalDebtPAI(), 1000000000);
+
+        assertTrue(!cdp.readyForPhaseTwo());
+
+        cdp.quickLiquidate(2);
+        assertEq(liquidator.totalCollateralBTC(), 5000000000);
+        assertEq(liquidator.totalDebtPAI(), 1500000000);
+
+        assertTrue(!cdp.readyForPhaseTwo());
+
+        cdp.quickLiquidate(3);
+        assertEq(liquidator.totalCollateralBTC(), 10000000000);
+        assertEq(liquidator.totalDebtPAI(), 3500000000);
+
+        assertTrue(cdp.totalPrincipal() == 0);
+        assertEq(flow.balance(this,ASSET_BTC),emm);
+        assertTrue(cdp.readyForPhaseTwo());
+
+        settlement.terminatePhaseTwo();
+
+        liquidator.buyCollateral.value(3500000000, ASSET_PAI)();
+        assertEq(liquidator.totalCollateralBTC(), 0);
+        assertEq(liquidator.totalDebtPAI(), 0);
+    }
+
+    function testSettlementPhaseTwoBuyFromLiquidator() public{
+        settlementSetup();
+
+        uint idx = cdp.createDepositBorrow.value(1000000000, ASSET_BTC)(500000000,CDP.CDPType.CURRENT);
+
+        assertTrue(cdp.safe(idx));
+        oracle.updatePrice(ASSET_BTC, RAY / 2);
+
+        assertTrue(!cdp.safe(idx));
+        cdp.liquidate(idx);
+
+        assertEq(liquidator.totalCollateralBTC(), 1000000000);
+        assertEq(liquidator.totalDebtPAI(), 500000000);
+
+        liquidator.buyCollateral.value(100000000, ASSET_PAI)();
+
+        assertEq(liquidator.totalCollateralBTC(), 800000000);
+        assertEq(liquidator.totalDebtPAI(), 400000000);
+
+        settlement.terminatePhaseOne();
+        assertTrue(!liquidator.call(abi.encodeWithSelector(liquidator.buyCollateral.selector,1000000,ASSET_PAI)));
+
+        settlement.terminatePhaseTwo();
+        liquidator.buyCollateral.value(100000000, ASSET_PAI)();
+        assertEq(liquidator.totalCollateralBTC(), 600000000);
+        assertEq(liquidator.totalDebtPAI(), 300000000);
+    }
+
+    function testSettlementFourMethods() public {
+        settlementSetup();     
+
+        //test whether there are grammar error!
+        uint idx = cdp.createDepositBorrow.value(1000000000, ASSET_BTC)(500000000,CDP.CDPType.CURRENT);
+        assertTrue(cdp.call.value(1000000000, ASSET_BTC)(abi.encodeWithSelector(cdp.deposit.selector,idx)));
+        assertTrue(cdp.call.value(1000000000, ASSET_PAI)(abi.encodeWithSelector(cdp.repay.selector,idx)));
+
+        assertTrue(cdp.call.value(1000000000, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,500000000,CDP.CDPType.CURRENT)));
+
+        //test whether terminatePhaseTwo can be called successfully!
+        assertTrue(!settlement.call(abi.encodeWithSelector(settlement.terminatePhaseTwo.selector)));
         
-//         uint idx = cdp.createCDP();
-//         cdp.deposit.value(2000000000, ASSET_BTC)(idx);
-//         cdp.borrow(idx, 500000000);
+        settlement.terminatePhaseOne();
+        //test whether these four method can be called successfully!
+        assertTrue(!cdp.call.value(1000000000, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,500000000,CDP.CDPType.CURRENT)));
+        assertTrue(!cdp.call.value(1000000000, ASSET_BTC)(abi.encodeWithSelector(cdp.deposit.selector,idx)));
+        assertTrue(!cdp.call.value(1000000000, ASSET_PAI)(abi.encodeWithSelector(cdp.repay.selector,idx)));
+    }
 
-//         uint idx2 = cdp.createCDP();
-//         cdp.deposit.value(3000000000, ASSET_BTC)(idx2);
-//         cdp.borrow(idx2, 1000000000);
+    function testPhaseTwoReady() public {
+        settlementSetup();
 
-//         uint idx3 = cdp.createCDP();
-//         cdp.deposit.value(5000000000, ASSET_BTC)(idx3);
-//         cdp.borrow(idx3, 2000000000);
+        uint idx = cdp.createDepositBorrow.value(2000000000, ASSET_BTC)(500000000,CDP.CDPType.CURRENT);
 
-//         assertEq(cdp.totalCollateral(), 10000000000);
-//         assertEq(cdp.totalPrincipal(), 3500000000);
+        settlement.terminatePhaseOne();
+        assertTrue(!settlement.call(abi.encodeWithSelector(settlement.terminatePhaseTwo.selector)));
 
-//         oracle.updatePrice(ASSET_BTC, RAY * 2);
-//         assertTrue(cdp.safe(idx));
-//         assertTrue(cdp.safe(idx2));
-//         assertTrue(cdp.safe(idx3));
+        cdp.liquidate(idx);
 
-//         settlement.terminatePhaseOne();
+        assertTrue(settlement.call(abi.encodeWithSelector(settlement.terminatePhaseTwo.selector)));
+    }
 
-//         cdp.liquidate(idx2);
-//         assertEq(liquidator.totalCollateralBTC(), 500000000);
-//         assertEq(liquidator.totalPrincipalPAI(), 1000000000);      
+    function testSettlementUpdateOracle() public {
+        settlementSetup();     
 
-//         assertTrue(!cdp.readyForPhaseTwo());
+        assertTrue(oracle.call(abi.encodeWithSelector(oracle.updatePrice.selector,ASSET_BTC, 1)));
 
-//         cdp.quickLiquidate(2);
-//         assertEq(liquidator.totalCollateralBTC(), 750000000);
-//         assertEq(liquidator.totalPrincipalPAI(), 1500000000);      
+        settlement.terminatePhaseOne();
+        assertTrue(!oracle.call(abi.encodeWithSelector(oracle.updatePrice.selector,ASSET_BTC, 1)));
+    }
 
-//         assertTrue(!cdp.readyForPhaseTwo());
+}
 
-//         cdp.quickLiquidate(3);
-//         assertEq(liquidator.totalCollateralBTC(), 1750000000);
-//         assertEq(liquidator.totalPrincipalPAI(), 3500000000);    
+contract MultipleInterestTest is TestBase {
 
-//         assertTrue(cdp.totalPrincipal() == 0);
-//         assertEq(cdp.collateralOfCDP(idx), 1750000000);
-//         assertEq(cdp.collateralOfCDP(idx2), 2500000000);
-//         assertEq(cdp.collateralOfCDP(idx3), 4000000000);
-//         assertTrue(cdp.readyForPhaseTwo());
+    function testCalculate() public {
+        setup();
+        uint rate = cdp.baseInterestRate();
+        assertEq(rpow(rate,1 years),RAY * 12 / 10);
+        cdp.updateBaseInterestRate(RAY * 12 / 10);
+        rate = cdp.baseInterestRate();
+        assertEq(rpow(rate,1 years),RAY * 12 / 10);
+        rate = cdp.adjustedInterestRate(1);
+        assertEq(rpow(rate,1 years),RAY * 1198 / 1000);
+        rate = cdp.adjustedInterestRate(2);
+        assertEq(rpow(rate,1 years),RAY * 1196 / 1000);
+        rate = cdp.adjustedInterestRate(3);
+        assertEq(rpow(rate,1 years),RAY * 1194 / 1000);
+        rate = cdp.adjustedInterestRate(4);
+        assertEq(rpow(rate,1 years),RAY * 1192 / 1000);
+        rate = cdp.adjustedInterestRate(5);
+        assertEq(rpow(rate,1 years),RAY * 1190 / 1000);
+        rate = cdp.adjustedInterestRate(6);
+        assertEq(rpow(rate,1 years),RAY * 1188 / 1000);
+        assertEq(cdp.term(1), 7 days);
+        assertEq(cdp.term(2), 30 days);
+        assertEq(cdp.term(3), 60 days);
+        assertEq(cdp.term(4), 90 days);
+        assertEq(cdp.term(5), 180 days);
+        assertEq(cdp.term(6), 360 days);
 
-//         settlement.terminatePhaseTwo();
+        cdp.call(abi.encodeWithSelector(cdp.updateCutDown.selector,1,RAY /10));
+        rate = cdp.adjustedInterestRate(1);
+        assertEq(rpow(rate,1 years),RAY * 11 / 10);
 
-//         liquidator.buyCollateral.value(3500000000, ASSET_PAI)();
-//         assertEq(liquidator.totalCollateralBTC(), 0);
-//         assertEq(liquidator.totalPrincipalPAI(), 0);    
-//     }
-
-//     function testSettlementMultipleCDPUnderCollateral() public {
-//         settlementSetup();
-        
-//         uint idx = cdp.createCDP();
-//         cdp.deposit.value(2000000000, ASSET_BTC)(idx);
-//         cdp.borrow(idx, 500000000);
-
-//         uint idx2 = cdp.createCDP();
-//         cdp.deposit.value(3000000000, ASSET_BTC)(idx2);
-//         cdp.borrow(idx2, 1000000000);
-
-//         uint idx3 = cdp.createCDP();
-//         cdp.deposit.value(5000000000, ASSET_BTC)(idx3);
-//         cdp.borrow(idx3, 2000000000);
-
-//         assertEq(cdp.totalCollateral(), 10000000000);
-//         assertEq(cdp.totalPrincipal(), 3500000000);
-
-//         oracle.updatePrice(ASSET_BTC, RAY / 10);
-//         assertTrue(!cdp.safe(idx));
-//         assertTrue(!cdp.safe(idx2));
-//         assertTrue(!cdp.safe(idx3));
-
-//         settlement.terminatePhaseOne();
-
-//         cdp.liquidate(idx2);
-//         assertEq(liquidator.totalCollateralBTC(), 3000000000);
-//         assertEq(liquidator.totalPrincipalPAI(), 1000000000);
-
-//         assertTrue(!cdp.readyForPhaseTwo());
-
-//         cdp.quickLiquidate(2);
-//         assertEq(liquidator.totalCollateralBTC(), 5000000000);
-//         assertEq(liquidator.totalPrincipalPAI(), 1500000000);      
-
-//         assertTrue(!cdp.readyForPhaseTwo());
-
-//         cdp.quickLiquidate(3);
-//         assertEq(liquidator.totalCollateralBTC(), 10000000000);
-//         assertEq(liquidator.totalPrincipalPAI(), 3500000000);    
-
-//         assertTrue(cdp.totalPrincipal() == 0);
-//         assertEq(cdp.collateralOfCDP(idx), 0);
-//         assertEq(cdp.collateralOfCDP(idx2), 0);
-//         assertEq(cdp.collateralOfCDP(idx3), 0);
-//         assertTrue(cdp.readyForPhaseTwo());
-
-//         settlement.terminatePhaseTwo();
-
-//         liquidator.buyCollateral.value(3500000000, ASSET_PAI)();
-//         assertEq(liquidator.totalCollateralBTC(), 0);
-//         assertEq(liquidator.totalPrincipalPAI(), 0);    
-//     }
-
-//     function testSettlementPhaseTwoBuyFromLiquidator() public{
-//         settlementSetup();        
-
-//         uint idx = cdp.createCDP();
-//         cdp.deposit.value(1000000000, ASSET_BTC)(idx);
-//         cdp.borrow(idx, 500000000);
-
-//         assertTrue(cdp.safe(idx));
-//         oracle.updatePrice(ASSET_BTC, RAY / 2);
-
-//         assertTrue(!cdp.safe(idx));
-//         cdp.liquidate(idx);
-
-//         assertEq(liquidator.totalCollateralBTC(), 1000000000);
-//         assertEq(liquidator.totalPrincipalPAI(), 500000000);    
-
-//         liquidator.buyCollateral.value(100000000, ASSET_PAI)();
-
-//         assertEq(liquidator.totalCollateralBTC(), 800000000);
-//         assertEq(liquidator.totalPrincipalPAI(), 400000000);    
-
-//         settlement.terminatePhaseOne();
-//         assertTrue(!liquidator.call(abi.encodeWithSelector(liquidator.buyCollateral.selector,1000000,ASSET_PAI)));
-
-//         settlement.terminatePhaseTwo();
-//         liquidator.buyCollateral.value(100000000, ASSET_PAI)();
-//         assertEq(liquidator.totalCollateralBTC(), 600000000);
-//         assertEq(liquidator.totalPrincipalPAI(), 300000000);    
-
-//     }
-
-//     function testSettlementFourMethods() public {
-//         settlementSetup();     
-
-//         uint idx = cdp.createCDP();
-//         //test whether there are grammar error!
-//         assertTrue(cdp.call.value(1000000000, ASSET_BTC)(abi.encodeWithSelector(cdp.deposit.selector,idx)));
-//         assertTrue(cdp.call(abi.encodeWithSelector(cdp.borrow.selector,idx,500000000)));
-//         assertTrue(cdp.call.value(1000000000, ASSET_PAI)(abi.encodeWithSelector(cdp.repay.selector,idx)));
-//         assertTrue(cdp.call(abi.encodeWithSelector(cdp.withdraw.selector,idx,1000000000)));
-
-//         //test whether terminatePhaseTwo can be called successfully!
-//         assertTrue(!settlement.call(abi.encodeWithSelector(settlement.terminatePhaseTwo.selector)));
-        
-//         settlement.terminatePhaseOne();
-//         //test whether these four method can be called successfully!
-//         assertTrue(!cdp.call.value(1000000000, ASSET_BTC)(abi.encodeWithSelector(cdp.deposit.selector,idx)));
-//         assertTrue(!cdp.call(abi.encodeWithSelector(cdp.borrow.selector,idx,500000000)));
-//         assertTrue(!cdp.call.value(1000000000, ASSET_PAI)(abi.encodeWithSelector(cdp.repay.selector,idx)));
-//         assertTrue(!cdp.call(abi.encodeWithSelector(cdp.withdraw.selector,idx,1000000000)));
-//     }
-
-//     function testSettlementPhaseTwoWithdraw() public {
-//         settlementSetup();     
-
-//         uint idx = cdp.createCDP();
-//         cdp.deposit.value(2000000000, ASSET_BTC)(idx);
-
-//         settlement.terminatePhaseOne();
-//         settlement.terminatePhaseTwo();
-
-//         cdp.withdraw(idx, 1000000000);
-//     }
-
-//     function testDirectPhaseTwoRawCall() public{
-//         settlementSetup();
-
-//         bytes4 exec = bytes4(keccak256("terminatePhaseTwo()"));
-//         bool result = address(settlement).call(exec);    
-//         assertTrue(!result);
-
-//         exec = bytes4(keccak256("terminatePhaseOne()"));
-//         result = address(settlement).call(exec);
-//         assertTrue(result);
-
-//     }
-
-//     function testPhaseTwoReady() public {
-//         settlementSetup();     
-
-//         uint idx = cdp.createCDP();
-//         cdp.deposit.value(2000000000, ASSET_BTC)(idx);
-//         cdp.borrow(idx, 500000000);
-
-//         settlement.terminatePhaseOne();
-//         assertTrue(!settlement.call(abi.encodeWithSelector(settlement.terminatePhaseTwo.selector)));
-
-//         cdp.liquidate(idx);
-
-//         assertTrue(settlement.call(abi.encodeWithSelector(settlement.terminatePhaseTwo.selector)));
-//     }
-
-//     function testSettlementUpdateOracle() public {
-//         settlementSetup();     
-
-//         assertTrue(oracle.call(abi.encodeWithSelector(oracle.updatePrice.selector,ASSET_BTC, 1)));
-
-//         settlement.terminatePhaseOne();
-//         assertTrue(!oracle.call(abi.encodeWithSelector(oracle.updatePrice.selector,ASSET_BTC, 1)));
-//     }
-
-// }
-
-// contract MultipleInterestTest is TestBase {
-
-//     function testMultiInterest() public {
-//         setup();
-//         assertEq(cdp.adjustedInterestRate(1), 0);
-//         assertEq(cdp.adjustedInterestRate(2), 0);
-//         assertEq(cdp.adjustedInterestRate(3), 0);
-//         assertEq(cdp.adjustedInterestRate(4), 0);
-//         assertEq(cdp.adjustedInterestRate(5), 0);
-//         assertEq(cdp.adjustedInterestRate(6), 0);
-//         assertEq(cdp.term(1), 7 days);
-//         assertEq(cdp.term(2), 30 days);
-//         assertEq(cdp.term(3), 60 days);
-//         assertEq(cdp.term(4), 90 days);
-//         assertEq(cdp.term(5), 180 days);
-//         assertEq(cdp.term(6), 360 days);
-
-//         // cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,1,1250000000000000000000000000));
-//         // assertEq(cdp.floatation(1), 1250000000000000000000000000);
-//         // bool tempBool;
-//         // //Only allowed enumeration values can modify parameters
-//         // tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,0,1250000000000000000000000000));
-//         // assertTrue(!tempBool);
-//         // tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,7,1250000000000000000000000000));
-//         // assertTrue(!tempBool);
-//         // //The parameters can't be set below 1.
-//         // tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,1,990000000000000000000000000));
-//         // assertTrue(!tempBool);
-//     }
-// }
+        bool tempBool;
+        //Only allowed enumeration values can modify parameters
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,0,1250000000000000000000000000));
+        assertTrue(!tempBool);
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,7,1250000000000000000000000000));
+        assertTrue(!tempBool);
+        //The parameters can't be set below 1.
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.pudateFloatation.selector,1,RAY /4));
+        assertTrue(!tempBool);
+    }
+}

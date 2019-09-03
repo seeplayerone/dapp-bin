@@ -319,10 +319,6 @@ contract CDP is MathPI, DSNote, Template {
             if( principal > payForPrincipal){
                 liquidator.addDebt(sub(principal, payForPrincipal));
             }
-            if(payForInterest > 0) {
-                liquidator.transfer(payForInterest, ASSET_PAI);
-                //liquidator.cancelDebt();  //todo discuss whether it is necessary;
-            }
             emit RepayPAI(data.collateral, 0, 0, record, msg.value, payForPrincipal, payForInterest);
             delete CDPRecords[record];
             emit CloseCDP(record);
@@ -335,10 +331,11 @@ contract CDP is MathPI, DSNote, Template {
                 payForPrincipal = 0;
             }
             data.principal = sub(data.principal,payForPrincipal);
-            data.accumulatedDebt = sub(data.accumulatedDebt, rdiv(msg.value,updateAndFetchRates()));
             if(CDPType.CURRENT == data.cdpType) {
+                data.accumulatedDebt = sub(data.accumulatedDebt, rdiv(msg.value,updateAndFetchRates()));
                 emit RepayPAI(data.collateral, data.principal, rmul(data.accumulatedDebt, accumulatedRates), record, msg.value, payForPrincipal, payForInterest);
             } else {
+                data.accumulatedDebt = sub(data.accumulatedDebt, msg.value);
                 emit RepayPAI(data.collateral, data.principal, data.accumulatedDebt, record, msg.value, payForPrincipal, payForInterest);
             }
         }
@@ -346,7 +343,9 @@ contract CDP is MathPI, DSNote, Template {
         if (payForPrincipal > 0) {
             issuer.burn.value(payForPrincipal, ASSET_PAI)();
         }
-        liquidator.transfer(payForInterest, ASSET_PAI);
+        if(payForInterest > 0) {
+            liquidator.transfer(payForInterest, ASSET_PAI);
+        }
         // TODO transfer to Financial Contracts directly
     }
 
