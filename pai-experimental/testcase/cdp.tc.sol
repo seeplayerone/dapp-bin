@@ -296,7 +296,6 @@ contract CDPTest is TestBase {
 
     function testLiquidationCase2() public {
         setup();
-        cdp.updateCreateCollateralRatio(5 * RAY / 2, RAY / 20);
         uint idx = cdp.createDepositBorrow.value(100000000, ASSET_BTC)(40000000,CDP.CDPType.CURRENT);
         cdp.updateLiquidationRatio(2000000000000000000000000000);
         cdp.updateLiquidationPenalty(1000000000000000000000000000);
@@ -355,8 +354,7 @@ contract baseInterestRateTest is TestBase {
     function feeSetup() public returns (uint) {
         setup();
         oracle.updatePrice(ASSET_BTC, RAY * 10);
-        cdp.updateCreateCollateralRatio(10 * RAY, RAY / 20);
-        cdp.updateBaseInterestRate(1000000564701133626865910626);
+        cdp.updateBaseInterestRate(1050000000000000000000000000);
         cdp.updateLiquidationRatio(RAY);
         uint idx = cdp.createDepositBorrow.value(10000000000, ASSET_BTC)(10000000000,CDP.CDPType.CURRENT);
 
@@ -367,10 +365,10 @@ contract baseInterestRateTest is TestBase {
         uint idx = feeSetup();
         (uint principal, uint interest) = cdp.debtOfCDP(idx);
         assertEq(add(principal,interest), 10000000000);
-        cdp.fly(1 days);
+        cdp.fly(1 years);
         (principal, interest) = cdp.debtOfCDP(idx);
         assertEq(add(principal,interest), 10500000000);
-        cdp.fly(1 days);
+        cdp.fly(1 years);
         (principal, interest) = cdp.debtOfCDP(idx);
         assertEq(add(principal,interest), 11025000000);
     }
@@ -381,7 +379,7 @@ contract baseInterestRateTest is TestBase {
         assertEq(cdp.totalPrincipal(), 10000000000);
         assertEq(add(principal,interest), 10000000000);
 
-        cdp.fly(1 days);
+        cdp.fly(1 years);
         cdp.updateRates();
 
         assertEq(cdp.totalPrincipal(), 10000000000);
@@ -389,19 +387,20 @@ contract baseInterestRateTest is TestBase {
         assertEq(principal, 10000000000);
         assertEq(interest,500000000);
 
+        //pay for interest first
         cdp.repay.value(5000000000, ASSET_PAI)(idx);
-        assertEq(cdp.totalPrincipal(), 5000000000);
+        assertEq(cdp.totalPrincipal(), 5500000000);
         (principal, interest) = cdp.debtOfCDP(idx);
         assertEq(principal, 5500000000);
         assertEq(interest, 0);
 
-        cdp.fly(1 days);
+        cdp.fly(1 years);
         cdp.updateRates();
 
-        assertEq(cdp.totalPrincipal(), 5775000000);
+        assertEq(cdp.totalPrincipal(), 5500000000);
         (principal, interest) = cdp.debtOfCDP(idx);
         assertEq(principal, 5500000000);
-        assertEq(interest, 275000000);
+        assertEq(interest, 275000000);//(5500000000+275000000)=5500000000*1.05
 
         //pay for interest first
         cdp.repay.value(5000000, ASSET_PAI)(idx);
@@ -410,23 +409,25 @@ contract baseInterestRateTest is TestBase {
         assertEq(interest, 270000000);
     }
 
-//     function testFeeSafe() {
-//         uint idx = feeSetup();
-//         oracle.updatePrice(ASSET_BTC, RAY);
-//         assertTrue(cdp.safe(idx));
-//         cdp.fly(1 days);
-//         assertTrue(!cdp.safe(idx));
-//     }
+    function testFeeSafe() public {
+        uint idx = feeSetup();
+        oracle.updatePrice(ASSET_BTC, RAY);
+        assertTrue(cdp.safe(idx));
+        cdp.fly(1 years);
+        assertTrue(!cdp.safe(idx));
+    }
 
-//     function testFeeLiquidate() {
-//         uint idx = feeSetup();
-//         oracle.updatePrice(ASSET_BTC, RAY);
-//         cdp.fly(1 days);
-//         assertEq(cdp.debtOfCDP(idx), 10500000000);
-//         cdp.liquidate(idx);
-//         assertEq(cdp.debtOfCDP(idx), 0);
-//         assertEq(liquidator.totalPrincipalPAI(), 10000000000);        
-//     }
+    function testFeeLiquidate() public {
+        uint idx = feeSetup();
+        oracle.updatePrice(ASSET_BTC, RAY);
+        cdp.fly(1 years);
+        (uint principal, uint interest) = cdp.debtOfCDP(idx);
+        assertEq(add(principal,interest), 10500000000);
+        cdp.liquidate(idx);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(add(principal,interest), 0);
+        assertEq(liquidator.totalPrincipalPAI(), 10000000000);        
+    }
 
 //     function testFeeLiquidateRounding() {
 //         uint idx = feeSetup();

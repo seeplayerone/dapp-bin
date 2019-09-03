@@ -353,7 +353,9 @@ contract CDP is MathPI, DSNote, Template {
     /// debt of CDP, include principal + interest
     function debtOfCDP(uint record) public returns (uint256,uint256) {
         CDPRecord storage data = CDPRecords[record];
-        require(data.owner != 0x0);
+        if (data.owner != 0x0) {
+            return (0,0);
+        }
         uint debt;
         if(CDPType.CURRENT == data.cdpType) {
             debt = rmul(data.accumulatedDebt, updateAndFetchRates());
