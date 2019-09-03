@@ -310,7 +310,7 @@ contract CDP is MathPI, DSNote, Template {
             }
             if(payForInterest > 0) {
                 liquidator.transfer(payForInterest, ASSET_PAI);
-                //liquidator.cancelDebt();
+                //liquidator.cancelDebt();  //todo discuss whether it is necessary;
             }
             emit RepayPAI(data.collateral, 0, 0, record, msg.value, payForPrincipal, payForInterest);
             delete CDPRecords[record];
@@ -371,7 +371,7 @@ contract CDP is MathPI, DSNote, Template {
     function safe(uint record) public returns (bool) {
         CDPRecord storage data = CDPRecords[record];
         require(data.owner != 0x0);
-        if(CDPType.CURRENT == data.cdpType && add(data.endTime,overdueBufferPeriod) > era()) {
+        if(CDPType.CURRENT != data.cdpType && add(data.endTime,overdueBufferPeriod) > era()) {
             emit Safe(false);
             return false;
         }

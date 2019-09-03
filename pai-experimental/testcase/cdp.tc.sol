@@ -22,6 +22,7 @@ contract FakePerson is Template {
         bool result = TimefliesCDP(cdp).call.value(amount,id)(abi.encodeWithSelector(methodId,record));
         return result;
     }
+
 }
 
 /// this contract is used to simulate `time flies` to test governance fees and stability fees accurately
@@ -247,32 +248,39 @@ contract CDPTest is TestBase {
         assertTrue(!tempBool);
 
         //tolerance
-        // idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
-        // (principal, interest) = cdp.debtOfCDP(idx);
-        // assertEq(principal, 12);
-        // assertEq(interest, 13);
-        // uint tempUint;
-        // assertEq(cdp.baseInterestRate(),14);
-        // assertEq(cdp.closeCDPToleranceTime(),15);
-        // tempUint = rmul(99999999,rpow(cdp.baseInterestRate(),cdp.closeCDPToleranceTime()));
-        // assertEq(tempUint,16);
+        //100000000/(1.000000005781380000000000000^3600) = 99997918.72 which means when repayed with amount bigger than 99997918,
+        //it will close CDP successfully, otherwise, it won't.
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
+        cdp.repay.value(99999999, ASSET_PAI)(idx);
+        assertEq(flow.balance(this, ASSET_PAI),emm + 1);
+        assertEq(flow.balance(this, ASSET_BTC),emm);
 
-        // cdp.repay.value(99999999, ASSET_PAI)(idx);//100000000/(1000000005781380000000000000^3600) = 99997918
-        // assertEq(flow.balance(this, ASSET_PAI),emm);
-        // assertEq(flow.balance(this, ASSET_BTC),emm);
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
+        cdp.repay.value(99997919, ASSET_PAI)(idx);
+        assertEq(flow.balance(this, ASSET_PAI),emm + 1 + 2081); //(100000000 - 99997919 = 2081)
+        assertEq(flow.balance(this, ASSET_BTC),emm);
 
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
+        cdp.repay.value(99997918, ASSET_PAI)(idx);
+        assertEq(flow.balance(this, ASSET_BTC),emm - 200000000);//if the cdp is closed, all collateral will be tranfered back.
     }
 
-    // function testUnsafe() public {
-    //     setup();
-    //     cdp.updateLiquidationRatio(1000000000000000000000000000);
-    //     uint idx = cdp.createCDP();
-    //     cdp.deposit.value(100000000, ASSET_BTC)(idx);
-    //     cdp.borrow(idx, 90000000);
-    //     assertTrue(cdp.safe(idx));
-    //     oracle.updatePrice(ASSET_BTC, RAY / 2);
-    //     assertTrue(!cdp.safe(idx));
-    // }
+    function testUnsafe() public {
+        setup();
+        uint idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
+        assertTrue(cdp.safe(idx));
+        oracle.updatePrice(ASSET_BTC, RAY / 2);
+        assertTrue(!cdp.safe(idx));
+
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._7DAYS);
+        assertTrue(cdp.safe(idx));
+        cdp.fly(7 days);
+        assertTrue(cdp.safe(idx));
+        cdp.fly(1 days);
+        assertTrue(cdp.safe(idx));
+        cdp.fly(1);
+        assertTrue(!cdp.safe(idx));
+    }
 
     // function testLiquidationCase1() public {
     //     setup();
