@@ -377,8 +377,8 @@ contract CDP is MathPI, DSNote, Template {
         }
 
         uint256 collateralValue = rmul(data.collateral, priceOracle.getPrice(ASSET_COLLATERAL));
-        (,uint debt) = debtOfCDP(record);
-        uint256 debtValue = rmul(debt, liquidationRatio);
+        (uint principal,uint interest) = debtOfCDP(record);
+        uint256 debtValue = rmul(add(principal,interest), liquidationRatio);
 
         emit Safe(collateralValue >= debtValue);
         return collateralValue >= debtValue;

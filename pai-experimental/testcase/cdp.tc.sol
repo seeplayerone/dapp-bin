@@ -272,14 +272,14 @@ contract CDPTest is TestBase {
         oracle.updatePrice(ASSET_BTC, RAY / 2);
         assertTrue(!cdp.safe(idx));
 
-        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._7DAYS);
-        assertTrue(cdp.safe(idx));
-        cdp.fly(7 days);
-        assertTrue(cdp.safe(idx));
-        cdp.fly(1 days);
-        assertTrue(cdp.safe(idx));
-        cdp.fly(1);
-        assertTrue(!cdp.safe(idx));
+        // idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._7DAYS);
+        // assertTrue(cdp.safe(idx));
+        // cdp.fly(7 days);
+        // assertTrue(cdp.safe(idx));
+        // cdp.fly(1 days);
+        // assertTrue(cdp.safe(idx));
+        // cdp.fly(1);
+        // assertTrue(!cdp.safe(idx));
     }
 
     // function testLiquidationCase1() public {
