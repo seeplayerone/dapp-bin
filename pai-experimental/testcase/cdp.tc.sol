@@ -19,7 +19,7 @@ contract FakePerson is Template {
 
     function callBuyCDP(address cdp, uint record, uint amount, uint96 id) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("buyCDP(uint256)"));
-        bool result = TimefliesCDP(cdp).call.value(amount,id)(abi.encodeWithSelector(methodId));
+        bool result = TimefliesCDP(cdp).call.value(amount,id)(abi.encodeWithSelector(methodId,record));
         return result;
     }
 }
@@ -174,7 +174,7 @@ contract CDPTest is TestBase {
         (,owner,,,,) = cdp.CDPRecords(idx);
         assertEq(owner, this);
         tempBool = p1.callBuyCDP(cdp,idx,100000000,uint96(ASSET_PAI));
-        assertTrue(tempBool);//????
+        assertTrue(tempBool);
     }
     
     // function testSetLiquidationRatio() public {
