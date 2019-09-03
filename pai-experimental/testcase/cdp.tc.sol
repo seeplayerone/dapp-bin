@@ -247,17 +247,17 @@ contract CDPTest is TestBase {
         assertTrue(!tempBool);
 
         //tolerance
-        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
-        (principal, interest) = cdp.debtOfCDP(idx);
-        assertEq(principal, 1234567);
-        assertEq(interest, 1234568);
-        uint tempUint;
-        assertEq(cdp.baseInterestRate(),0);
-        assertEq(cdp.closeCDPToleranceTime(),0);
-        tempUint = rmul(99999999,rpow(cdp.baseInterestRate(),cdp.closeCDPToleranceTime()));
-        assertEq(tempUint,0);
+        // idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
+        // (principal, interest) = cdp.debtOfCDP(idx);
+        // assertEq(principal, 12);
+        // assertEq(interest, 13);
+        // uint tempUint;
+        // assertEq(cdp.baseInterestRate(),14);
+        // assertEq(cdp.closeCDPToleranceTime(),15);
+        // tempUint = rmul(99999999,rpow(cdp.baseInterestRate(),cdp.closeCDPToleranceTime()));
+        // assertEq(tempUint,16);
 
-        cdp.repay.value(99999999, ASSET_PAI)(idx);//100000000/(1000000005781380000000000000^3600) = 99997918
+        // cdp.repay.value(99999999, ASSET_PAI)(idx);//100000000/(1000000005781380000000000000^3600) = 99997918
         // assertEq(flow.balance(this, ASSET_PAI),emm);
         // assertEq(flow.balance(this, ASSET_BTC),emm);
 

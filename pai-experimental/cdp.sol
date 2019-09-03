@@ -293,11 +293,11 @@ contract CDP is MathPI, DSNote, Template {
             if(msg.value > add(principal,interest)) {
                 change = sub(msg.value,add(principal,interest));
                 msg.sender.transfer(change, ASSET_PAI);
-            }
-            
-            if(msg.value > add(change,principal)) {
                 payForPrincipal = principal;
                 payForInterest = sub(msg.value,add(change,principal));
+            } else if (msg.value > principal) {
+                payForPrincipal = principal;
+                payForInterest = sub(msg.value,principal);
             } else {
                 payForPrincipal = msg.value;
                 payForInterest = 0;
@@ -305,14 +305,14 @@ contract CDP is MathPI, DSNote, Template {
             if(data.collateral > 0) {
                 msg.sender.transfer(data.collateral, ASSET_COLLATERAL);
             }
-            if(payForPrincipal < principal){
-                liquidator.addDebt(sub(principal,payForPrincipal));
-                //liquidator.cancelDebt();
-            }
-            if(payForInterest > 0) {
-                liquidator.transfer(payForInterest, ASSET_PAI);
-                //liquidator.cancelDebt();
-            }
+            // if(payForPrincipal < principal){
+            //     liquidator.addDebt(sub(principal,payForPrincipal));
+            //     //liquidator.cancelDebt();
+            // }
+            // if(payForInterest > 0) {
+            //     liquidator.transfer(payForInterest, ASSET_PAI);
+            //     //liquidator.cancelDebt();
+            // }
             emit RepayPAI(data.collateral, 0, 0, record, msg.value, payForPrincipal, payForInterest);
             delete CDPRecords[record];
             emit CloseCDP(record);
