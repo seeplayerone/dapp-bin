@@ -353,7 +353,7 @@ contract CDP is MathPI, DSNote, Template {
     /// debt of CDP, include principal + interest
     function debtOfCDP(uint record) public returns (uint256,uint256) {
         CDPRecord storage data = CDPRecords[record];
-        if (data.owner != 0x0) {
+        if (0x0 == data.owner)  {
             return (0,0);
         }
         uint debt;

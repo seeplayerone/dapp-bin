@@ -426,7 +426,7 @@ contract baseInterestRateTest is TestBase {
         cdp.liquidate(idx);
         (principal, interest) = cdp.debtOfCDP(idx);
         assertEq(add(principal,interest), 0);
-        assertEq(liquidator.totalPrincipalPAI(), 10000000000);        
+        assertEq(liquidator.totalDebtPAI(), 10000000000);
     }
 
 //     function testFeeLiquidateRounding() {
