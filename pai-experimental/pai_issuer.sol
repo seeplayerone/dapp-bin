@@ -6,7 +6,6 @@ pragma solidity 0.4.25;
 import "github.com/seeplayerone/dapp-bin/library/template.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
 
-
 /// @dev the Registry interface
 ///  Registry is a system contract, an organization needs to register before issuing assets
 interface RegistryKuKu {

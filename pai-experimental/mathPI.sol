@@ -34,7 +34,6 @@ contract MathPI is DSMath {
                 }
             }
         }
-
         return res * LN2_NUMERATOR / LN2_DENOMINATOR;
     }
     
