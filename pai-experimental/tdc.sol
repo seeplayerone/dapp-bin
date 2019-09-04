@@ -56,7 +56,6 @@ contract TDC is MathPI, DSNote, Template {
     }
 
     function updateBaseInterestRate(uint newRate) public note {
-        require(newRate >= RAY);
         baseInterestRate = newRate;
         //emit SetParam(2,baseInterestRate);
     }
