@@ -23,7 +23,7 @@ contract CDP is MathPI, DSNote, Template {
     event BuyCDP(uint CDPid, address newOwner, uint price);
     event CreateCDP(uint _index, CDPType _type);
     event DepositCollateral(uint collateral, uint principal, uint debt, uint _index, uint depositAmount);
-    event BorrowPAI(uint collateral, uint principal, uint debt, uint _index, uint borrowAmount);
+    event BorrowPAI(uint collateral, uint principal, uint debt, uint _index, uint borrowAmount, uint endTime);
     event RepayPAI(uint collateral, uint principal, uint debt, uint _index, uint repayAmount, uint repayAmount1, uint repayAmount2);
     event CloseCDP(uint _index);
     event Liquidate(uint _index, uint principalOfCollateral, uint interestOfCollateral, uint penaltyOfCollateral, uint collateralLeft);
@@ -258,12 +258,12 @@ contract CDP is MathPI, DSNote, Template {
         if (CDPType.CURRENT == data.cdpType) {
             newDebt = rdiv(amount, updateAndFetchRates());
             data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
-            emit BorrowPAI(data.collateral, data.principal,rmul(data.accumulatedDebt, accumulatedRates), record, amount);
+            emit BorrowPAI(data.collateral, data.principal,rmul(data.accumulatedDebt, accumulatedRates), record, amount,0);
         } else {
             newDebt = rmul(amount, rpow(adjustedInterestRate[uint8(data.cdpType)], term[uint8(data.cdpType)]));
             data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
             CDPRecords[record].endTime = add(era(), term[uint8(data.cdpType)]);
-            emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount);
+            emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount,CDPRecords[record].endTime);
         }
         require(safe(record));
         /// TODO debt ceiling check

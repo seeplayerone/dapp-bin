@@ -1,12 +1,5 @@
 pragma solidity 0.4.25;
 
-// import "./3rd/math.sol";
-// import "./3rd/note.sol";
-// import "../library/template.sol";
-// import "./liquidator.sol";
-// import "./price_oracle.sol";
-// import "./pai_issuer.sol";
-
 import "github.com/evilcc2018/dapp-bin/pai-experimental/mathPI.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
@@ -22,16 +15,10 @@ contract TDC is MathPI, DSNote, Template {
 
     uint public baseInterestRate;
 
-    //There are 5 kinds of cdps, one is current lending and the others are time lending. All time lending cdp will be liquidated when expire.
+    //There are 5 kinds of TDCs.
     enum TDCType {_30DAYS,_60DAYS,_90DAYS,_180DAYS,_360DAYS}
     mapping(uint8 => uint) public floatUp;
     mapping(uint8 => uint) public term;
-
-    uint public totalPrincipal; /// total principal of all TDCs
-    uint public totalInterest;/// total interest of all TDCs which can only be supplyed by PAIDAO.
-                              /// It is not equal to the sum of all interest need to be payed of all TDCs,
-                              /// it is only the number of fund prepared to pay for interest.
-
 
     PAIIssuer public issuer; /// contract to check the pai global assert ID.
     uint private ASSET_PAI;
@@ -75,7 +62,6 @@ contract TDC is MathPI, DSNote, Template {
     }
 
     function updateFloatUp(TDCType _type, uint _newFloatUp) public note {
-        require(_type != TDCType.CURRENT);
         floatUp[uint8(_type)] = _newFloatUp;
         //emit SetCutDown(_type,_newCutDown);
     }
@@ -89,16 +75,8 @@ contract TDC is MathPI, DSNote, Template {
         TDCRecords[record].owner = msg.sender;
         TDCRecords[record].tdcType = _type;
         TDCRecords[record].principal = msg.value;
-        TDCRecords[record].interestRate = add(baseInterestRate,floatUp[uint8(_type)]);
+        TDCRecords[record].interestRate = getInterestRate(_type);
         TDCRecords[record].startTime = era();
-        totalPrincipal = add(totalPrincipal,msg.value);
-        //emit CreateCDP(record,_type);
-    }
-
-    function addInterest() public payable {
-        //Only PAIDAO can call
-        require(msg.assettype == ASSET_PAI);
-        totalInterest = add(totalInterest,msg.value);
         //emit CreateCDP(record,_type);
     }
 
@@ -106,7 +84,6 @@ contract TDC is MathPI, DSNote, Template {
         require(msg.sender == TDCRecords[record].owner);
         require(TDCRecords[record].principal >= amount);
         require(TDCRecords[record].owner != 0x0);
-        totalPrincipal = sub(totalPrincipal,amount);
         TDCRecords[record].principal = sub(TDCRecords[record].principal,amount);
         msg.sender.transfer(amount,ASSET_PAI);
     }
@@ -116,6 +93,10 @@ contract TDC is MathPI, DSNote, Template {
             return false;
         }
         return era() > TDCRecords[record].startTime + term[uint8(TDCRecords[record].tdcType)] ;
+    }
+
+    function getInterestRate(TDCType _type) public view returns (uint) {
+        return add(baseInterestRate,floatUp[uint8(_type)]);
     }
 
     function lastTime(uint record) public view returns (uint) {
@@ -130,8 +111,6 @@ contract TDC is MathPI, DSNote, Template {
         require(TDCRecords[record].principal != 0);
         require(checkMaturity(record));
         uint interest = mul(TDCRecords[record].principal,rmul(TDCRecords[record].interestRate, term[uint8(TDCRecords[record].tdcType)])) / 1 years;
-        totalInterest = sub(totalInterest,interest);
-        totalPrincipal = sub(totalPrincipal,TDCRecords[record].principal);
         TDCRecords[record].owner.transfer(TDCRecords[record].principal,ASSET_PAI);
         financial.payForInterest(interest,TDCRecords[record].owner);
     }
