@@ -9,7 +9,7 @@ interface RegistryKUKU {
      function registerOrganization(string organizationName, string templateName) external returns(uint32);
 }
 
-contract ORG1 is Template, DSMath {
+contract ORG1 is Template {
     function() public payable {
         require(msg.assettype == ASSET_BTC);
     }
