@@ -150,6 +150,11 @@ contract CDPTest is TestBase {
         (principal, interest) = cdp.debtOfCDP(idx);
         assertEq(principal, 0);
         assertEq(interest, 0);
+
+        //test borrow limit
+        bool tempBool;
+        tempBool = cdp.call.value(20000000, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,9000000,CDP.CDPType._30DAYS));
+        assertTrue(tempBool);
     }
 
     function testTransferCDP() public {
@@ -247,23 +252,6 @@ contract CDPTest is TestBase {
         (principal,interest) = cdp.debtOfCDP(idx);
         assertEq(principal, 0);
         assertEq(interest, 0);
-
-        //tolerance
-        //100000000/(1.000000005781380000000000000^3600) = 99997918.72 which means when repayed with amount bigger than 99997918,
-        //it will close CDP successfully, otherwise, it won't.
-        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
-        cdp.repay.value(99999999, ASSET_PAI)(idx);
-        assertEq(flow.balance(this, ASSET_PAI),emm + 1);
-        assertEq(flow.balance(this, ASSET_BTC),emm);
-
-        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
-        cdp.repay.value(99997919, ASSET_PAI)(idx);
-        assertEq(flow.balance(this, ASSET_PAI),emm + 1 + 2081); //(100000000 - 99997919 = 2081)
-        assertEq(flow.balance(this, ASSET_BTC),emm);
-
-        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
-        cdp.repay.value(99997918, ASSET_PAI)(idx);
-        assertEq(flow.balance(this, ASSET_BTC),emm - 200000000);//if the cdp is closed, all collateral will be tranfered back.
     }
 
     function testUnsafe() public {
@@ -1009,9 +997,9 @@ contract MultipleInterestTest is TestBase {
     function testTimeLending() public {
         setup();
         bool tempBool;
-        tempBool = cdp.call.value(19500, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,10000,CDP.CDPType._30DAYS));
+        tempBool = cdp.call.value(195000000, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,100000000,CDP.CDPType._30DAYS));
         assertTrue(tempBool);
-        tempBool = cdp.call.value(19000, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,10000,CDP.CDPType._30DAYS));
+        tempBool = cdp.call.value(190000000, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,100000000,CDP.CDPType._30DAYS));
         assertTrue(!tempBool);
 
         uint idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._30DAYS);
@@ -1077,11 +1065,53 @@ contract MultipleInterestTest is TestBase {
         assertEq(liquidator.totalDebtPAI(),0);
         cdp.repay.value(99999990, ASSET_PAI)(idx);
         (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,10 + 6);//14
+        assertEq(interest,0);
+        assertEq(cdp.totalPrincipal(),10 + 6);//16
+        assertEq(liquidator.totalDebtPAI(),0);
+        assertEq(liquidator.totalAssetPAI(),num + 6);//18
+        cdp.repay.value(16, ASSET_PAI)(idx);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,0);
+        assertEq(interest,0);
+        assertEq(cdp.totalPrincipal(),0);
+
+
+        num = num + 6;
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
+        cdp.fly(10);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,100000000);
+        assertEq(interest,6);
+        assertEq(cdp.totalPrincipal(),100000000);
+        assertEq(liquidator.totalDebtPAI(),0);
+        cdp.repay.value(100000001, ASSET_PAI)(idx);
+        (principal, interest) = cdp.debtOfCDP(idx);
         assertEq(principal,0);
         assertEq(interest,0);
         assertEq(cdp.totalPrincipal(),0);
         assertEq(liquidator.totalDebtPAI(),0);
-        assertEq(liquidator.totalAssetPAI(),num - 10);
+        assertEq(liquidator.totalAssetPAI(),num + 1);
+
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
+        cdp.fly(3800);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,100000000);
+        assertEq(interest,2197);
+        cdp.repay.value(100000116, ASSET_PAI)(idx);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,0);
+        assertEq(interest,0);
+
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
+        cdp.fly(3800);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,100000000);
+        assertEq(interest,2197);
+        cdp.repay.value(100000115, ASSET_PAI)(idx);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,2082);
+        assertEq(interest,0);
     }
 
 }

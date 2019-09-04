@@ -62,6 +62,7 @@ contract CDP is MathPI, DSNote, Template {
 
     uint public liquidationRatio; /// liquidation ratio
     uint public liquidationPenalty; /// liquidation penalty
+    uint private lowerBorrowingLimit = 10000000; /// user should borrow at lest 0.1PAI once.
 
     uint public debtCeiling; /// debt ceiling
 
@@ -272,6 +273,7 @@ contract CDP is MathPI, DSNote, Template {
     /// create CDP + deposit BTC + borrow PAI
     function createDepositBorrow(uint amount, CDPType _type) public payable note returns(uint) {
         require(mul(msg.value, priceOracle.getPrice(ASSET_COLLATERAL)) / amount >= sub(createCollateralRatio,createRatioTolerance));
+        require(amount >= lowerBorrowingLimit);
         uint id = createCDPInternal(_type);
         depositInternal(id);
         borrowInternal(id, amount);
@@ -292,7 +294,7 @@ contract CDP is MathPI, DSNote, Template {
         (uint principal,uint interest) = debtOfCDP(record);
         uint payForPrincipal;
         uint payForInterest;
-        if(rmul(msg.value,rpow(baseInterestRate,closeCDPToleranceTime)) >= add(principal,interest)) {
+        if(msg.value >= principal && rmul(msg.value,rpow(baseInterestRate,closeCDPToleranceTime)) >= add(principal,interest)) {
             //Actually there are little difference between Current and Time lending, but considering the
             //huge improvement in logic predication, the difference is ignored.
             //This will cause a little loss in interest income of Time lending.
@@ -302,18 +304,12 @@ contract CDP is MathPI, DSNote, Template {
                 msg.sender.transfer(change, ASSET_PAI);
                 payForPrincipal = principal;
                 payForInterest = sub(msg.value,add(change,principal));
-            } else if (msg.value > principal) {
+            } else  {
                 payForPrincipal = principal;
                 payForInterest = sub(msg.value,principal);
-            } else {
-                payForPrincipal = msg.value;
-                payForInterest = 0;
             }
             if(data.collateral > 0) {
                 msg.sender.transfer(data.collateral, ASSET_COLLATERAL);
-            }
-            if(principal > payForPrincipal){
-                liquidator.addDebt(sub(principal, payForPrincipal));
             }
             totalPrincipal = sub(totalPrincipal,principal);
             emit RepayPAI(data.collateral, 0, 0, record, msg.value, payForPrincipal, payForInterest);
