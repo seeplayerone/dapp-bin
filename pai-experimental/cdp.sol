@@ -208,6 +208,7 @@ contract CDP is MathPI, DSNote, Template {
         require(msg.assettype == ASSET_PAI);
         require(msg.sender == approvals[record].canBuyAddr);
         require(msg.value == approvals[record].price);
+        CDPRecords[record].owner.transfer(msg.value, ASSET_PAI);        
         CDPRecords[record].owner = msg.sender;
         delete approvals[record];
         emit BuyCDP(record, msg.sender, msg.value);
