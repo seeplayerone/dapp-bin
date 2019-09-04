@@ -10,10 +10,6 @@ interface RegistryKAKA {
 }
 
 contract ORG2 is Template {
-    function() public payable {
-        require(msg.assettype == ASSET_BTC);
-    }
-
     function init(string _name) public {
         name = _name;
         RegistryKAKA registry = RegistryKAKA(0x630000000000000000000000000000000000000065);

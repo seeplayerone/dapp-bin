@@ -10,10 +10,6 @@ interface RegistryKUKU {
 }
 
 contract ORG1 is Template {
-    function() public payable {
-        require(msg.assettype == ASSET_BTC);
-    }
-
     function init(string _name) public {
         name = _name;
         RegistryKUKU registry = RegistryKUKU(0x630000000000000000000000000000000000000065);
