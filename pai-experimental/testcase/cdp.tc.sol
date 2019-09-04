@@ -1024,7 +1024,7 @@ contract MultipleInterestTest is TestBase {
         assertEq(interest,1000000);
         cdp.repay.value(4000000, ASSET_PAI)(idx);
         (principal, interest) = cdp.debtOfCDP(idx);
-        assertEq(principal,99000000);
+        assertEq(principal,97000000);
         assertEq(interest,0);
 
         idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._60DAYS);
