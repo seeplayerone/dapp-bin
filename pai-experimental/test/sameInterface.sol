@@ -20,7 +20,7 @@ contract TestInterface is Template {
     function init() public {
         FakeORG1 o1 = new FakeORG1();
         o1.init("o1");
-        FakeORG2 o2 = new FakeORG1();
+        FakeORG2 o2 = new FakeORG2();
         o2.init("o2");
     }
 }
