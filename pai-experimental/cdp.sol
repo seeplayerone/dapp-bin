@@ -62,7 +62,7 @@ contract CDP is MathPI, DSNote, Template {
 
     uint public liquidationRatio; /// liquidation ratio
     uint public liquidationPenalty; /// liquidation penalty
-    uint private lowerBorrowingLimit = 10000000 /// user should borrow at lest 0.1PAI once.
+    uint private lowerBorrowingLimit = 10000000; /// user should borrow at lest 0.1PAI once.
 
     uint public debtCeiling; /// debt ceiling
 
