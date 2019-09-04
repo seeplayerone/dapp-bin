@@ -2,9 +2,10 @@ pragma solidity 0.4.25;
 
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/tdc.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_financial.sol";
 
 
 contract FakePAIIssuer is PAIIssuer {
@@ -52,13 +53,10 @@ contract TimefliesTDC is TDC, TestTimeflies {
 }
 
 contract TestBase is Template, DSTest, DSMath {
-    TimefliesCDP internal cdp;
-    Liquidator internal liquidator;
-    PriceOracle internal oracle;
+    TimefliesTDC internal tdc;
+    Financial internal financial;
     FakePAIIssuer internal paiIssuer;
-    FakeBTCIssuer internal btcIssuer;
 
-    uint internal ASSET_BTC;
     uint internal ASSET_PAI;
 
     function() public payable {
@@ -66,25 +64,17 @@ contract TestBase is Template, DSTest, DSMath {
     }
 
     function setup() public {
-        oracle = new PriceOracle();
 
         paiIssuer = new FakePAIIssuer();
         paiIssuer.init("sb");
         ASSET_PAI = paiIssuer.getAssetType();
 
-        btcIssuer = new FakeBTCIssuer();
-        btcIssuer.init("sb2");
-        ASSET_BTC = btcIssuer.getAssetType();
+        financial = new Financial(paiIssuer);
 
-        liquidator = new Liquidator(oracle, paiIssuer);
-        liquidator.setAssetBTC(ASSET_BTC);
 
-        cdp = new TimefliesCDP(paiIssuer, oracle, liquidator);
-        cdp.setAssetCollateral(ASSET_BTC);
-
-        oracle.updatePrice(ASSET_BTC, RAY);
+        tdc = new TimefliesTDC(paiIssuer, financial);
 
         paiIssuer.mint(1000000000000, this);
-        btcIssuer.mint(1000000000000, this);
+        paiIssuer.mint(1000000000000, financial);
     }
 }
