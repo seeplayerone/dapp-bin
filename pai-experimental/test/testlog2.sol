@@ -7,7 +7,6 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
 contract TestMath is DSTest, MathPI {
     uint256 private constant FIXED_1 = 0x080000000000000000000000000000000;
 
-
     function testLog2() public {
         uint baseInterestRate = 1000000005781380000000000000;
         uint cutDown = RAY / 1000;

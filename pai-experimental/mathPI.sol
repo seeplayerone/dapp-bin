@@ -97,5 +97,4 @@ contract MathPI is DSMath {
 
         return res * RAY / FIXED_1;
     }
-
 }
