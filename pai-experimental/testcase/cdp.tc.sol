@@ -274,11 +274,11 @@ contract CDPTest is TestBase {
         assertTrue(!cdp.safe(idx));
 
         oracle.updatePrice(ASSET_BTC, RAY);
-        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._7DAYS);
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._30DAYS);
         assertTrue(cdp.safe(idx));
-        cdp.fly(7 days);
+        cdp.fly(30 days);
         assertTrue(cdp.safe(idx));
-        cdp.fly(1 days);
+        cdp.fly(3 days);
         assertTrue(cdp.safe(idx));
         cdp.fly(1);
         assertTrue(!cdp.safe(idx));
@@ -1009,28 +1009,23 @@ contract MultipleInterestTest is TestBase {
     function testTimeLending() public {
         setup();
         bool tempBool;
-        tempBool = cdp.call.value(19500, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,10000,CDP.CDPType._7DAYS));
+        tempBool = cdp.call.value(19500, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,10000,CDP.CDPType._30DAYS));
         assertTrue(tempBool);
-        tempBool = cdp.call.value(19000, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,10000,CDP.CDPType._7DAYS));
+        tempBool = cdp.call.value(19000, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,10000,CDP.CDPType._30DAYS));
         assertTrue(!tempBool);
 
-        uint idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._7DAYS);
+        uint idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._30DAYS);
         (uint principal, uint interest) = cdp.debtOfCDP(idx);
         assertEq(principal,100000000);
-        assertEq(interest,347060);
-        cdp.repay.value(47060, ASSET_PAI)(idx);
-        (principal, interest) = cdp.debtOfCDP(idx);
-        assertEq(principal,100000000);
-        assertEq(interest,300000);
-        cdp.repay.value(400000, ASSET_PAI)(idx);
-        (principal, interest) = cdp.debtOfCDP(idx);
-        assertEq(principal,99900000);
-        assertEq(interest,0);
-
-        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._30DAYS);
-        (principal, interest) = cdp.debtOfCDP(idx);
-        assertEq(principal,100000000);
         assertEq(interest,1481964);
+        cdp.repay.value(481964, ASSET_PAI)(idx);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,100000000);
+        assertEq(interest,1000000);
+        cdp.repay.value(4000000, ASSET_PAI)(idx);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,97000000);
+        assertEq(interest,0);
 
         idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._60DAYS);
         (principal, interest) = cdp.debtOfCDP(idx);

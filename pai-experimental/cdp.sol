@@ -29,16 +29,16 @@ contract CDP is MathPI, DSNote, Template {
     event Liquidate(uint _index, uint principalOfCollateral, uint interestOfCollateral, uint penaltyOfCollateral, uint collateralLeft);
 
     uint256 public CDPIndex = 0; /// how many CDPs have been created
-    uint256 private liquidatedCDPIndex = 0; /// how many CDPs have been liquidated, only happens when the business is in settlement process 
+    uint256 private liquidatedCDPIndex = 0; /// how many CDPs have been liquidated, only happens when the business is in settlement process
 
     uint public baseInterestRate;///actually, the value is (1 + base interest rate)
 
     //There are 7 kinds of cdps, one is current lending and the others are time lending. All time lending cdp will be liquidated when expire.
-    enum CDPType {CURRENT,_7DAYS,_30DAYS,_60DAYS,_90DAYS,_180DAYS,_360DAYS}
+    enum CDPType {CURRENT,_30DAYS,_60DAYS,_90DAYS,_180DAYS,_360DAYS}
     mapping(uint8 => uint) public cutDown;
     mapping(uint8 => uint) public adjustedInterestRate;
     mapping(uint8 => uint) public term;
-    uint public overdueBufferPeriod = 1 days;
+    uint public overdueBufferPeriod = 3 days;
 
     //The CollateralRatio limit when cdp is created;
     uint public createCollateralRatio = 2 * RAY;
@@ -96,19 +96,16 @@ contract CDP is MathPI, DSNote, Template {
         accumulatedRates = RAY;
         liquidationRatio = 1500000000000000000000000000;
         liquidationPenalty = 1130000000000000000000000000;
-        cutDown[uint8(CDPType._7DAYS)] = RAY * 2 / 1000;
         cutDown[uint8(CDPType._30DAYS)] = RAY * 4 / 1000;
         cutDown[uint8(CDPType._60DAYS)] = RAY * 6 / 1000;
         cutDown[uint8(CDPType._90DAYS)] = RAY * 8 / 1000;
         cutDown[uint8(CDPType._180DAYS)] = RAY * 10 / 1000;
         cutDown[uint8(CDPType._360DAYS)] = RAY * 12 / 1000;
-        updateInterestRate(CDPType._7DAYS);
         updateInterestRate(CDPType._30DAYS);
         updateInterestRate(CDPType._60DAYS);
         updateInterestRate(CDPType._90DAYS);
         updateInterestRate(CDPType._180DAYS);
         updateInterestRate(CDPType._360DAYS);
-        term[uint8(CDPType._7DAYS)] = 7 days;
         term[uint8(CDPType._30DAYS)] = 30 days;
         term[uint8(CDPType._60DAYS)] = 60 days;
         term[uint8(CDPType._90DAYS)] = 90 days;
@@ -145,7 +142,6 @@ contract CDP is MathPI, DSNote, Template {
         require(newRate >= RAY);
         updateRates();
         baseInterestRate = optimalExp(generalLog(newRate) / 1 years);
-        updateInterestRate(CDPType._7DAYS);
         updateInterestRate(CDPType._30DAYS);
         updateInterestRate(CDPType._60DAYS);
         updateInterestRate(CDPType._90DAYS);
