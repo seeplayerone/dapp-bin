@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/mathPI.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/mathPI.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/testPI.sol";
 
 
 contract TestMath is DSTest, MathPI {
