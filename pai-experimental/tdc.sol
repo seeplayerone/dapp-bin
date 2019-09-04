@@ -81,9 +81,9 @@ contract TDC is MathPI, DSNote, Template {
     }
 
     function withdraw(uint record, uint amount) public note {
+        require(TDCRecords[record].owner != 0x0);
         require(msg.sender == TDCRecords[record].owner);
         require(TDCRecords[record].principal >= amount);
-        require(TDCRecords[record].owner != 0x0);
         TDCRecords[record].principal = sub(TDCRecords[record].principal,amount);
         msg.sender.transfer(amount,ASSET_PAI);
     }
