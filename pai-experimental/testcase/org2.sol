@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/registeryInterface.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/interface.sol";
 
 // /// @dev the Registry interface
 // ///  Registry is a system contract, an organization needs to register before issuing assets
