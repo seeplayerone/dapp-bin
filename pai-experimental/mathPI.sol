@@ -5,17 +5,9 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 contract MathPI is DSMath {
     uint256 private constant FIXED_1 = 0x080000000000000000000000000000000;
     uint256 private constant FIXED_2 = 0x100000000000000000000000000000000;
-<<<<<<< HEAD
-<<<<<<< HEAD
-    uint256 private constant LN2_NUMERATOR   = 0x3f80fe03f80fe03f80fe03f80fe03f8;
-    uint256 private constant LN2_DENOMINATOR = 0x5b9de1d10bf4103d647b0955897ba80;
-=======
->>>>>>> seeplayerone-master
-=======
     uint256 private constant LN2_NUMERATOR   = 0x3f80fe03f80fe03f80fe03f80fe03f8;
     uint256 private constant LN2_DENOMINATOR = 0x5b9de1d10bf4103d647b0955897ba80;
 
->>>>>>> 6c6fb880d627f2ddaa5d05d602741cf8bf50d62a
     uint8 private constant MAX_PRECISION = 127;
     uint256 private constant ONE = 1;
 
@@ -42,16 +34,7 @@ contract MathPI is DSMath {
                 }
             }
         }
-
-<<<<<<< HEAD
-<<<<<<< HEAD
         return res * LN2_NUMERATOR / LN2_DENOMINATOR;
-=======
-        return res * RAY / FIXED_1;
->>>>>>> seeplayerone-master
-=======
-        return res * LN2_NUMERATOR / LN2_DENOMINATOR;
->>>>>>> 6c6fb880d627f2ddaa5d05d602741cf8bf50d62a
     }
     
     function floorLog2(uint256 _n) internal pure returns (uint8) {
