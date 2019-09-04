@@ -1,15 +1,15 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/library/string_utils.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_vote_manager.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_special.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_standard.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_director_vote.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/paidao_testcontract.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/library/string_utils.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/testPI.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_main.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_vote_manager.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_PISvote_special.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_PISvote_standard.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_director_vote.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/testcase/paidao_testcontract.sol";
 
 contract FakePerson is Template {
     function() public payable {}
