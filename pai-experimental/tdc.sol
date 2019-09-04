@@ -11,6 +11,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/mathPI.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_financial.sol";
 
 contract TDC is MathPI, DSNote, Template {
     //time deposit certificates
@@ -34,6 +35,7 @@ contract TDC is MathPI, DSNote, Template {
 
     PAIIssuer public issuer; /// contract to check the pai global assert ID.
     uint private ASSET_PAI;
+    Financial public financial;
 
     mapping (uint => TDCRecord) public TDCRecords; /// all TDC records
 
@@ -45,7 +47,7 @@ contract TDC is MathPI, DSNote, Template {
         uint256 startTime;
     }
 
-    constructor() public {
+    constructor(address _issuer, address _financial) public {
         baseInterestRate = RAY / 5; // Annual interest rate = 20 %
         floatUp[uint8(TDCType._30DAYS)] = RAY * 4 / 1000;
         floatUp[uint8(TDCType._60DAYS)] = RAY * 6 / 1000;
@@ -59,6 +61,7 @@ contract TDC is MathPI, DSNote, Template {
         term[uint8(TDCType._360DAYS)] = 360 days;
         issuer = PAIIssuer(_issuer);
         ASSET_PAI = issuer.getAssetType();
+        financial = Financial(_financial);
     }
 
     function era() public view returns (uint) {
@@ -112,140 +115,29 @@ contract TDC is MathPI, DSNote, Template {
         if (0x0 == TDCRecords[record].owner) {
             return false;
         }
-        return TDCRecords[record].startTime + term[uint8(TDCRecords[record].tdcType)] < era();
+        return era() > TDCRecords[record].startTime + term[uint8(TDCRecords[record].tdcType)] ;
     }
 
-    /// debt of CDP, include principal + interest
-    function debtOfCDP(uint record) public returns (uint256,uint256) {
-        CDPRecord storage data = CDPRecords[record];
-        if (0x0 == data.owner)  {
-            return (0,0);
+    function lastTime(uint record) public view returns (uint) {
+        if (0x0 == TDCRecords[record].owner) {
+            return 0;
         }
-        uint debt;
-        if(CDPType.CURRENT == data.cdpType) {
-            debt = rmul(data.accumulatedDebt, updateAndFetchRates());
-        } else {
-            debt = data.accumulatedDebt;
-        }
-        uint interest = sub(debt,data.principal);
-        return (data.principal,interest);
+        return sub(era(),TDCRecords[record].startTime);
     }
 
-    function totalCollateral() public view returns (uint256) {
-        return flow.balance(this, ASSET_COLLATERAL);
-    }
-
-    function setPriceOracle(PriceOracle newPriceOracle) public {
-        priceOracle = newPriceOracle;
-    }
-
-    function getCollateralPrice() public view returns (uint256 wad){
-        return priceOracle.getPrice(ASSET_COLLATERAL);
-    }
-
-    function setLiquidator(Liquidator newLiquidator) public {
-        liquidator = newLiquidator;
+    function returnMoney(uint record) public note {
+        require(TDCRecords[record].owner != 0x0);
+        require(TDCRecords[record].principal != 0);
+        require(checkMaturity(record));
+        uint interest = mul(TDCRecords[record].principal,rmul(TDCRecords[record].interestRate, term[uint8(TDCRecords[record].tdcType)])) / 1 years;
+        totalInterest = sub(totalInterest,interest);
+        totalPrincipal = sub(totalPrincipal,TDCRecords[record].principal);
+        TDCRecords[record].owner.transfer(TDCRecords[record].principal,ASSET_PAI);
+        financial.payForInterest(interest,TDCRecords[record].owner);
     }
 
     function setPAIIssuer(PAIIssuer newIssuer) public {
         issuer = newIssuer;
         ASSET_PAI = issuer.getAssetType();
-    }
-
-    function safe(uint record) public returns (bool) {
-        CDPRecord storage data = CDPRecords[record];
-        require(data.owner != 0x0);
-        if(CDPType.CURRENT != data.cdpType && add(data.endTime,overdueBufferPeriod) < era()) {
-            return false;
-        }
-
-        uint256 collateralValue = rmul(data.collateral, priceOracle.getPrice(ASSET_COLLATERAL));
-        (uint principal,uint interest) = debtOfCDP(record);
-        uint256 debtValue = rmul(add(principal,interest), liquidationRatio);
-        return collateralValue >= debtValue;
-    }
-
-    function updateAndFetchRates() public returns (uint256) {
-        updateRates();
-        return accumulatedRates;
-    }
-
-    /// update `accumulatedRates1` and `accumulatedRates2` when borrow or repay happens
-    function updateRates() public note {
-        if(settlement) return;
-
-        uint256 currentTimestamp = era();
-        uint256 deltaSeconds = currentTimestamp - lastTimestamp;
-        if (deltaSeconds == 0) return;
-
-        lastTimestamp = currentTimestamp;
-        if (baseInterestRate != RAY) {
-            accumulatedRates = rmul(accumulatedRates, rpow(baseInterestRate, deltaSeconds));
-        }
-    }
-
-    /// liquidate a CDP
-    function liquidate(uint record) public note {
-        require(!safe(record) || settlement);
-        CDPRecord storage data = CDPRecords[record];
-        (uint principal, uint interest) = debtOfCDP(record);
-        liquidator.addDebt(principal);
-        totalPrincipal = sub(totalPrincipal, principal);
-        uint price = priceOracle.getPrice(ASSET_COLLATERAL);
-        uint principalOfCollateral = rdiv(principal,price);
-        uint interestOfCollateral = rdiv(interest,price);
-        uint penaltyOfCollateral = rdiv(sub(rmul(principal, liquidationPenalty),principal),price);
-        uint collateralToLiquidator;
-        uint collateralLeft;
-        if (data.collateral <= principalOfCollateral) {
-            principalOfCollateral = data.collateral;
-            collateralToLiquidator = data.collateral;
-            interestOfCollateral = 0;
-            penaltyOfCollateral = 0;
-        } else if (data.collateral <= add(principalOfCollateral,interestOfCollateral)) {
-            collateralToLiquidator = data.collateral;
-            interestOfCollateral = sub(data.collateral, principalOfCollateral);
-            penaltyOfCollateral = 0;
-        } else if (data.collateral <= add(add(principalOfCollateral,interestOfCollateral),penaltyOfCollateral)) {
-            collateralToLiquidator = data.collateral;
-            penaltyOfCollateral = sub(sub(data.collateral, principalOfCollateral),interestOfCollateral);
-        } else {
-            collateralToLiquidator = add(add(principalOfCollateral,interestOfCollateral),penaltyOfCollateral);
-            collateralLeft = sub(data.collateral, collateralToLiquidator);
-            data.owner.transfer(collateralLeft, ASSET_COLLATERAL);
-        }
-        delete CDPRecords[record];
-        emit CloseCDP(record);
-        liquidator.transfer(collateralToLiquidator, ASSET_COLLATERAL);
-        emit Liquidate(record, principalOfCollateral, interestOfCollateral, penaltyOfCollateral, collateralLeft);
-    }
-
-    function terminate() public note {
-        require(!settlement);
-        settlement = true;
-        liquidationPenalty = RAY;
-    }
-
-    /// liquidate all CDPs after buffer period
-    /// the settlement process turns to phase 2 after all CDPs are liquidated
-    function quickLiquidate(uint _num) public note {
-        require(settlement);
-        require(liquidatedCDPIndex != CDPIndex);
-        uint upperLimit = min(add(liquidatedCDPIndex, _num), CDPIndex);
-        for(uint i = add(liquidatedCDPIndex,1); i <= upperLimit; i = add(i,1)) {
-            if(CDPRecords[i].principal > 0)
-                liquidate(i);
-        }
-        liquidatedCDPIndex = upperLimit;
-    }
-
-    /// working normal
-    function inSettlement() public view returns (bool) {
-        return settlement;
-    }
-
-    /// all debt cleared, ready for phase two
-    function readyForPhaseTwo() public view returns (bool) {
-        return totalPrincipal == 0 || liquidatedCDPIndex == CDPIndex;
     }
 }
