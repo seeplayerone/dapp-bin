@@ -7,6 +7,7 @@ contract MathPI is DSMath {
     uint256 private constant FIXED_2 = 0x100000000000000000000000000000000;
     uint256 private constant LN2_NUMERATOR   = 0x3f80fe03f80fe03f80fe03f80fe03f8;
     uint256 private constant LN2_DENOMINATOR = 0x5b9de1d10bf4103d647b0955897ba80;
+
     uint8 private constant MAX_PRECISION = 127;
     uint256 private constant ONE = 1;
 
@@ -36,6 +37,7 @@ contract MathPI is DSMath {
 
         return res * LN2_NUMERATOR / LN2_DENOMINATOR;
     }
+    
     function floorLog2(uint256 _n) internal pure returns (uint8) {
         uint8 res = 0;
 
@@ -97,5 +99,4 @@ contract MathPI is DSMath {
 
         return res * RAY / FIXED_1;
     }
-
 }

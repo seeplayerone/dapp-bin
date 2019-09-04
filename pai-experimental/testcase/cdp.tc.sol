@@ -221,6 +221,7 @@ contract CDPTest is TestBase {
         assertEq(cdp.priceOracle(), 0x123);
     }
 
+
     function testRepay() public {
         setup();
         uint emm = 1000000000000;
@@ -948,8 +949,8 @@ contract SettlementTest is TestBase {
         settlement.terminatePhaseOne();
         assertTrue(!oracle.call(abi.encodeWithSelector(oracle.updatePrice.selector,ASSET_BTC, 1)));
     }
-
 }
+
 
 contract MultipleInterestTest is TestBase {
 
