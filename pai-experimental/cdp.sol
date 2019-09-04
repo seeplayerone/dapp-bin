@@ -86,7 +86,7 @@ contract CDP is MathPI, DSNote, Template {
         /// 1. CDP is current lending:
         /// accumulatedDebt * accumulatedRates represents the debt composed by principal + interests
         /// 2. CDP is time lending:
-        /// accumulatedDebt represents represents the debt composed by principal + interests, and need no more transformation
+        /// accumulatedDebt represents the debt composed by principal + interests, and need no more transformation
         uint256 accumulatedDebt;
         /// endTime only works when cdp is time lending.
         uint256 endTime;
