@@ -12,7 +12,7 @@ interface RegistryKAKA {
 contract ORG2 is Template {
     function init(string _name) public {
         RegistryKAKA registry = RegistryKAKA(0x630000000000000000000000000000000000000065);
-        orgnizationID = registry.registerOrganization(_name, templateName);
+        registry.registerOrganization(_name, templateName);
     }
 
 }

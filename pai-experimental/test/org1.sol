@@ -12,7 +12,7 @@ interface RegistryKUKU {
 contract ORG1 is Template {
     function init(string _name) public {
         RegistryKUKU registry = RegistryKUKU(0x630000000000000000000000000000000000000065);
-        orgnizationID = registry.registerOrganization(_name, templateName);
+        registry.registerOrganization(_name, templateName);
     }
 
 }
