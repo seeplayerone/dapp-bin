@@ -3,7 +3,7 @@ pragma solidity 0.4.25;
 import "github.com/seeplayerone/dapp-bin/library/template.sol";
 import "github.com/seeplayerone/dapp-bin/library/string_utils.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/mctest.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/testPI.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_vote_manager.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_PISvote_special.sol";

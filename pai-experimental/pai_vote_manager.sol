@@ -35,13 +35,6 @@ interface Vote {
     function getVoteEndTime(uint voteId) external returns (uint);
 }
 
-interface VoteS {
-    function vote(uint voteId, bool attitude, uint voteNumber) external;
-
-    function getVoteEndTime(uint voteId) external returns (uint);
-}
-
-
 /// @title This is a simple vote contract, everyone has the same vote weights
 /// @dev Every template contract needs to inherit Template contract directly or indirectly
 contract PISVoteManager is Template, DSMath {
