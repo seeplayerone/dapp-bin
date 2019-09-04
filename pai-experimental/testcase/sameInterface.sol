@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/test/org1.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/test/org2.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/org1.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/org2.sol";
 
 
 contract FakeORG1 is ORG1 {
