@@ -1055,6 +1055,38 @@ contract MultipleInterestTest is TestBase {
 
     function testRepayPrecisely() public {
         setup();
+        uint idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType._360DAYS);
+        (uint principal, uint interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,100000000);
+        assertEq(interest,18519982);
+        assertEq(cdp.totalPrincipal(),100000000);
+        assertEq(liquidator.totalDebtPAI(),0);
+        assertEq(liquidator.totalAssetPAI(),0);
+
+        cdp.repay.value(118519000, ASSET_PAI)(idx);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,0);
+        assertEq(interest,0);
+        assertEq(cdp.totalPrincipal(),0);
+        assertEq(liquidator.totalDebtPAI(),0);
+        uint num = 18519000;
+        assertEq(liquidator.totalAssetPAI(),num);
+
+
+        idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
+        cdp.fly(10);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,100000000);
+        assertEq(interest,6);//10
+        assertEq(cdp.totalPrincipal(),100000000);
+        assertEq(liquidator.totalDebtPAI(),0);
+        cdp.repay.value(99999990, ASSET_PAI)(idx);
+        (principal, interest) = cdp.debtOfCDP(idx);
+        assertEq(principal,0);
+        assertEq(interest,0);
+        assertEq(cdp.totalPrincipal(),0);
+        assertEq(liquidator.totalDebtPAI(),0);
+        assertEq(liquidator.totalAssetPAI(),num - 10);
     }
 
 }
