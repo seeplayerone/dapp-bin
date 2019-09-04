@@ -88,6 +88,7 @@ contract TestTDC is Template, DSTest, DSMath {
     }
 
     function testSetRate() public {
+        setup();
         assertEq(tdc.baseInterestRate(), RAY / 5);
         tdc.updateBaseInterestRate(RAY / 10);
         assertEq(tdc.baseInterestRate(), RAY / 10);
@@ -96,6 +97,12 @@ contract TestTDC is Template, DSTest, DSMath {
         assertEq(tdc.floatUp(2),RAY * 8 / 1000);
         assertEq(tdc.floatUp(3),RAY * 10 / 1000);
         assertEq(tdc.floatUp(4),RAY * 12 / 1000);
+
+        assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY/10 + RAY * 4 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY/10 + RAY * 6 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY/10 + RAY * 8 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY/10 + RAY * 10 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY/10 + RAY * 12 / 1000);
 
 
     }

@@ -98,7 +98,7 @@ contract TDC is MathPI, DSNote, Template {
         return add(baseInterestRate,floatUp[uint8(_type)]);
     }
 
-    function lastTime(uint record) public view returns (uint) {
+    function passedTime(uint record) public view returns (uint) {
         if (0x0 == TDCRecords[record].owner) {
             return 0;
         }
