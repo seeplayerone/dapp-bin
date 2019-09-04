@@ -154,7 +154,7 @@ contract CDPTest is TestBase {
         //test borrow limit
         bool tempBool;
         tempBool = cdp.call.value(20000000, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,9000000,CDP.CDPType._30DAYS));
-        assertTrue(tempBool);
+        assertTrue(!tempBool);
     }
 
     function testTransferCDP() public {
@@ -183,10 +183,12 @@ contract CDPTest is TestBase {
         assertTrue(!tempBool);
         tempBool = p1.callBuyCDP(cdp,idx,110000000,uint96(ASSET_PAI));
         assertTrue(!tempBool);
+        uint emm = flow.balance(this,ASSET_PAI);
         tempBool = p1.callBuyCDP(cdp,idx,100000000,uint96(ASSET_PAI));
         assertTrue(tempBool);
         (,owner,,,,) = cdp.CDPRecords(idx);
         assertEq(owner, p1);
+        assertEq(flow.balance(this,ASSET_PAI),emm + 100000000);
     }
     
     function testSetLiquidationRatio() public {
@@ -961,23 +963,20 @@ contract MultipleInterestTest is TestBase {
         rate = cdp.baseInterestRate();
         assertEq(rpow(rate,1 years),RAY * 12 / 10);
         rate = cdp.adjustedInterestRate(1);
-        assertEq(rpow(rate,1 years),RAY * 1198 / 1000);
-        rate = cdp.adjustedInterestRate(2);
         assertEq(rpow(rate,1 years),RAY * 1196 / 1000);
-        rate = cdp.adjustedInterestRate(3);
+        rate = cdp.adjustedInterestRate(2);
         assertEq(rpow(rate,1 years),RAY * 1194 / 1000);
-        rate = cdp.adjustedInterestRate(4);
+        rate = cdp.adjustedInterestRate(3);
         assertEq(rpow(rate,1 years),RAY * 1192 / 1000);
-        rate = cdp.adjustedInterestRate(5);
+        rate = cdp.adjustedInterestRate(4);
         assertEq(rpow(rate,1 years),RAY * 1190 / 1000);
-        rate = cdp.adjustedInterestRate(6);
+        rate = cdp.adjustedInterestRate(5);
         assertEq(rpow(rate,1 years),RAY * 1188 / 1000);
-        assertEq(cdp.term(1), 7 * 86400);
-        assertEq(cdp.term(2), 30 * 86400);
-        assertEq(cdp.term(3), 60 * 86400);
-        assertEq(cdp.term(4), 90 * 86400);
-        assertEq(cdp.term(5), 180 * 86400);
-        assertEq(cdp.term(6), 360 * 86400);
+        assertEq(cdp.term(1), 30 * 86400);
+        assertEq(cdp.term(2), 60 * 86400);
+        assertEq(cdp.term(3), 90 * 86400);
+        assertEq(cdp.term(4), 180 * 86400);
+        assertEq(cdp.term(5), 360 * 86400);
 
         cdp.call(abi.encodeWithSelector(cdp.updateCutDown.selector,1,RAY /10));
         rate = cdp.adjustedInterestRate(1);
@@ -987,7 +986,7 @@ contract MultipleInterestTest is TestBase {
         //Only allowed enumeration values can modify parameters
         tempBool = cdp.call(abi.encodeWithSelector(cdp.updateCutDown.selector,0,RAY /10));
         assertTrue(!tempBool);
-        tempBool = cdp.call(abi.encodeWithSelector(cdp.updateCutDown.selector,7,RAY /10));
+        tempBool = cdp.call(abi.encodeWithSelector(cdp.updateCutDown.selector,6,RAY /10));
         assertTrue(!tempBool);
         //The parameters can't be set below 1.
         tempBool = cdp.call(abi.encodeWithSelector(cdp.updateCutDown.selector,1,RAY /4));
