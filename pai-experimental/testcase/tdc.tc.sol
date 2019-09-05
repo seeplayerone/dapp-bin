@@ -187,7 +187,26 @@ contract TestTDC is Template, DSTest, DSMath {
         assertTrue(!tdc.checkMaturity(1000));
         idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
         assertTrue(!tdc.checkMaturity(idx));
-        
+        tdc.fly(30 days);
+        assertTrue(tdc.checkMaturity(idx));
+        idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._60DAYS);
+        assertTrue(!tdc.checkMaturity(idx));
+        tdc.fly(30 days);
+        assertTrue(!tdc.checkMaturity(idx));
+        tdc.fly(60 days);
+        assertTrue(!tdc.checkMaturity(idx));
+        idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._90DAYS);
+        assertTrue(!tdc.checkMaturity(idx));
+        tdc.fly(90 days);
+        assertTrue(tdc.checkMaturity(idx));
+        idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._180DAYS);
+        assertTrue(!tdc.checkMaturity(idx));
+        tdc.fly(180 days);
+        assertTrue(tdc.checkMaturity(idx));
+        idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._360DAYS);
+        assertTrue(!tdc.checkMaturity(idx));
+        tdc.fly(360 days);
+        assertTrue(tdc.checkMaturity(idx));
     } 
 
     function testInterestCalculate() public {

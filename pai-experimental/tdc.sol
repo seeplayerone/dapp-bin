@@ -91,7 +91,7 @@ contract TDC is MathPI, DSNote, Template {
         if (0x0 == TDCRecords[record].owner) {
             return false;
         }
-        return era() > TDCRecords[record].startTime + term[uint8(TDCRecords[record].tdcType)] ;
+        return era() >= TDCRecords[record].startTime + term[uint8(TDCRecords[record].tdcType)] ;
     }
 
     function getInterestRate(TDCType _type) public view returns (uint) {
