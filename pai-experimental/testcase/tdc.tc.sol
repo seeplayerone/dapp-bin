@@ -81,10 +81,10 @@ contract TestTDC is Template, DSTest, DSMath {
         paiIssuer2.init("sb2");
         FAKE_PAI = paiIssuer2.getAssetType();
 
-        financial = new Financial(paiIssuer);
+        finance = new Finance(paiIssuer);
 
 
-        tdc = new TimefliesTDC(paiIssuer, financial);
+        tdc = new TimefliesTDC(paiIssuer, finance);
 
         paiIssuer.mint(100000000, this);
         paiIssuer.mint(100000000, finance);
@@ -246,35 +246,39 @@ contract TestTDC is Template, DSTest, DSMath {
         tdc.returnMoney(1);
         assertEq(flow.balance(this,ASSET_PAI) - emm1, 10167);
         assertEq(emm2 - flow.balance(tdc,ASSET_PAI), 10000);
-        assertEq(flow.balance(finance,ASSET_PAI) - emm3,167);
+        assertEq(emm3 - flow.balance(finance,ASSET_PAI),167);
 
 
         emm1 = flow.balance(this,ASSET_PAI);
         emm2 = flow.balance(tdc,ASSET_PAI);
+        emm3 = flow.balance(finance,ASSET_PAI);
         tdc.returnMoney(2);
         assertEq(flow.balance(this,ASSET_PAI) - emm1,10338);
         assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
-        assertEq(flow.balance(finance,ASSET_PAI) - emm3,338);
+        assertEq(emm3 - flow.balance(finance,ASSET_PAI),338);
 
         emm1 = flow.balance(this,ASSET_PAI);
         emm2 = flow.balance(tdc,ASSET_PAI);
+        emm3 = flow.balance(finance,ASSET_PAI);
         tdc.returnMoney(3);
         assertEq(flow.balance(this,ASSET_PAI) - emm1,10512);
         assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
-        assertEq(flow.balance(finance,ASSET_PAI) - emm3,512);
+        assertEq(emm3 - flow.balance(finance,ASSET_PAI),512);
 
         emm1 = flow.balance(this,ASSET_PAI);
         emm2 = flow.balance(tdc,ASSET_PAI);
+        emm3 = flow.balance(finance,ASSET_PAI);
         tdc.returnMoney(4);
         assertEq(flow.balance(this,ASSET_PAI) - emm1,11035);
         assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
-        assertEq(flow.balance(finance,ASSET_PAI) - emm3,1035);
+        assertEq(emm3 - flow.balance(finance,ASSET_PAI),1035);
 
         emm1 = flow.balance(this,ASSET_PAI);
         emm2 = flow.balance(tdc,ASSET_PAI);
+        emm3 = flow.balance(finance,ASSET_PAI);
         tdc.returnMoney(5);
         assertEq(flow.balance(this,ASSET_PAI) - emm1,12090);
         assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
-        assertEq(flow.balance(finance,ASSET_PAI) - emm3,2090);
+        assertEq(emm3 - flow.balance(finance,ASSET_PAI),2090);
     }
 }

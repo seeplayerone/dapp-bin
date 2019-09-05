@@ -10,6 +10,10 @@ contract TDC is MathPI, DSNote, Template {
     //time deposit certificates
     event SetParam(uint paramType, uint param);
     //please check specific meaning of type in each method
+    event SetFloatUp(TDCType _type, uint _newFloatUp);
+    event CreateTDC(uint record, TDCType _type,address owner,uint principal, uint interestRate);
+    event Withdraw(uint record, address owner, uint amount);
+    event ReturnMoney(uint record,address owner,uint principal,uint interest);
 
     uint256 public TDCIndex = 0; /// how many CDPs have been created
 
@@ -57,12 +61,12 @@ contract TDC is MathPI, DSNote, Template {
 
     function updateBaseInterestRate(uint newRate) public note {
         baseInterestRate = newRate;
-        //emit SetParam(2,baseInterestRate);
+        emit SetParam(0,baseInterestRate);
     }
 
     function updateFloatUp(TDCType _type, uint _newFloatUp) public note {
         floatUp[uint8(_type)] = _newFloatUp;
-        //emit SetCutDown(_type,_newCutDown);
+        emit SetFloatUp(_type,_newFloatUp);
     }
 
     /// @dev TDC base operations
@@ -76,7 +80,7 @@ contract TDC is MathPI, DSNote, Template {
         TDCRecords[record].principal = msg.value;
         TDCRecords[record].interestRate = getInterestRate(_type);
         TDCRecords[record].startTime = era();
-        //emit CreateCDP(record,_type);
+        emit CreateTDC(record, _type, TDCRecords[record].owner, TDCRecords[record].principal, TDCRecords[record].interestRate);
     }
 
     function withdraw(uint record, uint amount) public note {
@@ -85,6 +89,7 @@ contract TDC is MathPI, DSNote, Template {
         require(TDCRecords[record].principal >= amount);
         TDCRecords[record].principal = sub(TDCRecords[record].principal,amount);
         msg.sender.transfer(amount,ASSET_PAI);
+        emit Withdraw(record,msg.sender,amount);
     }
 
     function checkMaturity(uint record) public view returns (bool) {
@@ -114,6 +119,7 @@ contract TDC is MathPI, DSNote, Template {
         TDCRecords[record].principal = 0;
         TDCRecords[record].owner.transfer(principal,ASSET_PAI);
         finance.payForInterest(interest,TDCRecords[record].owner);
+        emit ReturnMoney(record,TDCRecords[record].owner,principal,interest);
     }
 
     function setPAIIssuer(PAIIssuer newIssuer) public {
