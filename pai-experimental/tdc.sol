@@ -22,7 +22,7 @@ contract TDC is MathPI, DSNote, Template {
 
     PAIIssuer public issuer; /// contract to check the pai global assert ID.
     uint private ASSET_PAI;
-    Financial public financial;
+    Finance public finance;
 
     mapping (uint => TDCRecord) public TDCRecords; /// all TDC records
 
