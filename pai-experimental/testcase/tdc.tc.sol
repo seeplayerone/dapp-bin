@@ -227,6 +227,29 @@ contract TestTDC is Template, DSTest, DSMath {
     }
 
     function testInterestCalculate() public {
+        setup();
+        assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY * 104 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY * 106 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY * 108 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY * 110 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY * 112 / 1000);
+
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._60DAYS);
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._90DAYS);
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._180DAYS);
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._360DAYS);
+        tdc.fly(360 days);
+        uint emm1 = flow.balance(this,ASSET_PAI);
+        uint emm2 = flow.balance(tdc,ASSET_PAI);
+        tdc.returnMoney(1);
+        assertEq(flow.balance(this,ASSET_PAI) - emm1,10000);
+        assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
+
+        assertEq(1 years / 86400,0);
+
+
+
 
     }
 }
