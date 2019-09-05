@@ -71,8 +71,8 @@ contract TDC is MathPI, DSNote, Template {
         require(msg.assettype == ASSET_PAI);
         TDCIndex = add(TDCIndex, 1);
         record = TDCIndex;
-        TDCRecords[record].owner = msg.sender;
         TDCRecords[record].tdcType = _type;
+        TDCRecords[record].owner = msg.sender;
         TDCRecords[record].principal = msg.value;
         TDCRecords[record].interestRate = getInterestRate(_type);
         TDCRecords[record].startTime = era();
@@ -110,6 +110,7 @@ contract TDC is MathPI, DSNote, Template {
         require(TDCRecords[record].principal != 0);
         require(checkMaturity(record));
         uint interest = mul(TDCRecords[record].principal,rmul(TDCRecords[record].interestRate, term[uint8(TDCRecords[record].tdcType)])) / 1 years;
+        TDCRecords[record].principal = 0;
         TDCRecords[record].owner.transfer(TDCRecords[record].principal,ASSET_PAI);
         financial.payForInterest(interest,TDCRecords[record].owner);
     }
