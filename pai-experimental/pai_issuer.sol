@@ -3,20 +3,9 @@ pragma solidity 0.4.25;
 // import "../library/template.sol";
 // import "./3rd/math.sol";
 
-<<<<<<< HEAD
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/registry.sol";
-=======
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
-
-/// @dev the Registry interface
-///  Registry is a system contract, an organization needs to register before issuing assets
-interface RegistryKuKu {
-     function registerOrganization(string organizationName, string templateName) external returns(uint32);
-}
->>>>>>> 18daa612af1ddb07a4ae8f37df0206a0a940e010
 
 contract PAIIssuer is Template, DSMath {
     string private name = "PAI_ISSUER";
