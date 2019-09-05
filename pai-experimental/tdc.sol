@@ -34,7 +34,7 @@ contract TDC is MathPI, DSNote, Template {
         uint256 startTime;
     }
 
-    constructor(address _issuer, address _financial) public {
+    constructor(address _issuer, address _finance) public {
         baseInterestRate = RAY / 5; // Annual interest rate = 20 %
         floatUp[uint8(TDCType._30DAYS)] = RAY * 4 / 1000;
         floatUp[uint8(TDCType._60DAYS)] = RAY * 6 / 1000;
@@ -48,7 +48,7 @@ contract TDC is MathPI, DSNote, Template {
         term[uint8(TDCType._360DAYS)] = 360 days;
         issuer = PAIIssuer(_issuer);
         ASSET_PAI = issuer.getAssetType();
-        financial = Financial(_financial);
+        finance = Finance(_finance);
     }
 
     function era() public view returns (uint) {
@@ -113,7 +113,7 @@ contract TDC is MathPI, DSNote, Template {
         uint principal = TDCRecords[record].principal;
         TDCRecords[record].principal = 0;
         TDCRecords[record].owner.transfer(principal,ASSET_PAI);
-        financial.payForInterest(interest,TDCRecords[record].owner);
+        finance.payForInterest(interest,TDCRecords[record].owner);
     }
 
     function setPAIIssuer(PAIIssuer newIssuer) public {

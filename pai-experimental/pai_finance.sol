@@ -3,7 +3,7 @@ pragma solidity 0.4.25;
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
 
-contract Financial is Template {
+contract Finance is Template {
     PAIIssuer public issuer;
     uint private ASSET_PAI;
 

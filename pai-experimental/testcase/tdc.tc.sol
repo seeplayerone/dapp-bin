@@ -60,7 +60,7 @@ contract TimefliesTDC is TDC, TestTimeflies {
 
 contract TestTDC is Template, DSTest, DSMath {
     TimefliesTDC internal tdc;
-    Financial internal financial;
+    Finance internal finance;
     FakePAIIssuer internal paiIssuer;
     FakePAIIssuer internal paiIssuer2;
 
@@ -87,10 +87,10 @@ contract TestTDC is Template, DSTest, DSMath {
         tdc = new TimefliesTDC(paiIssuer, financial);
 
         paiIssuer.mint(100000000, this);
-        paiIssuer.mint(100000000, financial);
+        paiIssuer.mint(100000000, finance);
 
         paiIssuer2.mint(100000000, this);
-        paiIssuer2.mint(100000000, financial);
+        paiIssuer2.mint(100000000, finance);
     }
 
     function testSetRate() public {
@@ -228,11 +228,11 @@ contract TestTDC is Template, DSTest, DSMath {
 
     function testInterestCalculate() public {
         setup();
-        assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY * 104 / 1000);
-        assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY * 106 / 1000);
-        assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY * 108 / 1000);
-        assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY * 110 / 1000);
-        assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY * 112 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY * 204 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY * 206 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY * 208 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY * 210 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY * 212 / 1000);
 
         tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
         tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._60DAYS);
@@ -242,14 +242,39 @@ contract TestTDC is Template, DSTest, DSMath {
         tdc.fly(360 days);
         uint emm1 = flow.balance(this,ASSET_PAI);
         uint emm2 = flow.balance(tdc,ASSET_PAI);
+        uint emm3 = flow.balance(finance,ASSET_PAI);
         tdc.returnMoney(1);
-        assertEq(flow.balance(this,ASSET_PAI) - emm1,10000);
+        assertEq(flow.balance(this,ASSET_PAI) - emm1, 10167);
+        assertEq(emm2 - flow.balance(tdc,ASSET_PAI), 10000);
+        assertEq(flow.balance(finance,ASSET_PAI) - emm3,167);
+
+
+        emm1 = flow.balance(this,ASSET_PAI);
+        emm2 = flow.balance(tdc,ASSET_PAI);
+        tdc.returnMoney(2);
+        assertEq(flow.balance(this,ASSET_PAI) - emm1,10338);
         assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
+        assertEq(flow.balance(finance,ASSET_PAI) - emm3,338);
 
-        assertEq(1 years / 86400,0);
+        emm1 = flow.balance(this,ASSET_PAI);
+        emm2 = flow.balance(tdc,ASSET_PAI);
+        tdc.returnMoney(3);
+        assertEq(flow.balance(this,ASSET_PAI) - emm1,10512);
+        assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
+        assertEq(flow.balance(finance,ASSET_PAI) - emm3,512);
 
+        emm1 = flow.balance(this,ASSET_PAI);
+        emm2 = flow.balance(tdc,ASSET_PAI);
+        tdc.returnMoney(4);
+        assertEq(flow.balance(this,ASSET_PAI) - emm1,11035);
+        assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
+        assertEq(flow.balance(finance,ASSET_PAI) - emm3,1035);
 
-
-
+        emm1 = flow.balance(this,ASSET_PAI);
+        emm2 = flow.balance(tdc,ASSET_PAI);
+        tdc.returnMoney(5);
+        assertEq(flow.balance(this,ASSET_PAI) - emm1,12090);
+        assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
+        assertEq(flow.balance(finance,ASSET_PAI) - emm3,2090);
     }
 }
