@@ -5,12 +5,7 @@ pragma solidity 0.4.25;
 
 import "github.com/seeplayerone/dapp-bin/library/template.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
-
-/// @dev the Registry interface
-///  Registry is a system contract, an organization needs to register before issuing assets
-interface RegistryKuKu {
-     function registerOrganization(string organizationName, string templateName) external returns(uint32);
-}
+import "github.com/seeplayerone/dapp-bin/pai-experimental/registry.sol";
 
 contract PAIIssuer is Template, DSMath {
     string private name = "PAI_ISSUER";
@@ -31,7 +26,7 @@ contract PAIIssuer is Template, DSMath {
     function init(string _name) public {
         name = _name;
         /// TODO organization registration should be done in DAO
-        RegistryKuKu registry = RegistryKuKu(0x630000000000000000000000000000000000000065);
+        Registry registry = Registry(0x630000000000000000000000000000000000000065);
         orgnizationID = registry.registerOrganization(name, templateName);
         assetIndex = 1;
         assetType = 0;
