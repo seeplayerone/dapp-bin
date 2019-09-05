@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/testnet-tutorial/tutorial.sol";
-import "github.com/seeplayerone/dapp-bin/testnet-tutorial/test.sol";
+import "github.com/evilcc2018/dapp-bin/testnet-tutorial/tutorial.sol";
+import "github.com/evilcc2018/dapp-bin/testnet-tutorial/test.sol";
 
 /**
     @dev we recommend "test driven development" paradigm for contract developing

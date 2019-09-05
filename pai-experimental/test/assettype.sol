@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/evilcc2018/dapp-bin/library/template.sol";
 
 contract AssetType is Template {
 

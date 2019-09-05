@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/library/string_utils.sol";
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/evilcc2018/dapp-bin/library/string_utils.sol";
+import "github.com/evilcc2018/dapp-bin/library/template.sol";
 
 //import "./string_utils.sol";
 //import "./template.sol";

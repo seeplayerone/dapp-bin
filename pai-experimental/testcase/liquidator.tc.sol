@@ -5,11 +5,11 @@ pragma solidity 0.4.25;
 // import "../3rd/test.sol";
 // import "../3rd/math.sol";
 
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/fake_btc_issuer.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/evilcc2018/dapp-bin/library/template.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/liquidator.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/test.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
 
 contract FakePAIIssuer is PAIIssuer {
     constructor() public {
