@@ -110,8 +110,9 @@ contract TDC is MathPI, DSNote, Template {
         require(TDCRecords[record].principal != 0);
         require(checkMaturity(record));
         uint interest = mul(TDCRecords[record].principal,rmul(TDCRecords[record].interestRate, term[uint8(TDCRecords[record].tdcType)])) / 1 years;
+        uint memory principal = TDCRecords[record].principal;
         TDCRecords[record].principal = 0;
-        TDCRecords[record].owner.transfer(TDCRecords[record].principal,ASSET_PAI);
+        TDCRecords[record].owner.transfer(principal,ASSET_PAI);
         financial.payForInterest(interest,TDCRecords[record].owner);
     }
 

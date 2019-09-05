@@ -153,10 +153,11 @@ contract TestTDC is Template, DSTest, DSMath {
         assertEq(principal, 5000);
 
         FakePerson p1 = new FakePerson();
-        paiIssuer.mint(100000000, p1);
+        paiIssuer.mint(10000, p1);
         bool tempBool;
         tempBool = p1.callDeposit(tdc,0,10000,uint96(ASSET_PAI));
         assertTrue(tempBool);
+        assertEq(flow.balance(p1,ASSET_PAI),0);
         FakePerson p2 = new FakePerson();
         tempBool = p2.callWithdraw(tdc,2,5000);
         assertTrue(!tempBool);
@@ -164,12 +165,14 @@ contract TestTDC is Template, DSTest, DSMath {
         assertTrue(tempBool);
         (,,principal,,) = tdc.TDCRecords(2);
         assertEq(principal, 5000);
+        assertEq(flow.balance(p1,ASSET_PAI),5000);
         tempBool = p1.callWithdraw(tdc,2,5001);
         assertTrue(!tempBool);
         tempBool = p1.callWithdraw(tdc,2,5000);
         assertTrue(tempBool);
         (,,principal,,) = tdc.TDCRecords(2);
         assertEq(principal, 0);
+        assertEq(flow.balance(p1,ASSET_PAI),10000);
     }
 
     function testAboutTime() public {
@@ -193,8 +196,8 @@ contract TestTDC is Template, DSTest, DSMath {
         assertTrue(!tdc.checkMaturity(idx));
         tdc.fly(30 days);
         assertTrue(!tdc.checkMaturity(idx));
-        tdc.fly(60 days);
-        assertTrue(!tdc.checkMaturity(idx));
+        tdc.fly(30 days);
+        assertTrue(tdc.checkMaturity(idx));
         idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._90DAYS);
         assertTrue(!tdc.checkMaturity(idx));
         tdc.fly(90 days);
@@ -207,7 +210,21 @@ contract TestTDC is Template, DSTest, DSMath {
         assertTrue(!tdc.checkMaturity(idx));
         tdc.fly(360 days);
         assertTrue(tdc.checkMaturity(idx));
-    } 
+    }
+
+    function testReturnMoney() public {
+        setup();
+        uint idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
+        uint emm = flow.balance(this,ASSET_PAI);
+        bool tempBool = tdc.call(abi.encodeWithSelector(tdc.returnMoney.selector,idx));
+        assertTrue(!tempBool);
+        tdc.fly(30 days);
+        tempBool = tdc.call(abi.encodeWithSelector(tdc.returnMoney.selector,idx));
+        assertTrue(tempBool);
+        assertEq(flow.balance(this,ASSET_PAI),emm + 10167);
+        tempBool = tdc.call(abi.encodeWithSelector(tdc.returnMoney.selector,idx));
+        assertTrue(!tempBool);
+    }
 
     function testInterestCalculate() public {
 
