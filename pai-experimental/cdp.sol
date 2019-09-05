@@ -262,8 +262,13 @@ contract CDP is MathPI, DSNote, Template {
         } else {
             newDebt = rmul(amount, rpow(adjustedInterestRate[uint8(data.cdpType)], term[uint8(data.cdpType)]));
             data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
+<<<<<<< HEAD
             data.endTime = add(era(), term[uint8(data.cdpType)]);
             emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount,data.endTime);
+=======
+            CDPRecords[record].endTime = add(era(), term[uint8(data.cdpType)]);
+            emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount,CDPRecords[record].endTime);
+>>>>>>> 18daa612af1ddb07a4ae8f37df0206a0a940e010
         }
         require(safe(record));
         /// TODO debt ceiling check
