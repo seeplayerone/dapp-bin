@@ -1,10 +1,10 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/mathPI.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_finance.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/mathPI.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_finance.sol";
 
 contract TDC is MathPI, DSNote, Template {
     //time deposit certificates
