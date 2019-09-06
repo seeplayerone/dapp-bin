@@ -91,7 +91,7 @@ contract ACLMaster is DSMath {
         return groups[role].members;
     }
 
-    function canPerform(string role, address _addr) public view returns (bool) {
+    function canPerform(address _addr, string role) public view returns (bool) {
         if (disableACL) {
             return true;
         }

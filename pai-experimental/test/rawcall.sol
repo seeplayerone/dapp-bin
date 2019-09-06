@@ -6,9 +6,10 @@ contract Person{
     string public lastname = "ma";
      
     
-    function updatename(string _name, string _lastname) public {
+    function updatename(string _name,uint _age, string _lastname) public {
         name = _name;
         lastname = _lastname;
+        age = _age;
     }
     
     function updateage(uint _age) public {
@@ -30,14 +31,14 @@ contract CallTest{
         return Person(addr).name();
     }
 
-    function testnamebytes() returns (string,string) {
+    function testnamebytes() returns (string,string,uint) {
         address addr = new Person();
 
-        bytes4 methodId = bytes4(keccak256("updatename(string,string)"));
-        bytes param = abi.encodeParameters(["string","string"],["jack","xu"]);
-        addr.call(abi.encodeWithSelector(methodId,param));
+        bytes4 methodId = bytes4(keccak256("updatename(string,uint256,string)"));
+        bytes memory param = abi.encode("jack",6,"xu");
+        addr.call(abi.encodePacked(methodId, param));
 
-        return (Person(addr).name(),Person(addr).lastname());
+        return (Person(addr).name(),Person(addr).lastname(),Person(addr).age());
     }
 
     function testage() returns (uint){
