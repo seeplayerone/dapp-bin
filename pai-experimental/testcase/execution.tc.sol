@@ -19,36 +19,46 @@ contract EXEC is Template, Execution {
     }
 
     function exec2(address addr, bytes param, uint amount, uint96 assetType) public {
-        execute(addr,param,amount,assetType);
+        executeWithAsset(addr,param,amount,assetType);
     }
 }
 
 contract Business is Template {
-    uint public states = 0;
+    uint public state = 0;
     uint96 ASSET_PAI;
     function plusOne() public {
-        states = states + 1;
+        state = state + 1;
     }
 
     function plusTen() public payable {
-        require(msg.assetType == ASSET_PAI);
+        require(msg.assettype == ASSET_PAI);
         require(msg.value == 1000);
-        states = states + 10;
+        state = state + 10;
     }
 
     function plus(uint num) public {
-        states = states + num;
+        state = state + num;
     }
 
-    function setAssetType(uint96 type) public {
-        ASSET_PAI = type;
+    function plus2(uint num1,uint num2) public {
+        state = state + num1 + num2;
+    }
+
+    function plus3(uint num1,uint num2) public payable {
+        require(msg.assettype == ASSET_PAI);
+        require(msg.value == 2000);
+        state = state + num1 + num2;
+    }
+
+    function setAssetType(uint96 _type) public {
+        ASSET_PAI = _type;
     }
 
 }
 
 contract EXECTest is Template,DSTest {
     uint96 ASSET_PAI;
-    function run() public {
+    function testMain() public {
         FakePAIIssuer issur = new FakePAIIssuer();
         issur.init("ab");
         ASSET_PAI = uint96(issur.getAssetType());
@@ -60,6 +70,26 @@ contract EXECTest is Template,DSTest {
 
         issur.mint(1000000, exec);
 
+        assertEq(business.state(),0);
+        //plusOne()
+        exec.exec1(business,hex"68e5c066");
+        assertEq(business.state(),1);
+        //plusTen()
+        uint emm = flow.balance(exec,ASSET_PAI);
+        exec.exec2(business,hex"40993a3c",1000,ASSET_PAI);
+        assertEq(business.state(),11);
+        assertEq(emm - flow.balance(exec,ASSET_PAI),1000);
+        //plus(uint num) num = 3
+        exec.exec1(business,hex"952700800000000000000000000000000000000000000000000000000000000000000003");
+        assertEq(business.state(),14);
+        //plus2(uint num1,uint num2) num1 = 5; num2 = 6;
+        exec.exec1(business,hex"de90eafc00000000000000000000000000000000000000000000000000000000000000050000000000000000000000000000000000000000000000000000000000000006");
+        assertEq(business.state(),25);
+        //plus3(uint num1,uint num2) num1 = 7; num2 = 8;
+        emm = flow.balance(exec,ASSET_PAI);
+        exec.exec2(business,hex"28768f9600000000000000000000000000000000000000000000000000000000000000070000000000000000000000000000000000000000000000000000000000000008",2000,ASSET_PAI);
+        assertEq(business.state(),40);
+        assertEq(emm - flow.balance(exec,ASSET_PAI),2000);
 
     }
 
