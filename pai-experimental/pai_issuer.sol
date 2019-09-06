@@ -3,9 +3,9 @@ pragma solidity 0.4.25;
 // import "../library/template.sol";
 // import "./3rd/math.sol";
 
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/registry.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/registry.sol";
 
 contract PAIIssuer is Template, DSMath {
     string private name = "PAI_ISSUER";

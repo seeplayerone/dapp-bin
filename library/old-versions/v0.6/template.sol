@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-//import "github.com/evilcc2018/dapp-bin/library/string_utils.sol";
+//import "github.com/seeplayerone/dapp-bin/library/string_utils.sol";
 import "./string_utils.sol";
 
 interface TemplateWarehouse{

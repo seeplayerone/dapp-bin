@@ -28,7 +28,7 @@ On the Asimov platform, users need to upload the developed smart contract to the
 
 Two important things to note related to template when developing smart contracts:
 
-- All template contracts need to inherit the [Template](https://github.com/evilcc2018/dapp-bin/blob/master/library/template.sol) base contract directly or indirectly.
+- All template contracts need to inherit the [Template](https://github.com/seeplayerone/dapp-bin/blob/master/library/template.sol) base contract directly or indirectly.
 - When deploying new contract inside a contract, use the ```flow.deployContract()``` method.
 
 -------
@@ -46,7 +46,7 @@ Deploy a new contract inside a contract.
 
 All assets on the Asimov platform are native UTXO assets. We designed **assettype** to distinguish different types of UTXO.
 
-Note a contract needs to register to Asimov platform and get an organization ID before issuing assets. This is demostrated in the [Tutorial](https://github.com/evilcc2018/dapp-bin/blob/master/testnet-tutorial/tutorial.sol).
+Note a contract needs to register to Asimov platform and get an organization ID before issuing assets. This is demostrated in the [Tutorial](https://github.com/seeplayerone/dapp-bin/blob/master/testnet-tutorial/tutorial.sol).
 
 > Regarding the definition of the above **assettype** parameter, as shown in the following figure: the organization with an Organization ID of 25 (hexadecimal, 00000025 in the middle part) issued two assets, with the index 0 and 1 respectively (00000000 and 00000001 in the right part). Properties are both defaults to 00000000 which is a normal fungible asset (00000000 in the left part).
 
@@ -99,7 +99,7 @@ Get the assettype of the transaction inside a contract. Returns **assettype** as
 
 ### Tutorial Project
 
-We have created a [tutorial project](https://github.com/evilcc2018/dapp-bin/tree/master/testnet-tutorial) to demostrate how to develop a simple contract to experience the exclusive features of Asimov described above.
+We have created a [tutorial project](https://github.com/seeplayerone/dapp-bin/tree/master/testnet-tutorial) to demostrate how to develop a simple contract to experience the exclusive features of Asimov described above.
 
 ## Test Contract
 
@@ -107,7 +107,7 @@ We recommend to adopt a **Test Driven Development** paradigm for contract develo
 
 Once finish designing and implementing a smart contract, it is a good practice to write thorough unit tests to fully cover every single function uint of a contract. There are usually two ways to write test cases for a contract, either using other smart contracts or through js library. We are prefering the former one for now as it has better support from the IDE tool.
 
-We have provided a [test contract](https://github.com/evilcc2018/dapp-bin/blob/master/testnet-tutorial/tutorial.tc.sol) in the tutorial project. 
+We have provided a [test contract](https://github.com/seeplayerone/dapp-bin/blob/master/testnet-tutorial/tutorial.tc.sol) in the tutorial project. 
 
 We can run a test contract in "test mode" in IDE tool: we don't need to create a template for the test contract or the target contract it is testing against, and the execution is not state perserving. In order to support that, ```new``` and ```create``` are enabled in "test mode".
 
@@ -171,11 +171,11 @@ Go to the IDE [EXECUTION](https://ide.asimov.work/#/contract-call) page:
 
 In theory, developers familiar with the Solidity language can combine the above-mentioned new features of Asimov to complete the development of various smart contracts from scratch. But in order to alleviate the developer's workload and make better use of the capabilities provided by Asimov, we offer the following basic contracts.
 
-- [acl.sol](https://github.com/evilcc2018/dapp-bin/blob/master/library/acl.sol)
-- [asset.sol](https://github.com/evilcc2018/dapp-bin/blob/master/library/asset.sol)
-- [organization.sol](https://github.com/evilcc2018/dapp-bin/blob/master/library/organization.sol)
+- [acl.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/acl.sol)
+- [asset.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/asset.sol)
+- [organization.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/organization.sol)
 
-The [acl](https://github.com/evilcc2018/dapp-bin/blob/master/library/acl.sol) contract provides a permission control framework at the contract method level:
+The [acl](https://github.com/seeplayerone/dapp-bin/blob/master/library/acl.sol) contract provides a permission control framework at the contract method level:
 
 1. Restrict specific addresses to access a method through ```authAddresses()``` modifier.
 2. Define roles, and restrict specific roles to access a method through ```authRoles()``` modifier.
@@ -183,18 +183,18 @@ The [acl](https://github.com/evilcc2018/dapp-bin/blob/master/library/acl.sol) co
 
 Through a set of configuration methods to manage the links between (role - address), (function hash - address) and (function hash - role), Asimov enables dynamic access control configuration after a contract is deployed.
 
-The [asset](https://github.com/evilcc2018/dapp-bin/blob/master/library/asset.sol) contract stores detailed information about all assets issued by the organization, including:
+The [asset](https://github.com/seeplayerone/dapp-bin/blob/master/library/asset.sol) contract stores detailed information about all assets issued by the organization, including:
 
 1. Basic information of the asset, name, code, description, total amount, etc.;
 2. The basic properties of the asset, whether it can be divided, whether it is restricted in circulation, whether it is anonymous or not (corresponds to the **assettype** set when creating the asset);
 3. Address whitelist of an asset;
 4. The initial and additional issuance history of assets.
 
-The [organization](https://github.com/evilcc2018/dapp-bin/blob/master/library/organization.sol) contract inherits the template, acl, and asset contracts. And provides a simple organization structure: several members with the same rights, and new members are added by invitation. We recommend that third-party organization contracts inherit [organization.sol](https://github.com/evilcc2018/dapp-bin/blob/master/library/organization.sol) for development.
+The [organization](https://github.com/seeplayerone/dapp-bin/blob/master/library/organization.sol) contract inherits the template, acl, and asset contracts. And provides a simple organization structure: several members with the same rights, and new members are added by invitation. We recommend that third-party organization contracts inherit [organization.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/organization.sol) for development.
 
 
 ### Samples
 
-Asimov's official website provides a simple autonomous organization implementation, the corresponding organization contract is [dao_asimov.sol](https://github.com/evilcc2018/dapp-bin/blob/master/library/dao_asimov.sol). The contract inherits organization.sol and adds a "president" role to its organizational structure to manage the organization.
+Asimov's official website provides a simple autonomous organization implementation, the corresponding organization contract is [dao_asimov.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/dao_asimov.sol). The contract inherits organization.sol and adds a "president" role to its organizational structure to manage the organization.
 
-Another example of an organization contract [simple_organization.sol](https://github.com/evilcc2018/dapp-bin/blob/master/library/simple_organization.sol) is much simpler.
+Another example of an organization contract [simple_organization.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/simple_organization.sol) is much simpler.

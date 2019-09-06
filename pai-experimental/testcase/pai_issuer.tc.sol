@@ -4,9 +4,9 @@ pragma solidity 0.4.25;
 // import "../pai_issuer.sol";
 // import "../3rd/test.sol";
 
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/test.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
 
 contract FakePAIIssuer is PAIIssuer {
     constructor() public {

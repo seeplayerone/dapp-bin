@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/library/string_utils.sol";
+import "github.com/seeplayerone/dapp-bin/library/string_utils.sol";
 
 interface TemplateWarehouse{
     function getTemplate(uint16 _category, string name) external returns(string, bytes, uint, uint8, uint8, uint8, uint16);
