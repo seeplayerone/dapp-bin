@@ -91,4 +91,44 @@ contract EXECTest is Template,DSTest {
         assertEq(business.state(),40);
         assertEq(emm - flow.balance(exec,ASSET_PAI),2000);
     }
+
+    function testFail() public {
+        //not enough money
+        FakePAIIssuer issur = new FakePAIIssuer();
+        issur.init("ab");
+        ASSET_PAI = uint96(issur.getAssetType());
+
+        Business business = new Business();
+        business.setAssetType(uint96(issur.getAssetType()));
+
+        EXEC exec = new EXEC();
+        exec.exec2(business,hex"40993a3c",1000,ASSET_PAI);
+    }
+
+    function testFailCompare() public {
+        FakePAIIssuer issur = new FakePAIIssuer();
+        issur.init("ab");
+        ASSET_PAI = uint96(issur.getAssetType());
+
+        Business business = new Business();
+        business.setAssetType(uint96(issur.getAssetType()));
+
+        EXEC exec = new EXEC();
+        issur.mint(1000000, exec);
+        exec.exec2(business,hex"40993a3c",1000,ASSET_PAI);
+    }
+
+    function testFail2() public {
+        //not right money
+        FakePAIIssuer issur = new FakePAIIssuer();
+        issur.init("ab");
+        ASSET_PAI = uint96(issur.getAssetType());
+
+        Business business = new Business();
+        business.setAssetType(uint96(issur.getAssetType()));
+
+        EXEC exec = new EXEC();
+        issur.mint(1000000, exec);
+        exec.exec2(business,hex"40993a3c",200,ASSET_PAI);
+    }
 }
