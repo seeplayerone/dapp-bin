@@ -1,15 +1,8 @@
 pragma solidity 0.4.25;
-<<<<<<< HEAD
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/library/execution.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/test.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-=======
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/library/execution.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
->>>>>>> f420ac37b4bab215f6bca7a581a22b94f7b0228b
 
 
 contract FakePAIIssuer is PAIIssuer {
@@ -97,11 +90,6 @@ contract EXECTest is Template,DSTest {
         exec.exec2(business,hex"28768f9600000000000000000000000000000000000000000000000000000000000000070000000000000000000000000000000000000000000000000000000000000008",2000,ASSET_PAI);
         assertEq(business.state(),40);
         assertEq(emm - flow.balance(exec,ASSET_PAI),2000);
-<<<<<<< HEAD
-
-    }
-
-=======
     }
 
     function testFail() public {
@@ -143,5 +131,4 @@ contract EXECTest is Template,DSTest {
         issur.mint(1000000, exec);
         exec.exec2(business,hex"40993a3c",200,ASSET_PAI);
     }
->>>>>>> f420ac37b4bab215f6bca7a581a22b94f7b0228b
 }
