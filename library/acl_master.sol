@@ -1,8 +1,8 @@
 pragma solidity 0.4.25;
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
+
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 
-contract ACL is DSMath,Template {
+contract ACLMaster is DSMath {
 
     bool disableACL; //attention!!!!! this parameter is only can be set to true in testcase
     mapping(uint => bytes) roles;
@@ -12,7 +12,7 @@ contract ACL is DSMath,Template {
         bytes superior;
         address[] members;
     }
-    uint indexForACL;
+    uint public indexForACL;
     string constant ADMIN = "ADMIN";
 
     constructor() public {
@@ -23,7 +23,8 @@ contract ACL is DSMath,Template {
         groups[bytes(ADMIN)].members.push(msg.sender);
     }
     
-    function createNewRole(bytes newRole, bytes superior) public auth(ADMIN) {
+    function createNewRole(bytes newRole, bytes superior) public {
+        require(canPerform(ADMIN, msg.sender));
         require(!groups[newRole].exist);
         if(!groups[superior].exist) {
             indexForACL = add(indexForACL,1);
@@ -90,63 +91,10 @@ contract ACL is DSMath,Template {
         return groups[role].members;
     }
 
-    modifier auth(string role) {
-        canPerform(role, msg.sender);
-        _;
-    }
-
     function canPerform(string role, address _addr) public view returns (bool) {
         if (disableACL) {
             return true;
         }
         return addressExist(bytes(role), _addr);
-    }
-
-    function canPerform(bytes role, address _addr) public view returns (bool) {
-        if (disableACL) {
-            return true;
-        }
-        return addressExist(role, _addr);
-    }
-
-    // only for debug;
-    function roleExist(bytes role) public view returns (bool) {
-        return groups[role].exist;
-    }
-    
-    function creatNewRoleByString(string newRole, string superior) public {
-        createNewRole(bytes(newRole), bytes(superior));
-    }
-
-    function roleExistByString(string role) public view returns (bool) {
-        return roleExist(bytes(role));
-    }
-
-    function addMemberByString(address _addr, string role) public {
-        addMember(_addr, bytes(role));
-    }
-
-    function removeMemberByString(address _addr, string role) public {
-        removeMember(_addr, bytes(role));
-    }
-
-    function leaveRoleByString(string role) public {
-        removeMember(msg.sender, bytes(role));
-    }
-
-    function changeSuperiorByString(string role, string newSuperior) public {
-        changeSuperior(bytes(role), bytes(newSuperior));
-    }
-
-    function addressExistByString(string role, address _addr) public view returns (bool) {
-        return addressExist(bytes(role), _addr);
-    }
-
-    function getSuperiorByString(string role) public view returns (string) {
-        return getSuperior(bytes(role));
-    }
-
-    function getMembersByString(string role) public view returns (address[]) {
-        return getMembers(bytes(role));
     }
 }
