@@ -3,8 +3,6 @@ pragma solidity 0.4.25;
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 
 contract ACLMaster is DSMath {
-
-    bool disableACL; //attention!!!!! this parameter is only can be set to true in testcase
     mapping(uint => bytes) roles;
     mapping(bytes => PermissionGroup) groups;
     struct PermissionGroup {
@@ -23,8 +21,7 @@ contract ACLMaster is DSMath {
         groups[bytes(ADMIN)].members.push(msg.sender);
     }
     
-    function createNewRole(bytes newRole, bytes superior) public {
-        require(canPerform(ADMIN, msg.sender));
+    function createNewRole(bytes newRole, bytes superior) public auth(ADMIN) {
         require(!groups[newRole].exist);
         if(!groups[superior].exist) {
             indexForACL = add(indexForACL,1);
@@ -40,14 +37,14 @@ contract ACLMaster is DSMath {
 
     function addMember(address _addr, bytes role) public {
         require(groups[role].exist);
-        require(canPerform(groups[role].superior, msg.sender));
+        require(canPerform(msg.sender, groups[role].superior));
         require(!addressExist(role,_addr));
         groups[role].members.push(_addr);
     }
 
     function removeMember(address _addr, bytes role) public {
         require(groups[role].exist);
-        require(canPerform(groups[role].superior, msg.sender));
+        require(canPerform(msg.sender, groups[role].superior));
         uint len = groups[role].members.length;
         if(0 == len) {
             return;
@@ -62,15 +59,21 @@ contract ACLMaster is DSMath {
         }
     }
 
+    function resetMember(address[] _members, bytes role) public {
+        require(groups[role].exist);
+        require(canPerform(msg.sender, groups[role].superior));
+        groups[role].members.length = 0;
+        if (_members.length > 0) {
+            for (uint i = 0; i < _members.length; i++) {
+                groups[role].members.push(_members[i]);
+            }
+        }
+    }
+
     function changeSuperior(bytes role, bytes newSuperior) public {
         require(groups[role].exist);
-        require(canPerform(groups[role].superior, msg.sender));
-        if(!groups[newSuperior].exist) {
-            indexForACL = indexForACL + 1;
-            roles[indexForACL] = newSuperior;
-            groups[newSuperior].exist = true;
-            groups[newSuperior].superior = groups[role].superior;
-        }
+        require(canPerform(msg.sender, groups[role].superior));
+        require(groups[newSuperior].exist);
         groups[role].superior = newSuperior;
     }
 
@@ -92,9 +95,11 @@ contract ACLMaster is DSMath {
     }
 
     function canPerform(address _addr, string role) public view returns (bool) {
-        if (disableACL) {
-            return true;
-        }
         return addressExist(bytes(role), _addr);
+    }
+
+    modifier auth(string role) {
+        require(canPerform(msg.sender,func));
+        _;
     }
 }
