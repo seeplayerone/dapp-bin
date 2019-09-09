@@ -253,14 +253,14 @@ contract TestCase is Template, DSTest, DSMath {
 
     function testGovernance() public {
         FakePaiDao paiDAO;
-        paiDAO = new FakePaiDao("PAIDAO");
+        FakePerson p1 = new FakePerson();
+        paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
         paiDAO.init();
         ASSET_PIS = paiDAO.PISGlobalId();
 
-        FakePerson p1 = new FakePerson();
         FakePerson p2 = new FakePerson();
+        FakePerson p3 = new FakePerson();
 
-        paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
         assertTrue(paiDAO.addressExist(bytes(ADMIN),p1));//0
         bool tempBool = p1.callMint(paiDAO,100000000,p1);
         assertTrue(tempBool);//1
@@ -271,6 +271,8 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(tempBool);//4
         assertTrue(paiDAO.addressExist(bytes(ADMIN),p2));//5
         assertTrue(paiDAO.canPerform(bytes(ADMIN),p1));//6
+        assertTrue(paiDAO.canPerform(bytes(ADMIN),p2));//7
+        assertTrue(paiDAO.canPerform(bytes(ADMIN),p3));//8
         // tempBool = p2.callMint(paiDAO,100000000,p2);
         // assertTrue(tempBool);//4
     }

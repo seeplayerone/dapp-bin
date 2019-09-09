@@ -38,8 +38,7 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
         PISGlobalId = uint96(PISLocalId) << 32 | uint96(assetIndex);
     }
 
-    function mint(uint amount, address dest) public auth(ADMIN)
-    {
+    function mint(uint amount, address dest) public auth("ADMIN") {
         //require(canPerform(bytes(ADMIN), msg.sender));
         if(issuedAssets[assetIndex].existed) {
             flow.mintAsset(assetIndex, amount);
@@ -55,6 +54,6 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
         require(msg.assettype == PISGlobalId,
                 "Only PIS can be burned!");
         issuedAssets[0].totalIssued = sub(issuedAssets[0].totalIssued, msg.value);
-        zeroAddr.transfer(msg.value, msg.assettype);
+        zeroAddr.transfer(msg.value, PISGlobalId);
     }
 }
