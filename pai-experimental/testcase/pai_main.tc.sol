@@ -53,11 +53,11 @@ contract FakePerson is Template {
     //     return result;
     // }
 
-    // function callMintPIS(address paidao, uint amount, address dest) public returns (bool) {
-    //     bytes4 methodId = bytes4(keccak256("mintPIS(uint256,address)"));
-    //     bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,amount,dest));
-    //     return result;
-    // }
+    function callMint(address paidao, uint amount, address dest) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("mint(uint256,address)"));
+        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,amount,dest));
+        return result;
+    }
 
     // function callMintPAI(address paidao, uint amount, address dest) public returns (bool) {
     //     bytes4 methodId = bytes4(keccak256("mintPAI(uint256,address)"));
@@ -181,11 +181,11 @@ contract FakePaiDaoNoGovernance is PAIDAO {
         templateName = "Fake-Template-Name-For-Test-Pai_main2";
     }
 
-    function canPerform(address _addr, string role) public view returns (bool) {
+    function canPerform(string role, address _addr) public view returns (bool) {
         return true;
     }
 
-    function canPerform(address _addr, bytes role) public view returns (bool) {
+    function canPerform(bytes role, address _addr) public view returns (bool) {
         return true;
     }
 }
@@ -196,7 +196,7 @@ contract TestCase is Template, DSTest, DSMath {
     }
     uint96 ASSET_PIS;
     uint96 ASSET_PAI;
-    bool tempBool;
+    string ADMIN = "ADMIN";
 
 
     function testInit() public {
@@ -205,19 +205,23 @@ contract TestCase is Template, DSTest, DSMath {
         FakePerson p1 = new FakePerson();
         FakePerson p2 = new FakePerson();
 
-
-        ///test init
         paiDAO = FakePaiDaoNoGovernance(p1.createPAIDAONoGovernance("PAIDAO"));
-        paiDAO.addressExist(paiDAO.ADMIN,p1);
-        paiDAO.canPerform(ADMIN,p1);
-        paiDAO.canPerform(ADMIN,p2);
-        //assertEq(paiDAO.tempAdmin(),p1);//0
+        assertTrue(paiDAO.addressExist(bytes(ADMIN),p1)); //0
+
+        //test whether governance function is shielded
+        assertTrue(paiDAO.canPerform(ADMIN,p1)); //1
+        assertTrue(paiDAO.canPerform(ADMIN,p2)); //2
+
+        bool tempBool = p2.callInit(paiDAO);
+        assertTrue(tempBool);//3
         tempBool = p2.callInit(paiDAO);
-        assertTrue(tempBool);//1
-        tempBool = p2.callInit(paiDAO);
-        assertTrue(!tempBool);//2
+        assertTrue(!tempBool);//4
         tempBool = p1.callInit(paiDAO);
-        assertTrue(!tempBool);//3
+        assertTrue(!tempBool);//5
+
+        ASSET_PIS = paiDAO.PISGlobalId;
+        paiDAO.callMint(100000000,p2);
+        assertEq(100000000,flow.balance(p2,ASSET_PIS));
     }
 
         // ///test mint

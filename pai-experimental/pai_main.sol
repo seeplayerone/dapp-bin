@@ -23,8 +23,7 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
     //address public tempAdmin;
 
     ///params for PIS;
-    uint64 PISLocalId;
-    uint96 PISGlobalId;
+    uint96 public PISGlobalId;
 
     ///params for burn
     address private constant zeroAddr = 0x660000000000000000000000000000000000000000;
@@ -40,7 +39,8 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
         Registry registry = Registry(0x630000000000000000000000000000000000000065);
         organizationId = registry.registerOrganization(organizationName, templateName);
         registed = true;
-        PISLocalId = uint64(0) << 32 | uint64(organizationId);
+
+        uint64 PISLocalId = (uint64(1) << 32 | uint64(organizationId));
         PISGlobalId = uint96(PISLocalId) << 32 | uint96(0);
     }
 
