@@ -15,7 +15,7 @@ contract ACLMaster is DSMath {
 
     constructor() public {
         indexForACL = 1;
-        roles[indexForACL] = bytes(ADMIN);
+        roles[indexForACL] = bytes("ADMIN");
         groups[bytes(ADMIN)].exist = true;
         groups[bytes(ADMIN)].superior = bytes(ADMIN);
         groups[bytes(ADMIN)].members.push(msg.sender);
