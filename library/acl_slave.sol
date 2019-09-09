@@ -1,8 +1,6 @@
 pragma solidity 0.4.25;
 
-interface ACLMaster {
-    function canPerform(string role, address _addr) external view returns (bool);
-}
+import "./acl_master.sol";
 
 contract ACLSlave {
     ACLMaster public master;
