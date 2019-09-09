@@ -254,6 +254,7 @@ contract TestCase is Template, DSTest, DSMath {
     function testGovernance() public {
         FakePaiDao paiDAO;
         paiDAO = new FakePaiDao("PAIDAO");
+        paiDAO.init();
         ASSET_PIS = paiDAO.PISGlobalId();
 
         FakePerson p1 = new FakePerson();
