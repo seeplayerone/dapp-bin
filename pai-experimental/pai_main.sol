@@ -39,7 +39,7 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
     }
 
     function mint(uint amount, address dest) public 
-    auth("ADMIN") 
+    auth(ADMIN) 
     {
         //require(canPerform(bytes(ADMIN), msg.sender));
         if(issuedAssets[assetIndex].existed) {
