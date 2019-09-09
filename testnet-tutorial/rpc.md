@@ -259,7 +259,7 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getBlock","params
         ],
         "time": 1568029109,
         "txCount": 0,
-        "previousblockhash":"35bd9793201c81da940c2fd62966a9619a01ef04be8ab4d1c588b4b6dab8a7e0",
+        "previousblockhash": "35bd9793201c81da940c2fd62966a9619a01ef04be8ab4d1c588b4b6dab8a7e0",
         "stateroot": "e0faee16c5ff783cadc4ceb5e1e0587415e7b354351121b226d0da303671a892",
         "nextblockhash": "5dcc0a3fdd4443d294cffe92b9afc99880318049b82679a96208422b45dfcaeb",
         "round": 0,
