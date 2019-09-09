@@ -6,8 +6,8 @@ interface ACLMaster {
 
 contract ACLSlave {
     ACLMaster public master;
-    modifier auth(string func) {
-        require(master.canPerform(msg.sender,func));
+    modifier auth(string role) {
+        require(master.canPerform(msg.sender,role));
         _;
     }
 }

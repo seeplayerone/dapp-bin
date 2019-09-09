@@ -99,7 +99,7 @@ contract ACLMaster is DSMath {
     }
 
     modifier auth(string role) {
-        require(canPerform(msg.sender,func));
+        require(canPerform(msg.sender,role));
         _;
     }
 }
