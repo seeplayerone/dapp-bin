@@ -74,7 +74,7 @@ contract ACLMaster is DSMath {
 
     function changeSuperior(bytes role, bytes newSuperior) public {
         require(groups[role].exist);
-        require(canPerform(groups[role].superior, msg.sender));
+        require(canPerform(groups[groups[role].superior].superior, msg.sender));
         require(groups[newSuperior].exist);
         groups[role].superior = newSuperior;
     }
