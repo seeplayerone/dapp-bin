@@ -4,8 +4,7 @@ import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
-
-import "./fakeperson.sol";
+import "github.com/evilcc2018/dapp-bin/library/fakeperson.sol";
 
 contract FakePAIIssuer is PAIIssuer {
     constructor(string _organizationName, address paiMainContract)
