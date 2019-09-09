@@ -221,8 +221,7 @@ contract TestCase is Template, DSTest, DSMath {
 
         ASSET_PIS = paiDAO.PISGlobalId();
         paiDAO.mint(100000000,p2);
-        // assertTrue(tempBool);
-        // assertEq(100000000,flow.balance(p2,ASSET_PIS));
+        assertEq(100000000,flow.balance(p2,ASSET_PIS));
     }
 
         // ///test mint

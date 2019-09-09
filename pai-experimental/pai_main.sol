@@ -33,7 +33,6 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
     constructor(string _organizationName) public
     {
         organizationName = _organizationName;
-        //tempAdmin = msg.sender;
     }
 
     function init() public {
@@ -46,9 +45,7 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
         PISGlobalId = uint96(PISLocalId) << 32 | uint96(assetIndex);
     }
 
-    function mint(uint amount, address dest) public
-    // auth(ADMIN)
-    {
+    function mint(uint amount, address dest) public auth(ADMIN) {
         if(issuedAssets[assetIndex].existed) {
             flow.mintAsset(assetIndex, amount);
             updateAsset(assetIndex, amount);
@@ -59,7 +56,7 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
         dest.transfer(amount, PISGlobalId);
     }
 
-    function burn() public payable{
+    function burn() public payable {
         require(msg.assettype == PISGlobalId,
                 "Only PIS can be burned!");
         issuedAssets[0].totalIssued = sub(issuedAssets[0].totalIssued, msg.value);
