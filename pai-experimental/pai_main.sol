@@ -56,32 +56,10 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
         dest.transfer(amount, PISGlobalId);
     }
 
-    // function mintPAI(uint amount, address dest) public //authFunctionHash("ISSURER")
-    // {
-    //     if(issuedAssets[PAI].existed) {
-    //         mint(PAI, amount);
-    //     } else {
-    //         create("PAI", "PAI", "PAI Stable Coin", 0, PAI, amount);
-    //         Token[PAI].assetLocalId = uint64(issuedAssets[PAI].assetType) << 32 | uint64(organizationId);
-    //         Token[PAI].assetGlobalId = uint96(Token[PAI].assetLocalId) << 32 | uint96(PAI);
-    //     }
-    //     dest.transfer(amount, Token[PAI].assetGlobalId);
-    // }
-
-    // function burn() public payable{
-    //     require(msg.assettype == Token[PIS].assetGlobalId ||
-    //             msg.assettype == Token[PAI].assetGlobalId,
-    //             "Only PAI or PIS can be burned!");
-    //     if(msg.assettype == Token[PIS].assetGlobalId){
-    //         issuedAssets[PIS].totalIssued = sub(issuedAssets[PIS].totalIssued, msg.value);
-    //     }else{
-    //         issuedAssets[PAI].totalIssued = sub(issuedAssets[PAI].totalIssued, msg.value);
-    //     }
-    //     zeroAddr.transfer(msg.value, msg.assettype);
-    // }
-
-    // function everyThingIsOk() public {
-    //     require(msg.sender == tempAdmin, "Only temp admin can configure");
-    //     tempAdmin = zeroAddr;
-    // }
+    function burn() public payable{
+        require(msg.assettype == PISGlobalId,
+                "Only PIS can be burned!");
+        issuedAssets[0].totalIssued = sub(issuedAssets[0].totalIssued, msg.value);
+        zeroAddr.transfer(msg.value, msg.assettype);
+    }
 }
