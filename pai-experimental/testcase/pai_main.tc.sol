@@ -98,7 +98,6 @@ contract TestCase is Template, DSTest, DSMath {
 
     }
     uint96 ASSET_PIS;
-    uint96 ASSET_PAI;
     string ADMIN = "ADMIN";
 
     function testInit() public {

@@ -14,8 +14,8 @@ contract PAIIssuer is Template, Asset, DSMath, ACLSlave {
     uint32 private assetIndex = 0;
     bool registed = false;
 
-    ///params for PIS;
-    uint96 private PAIGlobalId;
+    ///params for PAI;
+    uint96 public PAIGlobalId;
 
     ///params for burn
     address private constant zeroAddr = 0x660000000000000000000000000000000000000000;
@@ -52,9 +52,5 @@ contract PAIIssuer is Template, Asset, DSMath, ACLSlave {
                 "Only PAI can be burned!");
         issuedAssets[0].totalIssued = sub(issuedAssets[0].totalIssued, msg.value);
         zeroAddr.transfer(msg.value, PAIGlobalId);
-    }
-
-    function getAssetType() public view returns (uint96) {
-        return PAIGlobalId;
     }
 }

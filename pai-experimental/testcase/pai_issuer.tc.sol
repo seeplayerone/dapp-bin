@@ -1,17 +1,20 @@
 pragma solidity 0.4.25;
 
-// import "../../library/template.sol";
-// import "../pai_issuer.sol";
-// import "../3rd/test.sol";
-
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 
+contract FakePerson is Template {
+    function() public payable {}
+
+    // function createPAIDAO(string _str) public returns (address) {
+    //     return (new FakePaiDao(_str));
+    // }
+}
 
 contract FakePAIIssuer is PAIIssuer {
-    constructor(string _organizationName, address paiMainContract) 
+    constructor(string _organizationName, address paiMainContract)
         PAIIssuer(_organizationName,paiMainContract)
     public {
         templateName = "Fake-Template-Name-For-Test-pai_issuer";
@@ -45,17 +48,26 @@ contract FakePaiDaoNoGovernance is PAIDAO {
 }
 
 contract TestCase is Template, DSTest {
-    FakePAIIssuer private issuer;
-    address private dest = 0x668eb397ce8ccc9caec9fec1b019a31f931725ca94;
-    address private hole = 0x660000000000000000000000000000000000000000;
-
+    uint96 ASSET_PIS;
+    uint96 ASSET_PAI;
     function() public payable {}
 
     function testInit() public {
         FakePaiDaoNoGovernance paiDAO = new FakePaiDaoNoGovernance("PAIDAO");
         paiDAO.init();
-        issuer = new FakePAIIssuer("PAIISSUER",paiDAO);
+        FakePAIIssuer issuer = new FakePAIIssuer("PAIISSUER",paiDAO);
         issuer.init();
+
+        FakePerson p1 = new FakePerson();
+
+        ASSET_PIS = paiDAO.PISGlobalId();
+        ASSET_PAI = issuer.PAIGlobalId();
+
+        paiDAO.mint(100000000,p1);
+        assertEq(100000000,flow.balance(p1,ASSET_PIS));//0
+
+        issuer.mint(200000000,p1);
+        assertEq(200000000,flow.balance(p1,ASSET_PAI));//1
     }
 
     // function testCreate() public {
