@@ -5,6 +5,7 @@
 * [asimov_getBlockChainInfo](#asimov_getBlockChainInfo)
 * [asimov_getBlockHash](#asimov_getBlockHash)
 * [asimov_upTime](#asimov_upTime)
+* [asimov_validateAddress](#asimov_validateAddress)
 
 ## API Methods
 
@@ -97,6 +98,33 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_upTime"}' -H "Con
     "jsonrpc": "2.0",
     "id": 1,
     "result": 68
+}
+```
+---
+
+### asimov_validateAddress
+
+Validate given address.
+
+#### Parameters
+
+* address
+
+#### Returns
+
+* `result`: legal or not
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_validateAddress","params":["0x63000000000000000000000000000000000000006a"]}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": true
 }
 ```
 ---
