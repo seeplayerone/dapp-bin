@@ -196,8 +196,8 @@ contract TestCase is Template, DSTest, DSMath {
         tempBool = p1.callAddMember(paiDAO,p3,"DIRECTOR2");
         assertTrue(tempBool);//17
         
-        //assertEq(string(paiDAO.getSuperior(bytes(DIRECTOR2))),ADMIN);
-        //assertTrue(paiDAO.addressExist(bytes(ADMIN),p1));
+        assertEq(string(paiDAO.getSuperior(bytes(DIRECTOR2))),ADMIN);
+        assertTrue(paiDAO.addressExist(bytes(ADMIN),p1));
 
         tempBool = p1.callRemoveMember(paiDAO,p1,"DIRECTOR2");
         assertTrue(tempBool);//18
