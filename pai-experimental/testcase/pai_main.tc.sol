@@ -29,6 +29,8 @@ contract FakePerson is Template {
         return result;
     }
 
+    //function callCanPerform(role, msg.sender)
+
     // function callConfigOthersFunc(address paidao, address _contract, address _caller, string _str, uint8 _opMode) public returns (bool) {
     //     bytes4 methodId = bytes4(keccak256("configOthersFunc(address,address,string,uint8)"));
     //     bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,_contract,_caller,_str,_opMode));
