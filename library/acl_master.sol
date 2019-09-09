@@ -44,7 +44,7 @@ contract ACLMaster is DSMath {
 
     function removeMember(address _addr, bytes role) public {
         require(groups[role].exist);
-        require(canPerform(groups[role].superior,msg.sender));
+        require(canPerform(groups[role].superior, msg.sender));
         uint len = groups[role].members.length;
         if(0 == len) {
             return;
@@ -54,6 +54,7 @@ contract ACLMaster is DSMath {
                 if(i != len - 1) {
                     groups[role].members[i] = groups[role].members[len - 1];
                 }
+            delete groups[role].members[len - 1];
             groups[role].members.length--;
             }
         }

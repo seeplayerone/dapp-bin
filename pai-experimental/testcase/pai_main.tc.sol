@@ -93,6 +93,7 @@ contract TestCase is Template, DSTest, DSMath {
     uint96 ASSET_PIS;
     uint96 ASSET_PAI;
     string ADMIN = "ADMIN";
+    string DIRECTOR2 = "DIRECTOR2";
 
 
     function testInit() public {
@@ -186,26 +187,39 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(tempBool);//12
         tempBool = p1.callCreateNewRole(paiDAO,"CASHIER2","DIRECTOR2");
         assertTrue(tempBool);//13
-        p1.callAddMember(paiDAO,p1,"DIRECTOR2");
-        p1.callAddMember(paiDAO,p2,"DIRECTOR2");
-        p1.callAddMember(paiDAO,p3,"DIRECTOR2");
-        p1.callRemoveMember(paiDAO,p1,"DIRECTOR2");
-        assertTrue(!tempBool);//14
         tempBool = p1.callAddMember(paiDAO,p4,"CASHIER2");
         assertTrue(!tempBool);//14
-        tempBool = p2.callAddMember(paiDAO,p4,"CASHIER2");
+        tempBool = p1.callAddMember(paiDAO,p1,"DIRECTOR2");
         assertTrue(tempBool);//15
+        tempBool = p1.callAddMember(paiDAO,p2,"DIRECTOR2");
+        assertTrue(tempBool);//16
+        tempBool = p1.callAddMember(paiDAO,p3,"DIRECTOR2");
+        assertTrue(tempBool);//17
+        
+        //assertEq(string(paiDAO.getSuperior(bytes(DIRECTOR2))),ADMIN);
+        //assertTrue(paiDAO.addressExist(bytes(ADMIN),p1));
+
+        tempBool = p1.callRemoveMember(paiDAO,p1,"DIRECTOR2");
+        assertTrue(tempBool);//18
+        tempBool = p1.callAddMember(paiDAO,p4,"CASHIER2");
+        assertTrue(!tempBool);//19
+        tempBool = p2.callAddMember(paiDAO,p4,"CASHIER2");
+        assertTrue(tempBool);//20
 
         address[] list;
         list.push(p1);
         list.push(p5);
-        tempBool = p1.callResetMembers(paiDAO,list,"CASHIER2");
-        assertTrue(tempBool);//16
+        tempBool = p1.callResetMembers(paiDAO,list,"DIRECTOR2");
+        assertTrue(tempBool);//21
         tempBool = p1.callAddMember(paiDAO,p2,"CASHIER2");
-        assertTrue(tempBool);//17
-        tempBool = p2.callAddMember(paiDAO,p2,"CASHIER2");
-        assertTrue(!tempBool);//18
+        assertTrue(tempBool);//22
+        tempBool = p2.callAddMember(paiDAO,p3,"CASHIER2");
+        assertTrue(!tempBool);//23
+        tempBool = p3.callAddMember(paiDAO,p3,"CASHIER2");
+        assertTrue(!tempBool);//24
+        tempBool = p4.callAddMember(paiDAO,p3,"CASHIER2");
+        assertTrue(!tempBool);//25
         tempBool = p5.callAddMember(paiDAO,p3,"CASHIER2");
-        assertTrue(tempBool);//19
+        assertTrue(tempBool);//26
     }
 }
