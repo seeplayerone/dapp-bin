@@ -9,6 +9,7 @@
 * [asimov_getCurrentNet](#asimov_getCurrentNet)
 * [asimov_getBestBlock](#asimov_getBestBlock)
 * [asimov_getBlock](#asimov_getBlock)
+* [asimov_getBlockHeader](#asimov_getBlockHeader)
 
 ## API Methods
 
@@ -202,7 +203,7 @@ Returns information of block.
 
 #### Returns
 
-* Block and transaction details.
+* block and transaction details
 
 
 #### Example
@@ -264,6 +265,47 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getBlock","params
         "nextblockhash": "5dcc0a3fdd4443d294cffe92b9afc99880318049b82679a96208422b45dfcaeb",
         "round": 0,
         "slot": 0
+    }
+}
+```
+---
+
+### asimov_getBlockHeader
+
+Returns information of block header.
+
+#### Parameters
+
+* block hash
+* whether to get the details of  the block header
+
+#### Returns
+
+* block header detail
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getBlockHeader","params":["4b0d3df98b4b52165f4c579f0bdf86f308e4ce3f2539fee68a4d253a2a8ea56d",true]}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "hash": "4b0d3df98b4b52165f4c579f0bdf86f308e4ce3f2539fee68a4d253a2a8ea56d",
+        "confirmations": 131,
+        "height": 1184,
+        "version": 536870912,
+        "versionHex": "20000000",
+        "merkleroot": "0000000000000000000000000000000000000000000000000000000000000000",
+        "stateroot": "e0faee16c5ff783cadc4ceb5e1e0587415e7b354351121b226d0da303671a892",
+        "time": 1568029109,
+        "previousblockhash": "35bd9793201c81da940c2fd62966a9619a01ef04be8ab4d1c588b4b6dab8a7e0",
+        "nextblockhash": "5dcc0a3fdd4443d294cffe92b9afc99880318049b82679a96208422b45dfcaeb",
+        "gaslimist": 160000000,
+        "gasused": 2583
     }
 }
 ```
