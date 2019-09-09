@@ -190,6 +190,7 @@ contract TestCase is Template, DSTest, DSMath {
         p1.callAddMember(paiDAO,p2,"DIRECTOR2");
         p1.callAddMember(paiDAO,p3,"DIRECTOR2");
         p1.callRemoveMember(paiDAO,p1,"DIRECTOR2");
+        assertTrue(!tempBool);//14
         tempBool = p1.callAddMember(paiDAO,p4,"CASHIER2");
         assertTrue(!tempBool);//14
         tempBool = p2.callAddMember(paiDAO,p4,"CASHIER2");

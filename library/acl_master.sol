@@ -54,7 +54,6 @@ contract ACLMaster is DSMath {
                 if(i != len - 1) {
                     groups[role].members[i] = groups[role].members[len - 1];
                 }
-            delete groups[role].members[len - 1];
             groups[role].members.length--;
             }
         }
