@@ -6,7 +6,7 @@ import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/registry.sol";
 
-contract PAIIssuer is Template, Asset, DSMath, ACLMaster {
+contract PAIIssuer is Template, Asset, DSMath, ACLSlave {
     ///params for organization
     string public organizationName;
     uint32 public organizationId;
