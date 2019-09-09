@@ -35,7 +35,7 @@ contract FakePerson is Template {
         bytes4 methodId = bytes4(keccak256("removeMember(address,bytes)"));
         bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,_address,bytes(role)));
         return result;
-    }
+    }  
 
     function callMint(address paidao, uint amount, address dest) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("mint(uint256,address)"));
