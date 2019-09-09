@@ -44,7 +44,7 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
         PISGlobalId = uint96(PISLocalId) << 32 | uint96(0);
     }
 
-    function mint(uint amount, address dest) public auth("ADMIN")
+    function mint(uint amount, address dest) public auth(ADMIN)
     {
         if(issuedAssets[0].existed) {
             flow.mintAsset(0, amount);

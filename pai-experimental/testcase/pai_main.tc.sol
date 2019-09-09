@@ -219,8 +219,9 @@ contract TestCase is Template, DSTest, DSMath {
         tempBool = p1.callInit(paiDAO);
         assertTrue(!tempBool);//5
 
-        ASSET_PIS = paiDAO.PISGlobalId;
-        paiDAO.callMint(100000000,p2);
+        ASSET_PIS = paiDAO.PISGlobalId();
+        tempBool = p1.callMint(paiDAO,100000000,p2);
+        assertTrue(tempBool);
         assertEq(100000000,flow.balance(p2,ASSET_PIS));
     }
 
