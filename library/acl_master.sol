@@ -59,7 +59,7 @@ contract ACLMaster is DSMath {
         }
     }
 
-    function resetMember(address[] _members, bytes role) public {
+    function resetMembers(address[] _members, bytes role) public {
         require(groups[role].exist);
         require(canPerform(groups[role].superior, msg.sender));
         groups[role].members.length = 0;
