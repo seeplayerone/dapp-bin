@@ -19,15 +19,15 @@ contract FakePerson is Template {
 
     function callInit(address paidao) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("init()"));
-        bool result = FakePaiDao(paidao).call(methodId);
+        bool result = PAIDAO(paidao).call(methodId);
         return result;
     }
 
-    // function callConfigFunc(address paidao, string _function, address _address, uint8 _opMode) public returns (bool) {
-    //     bytes4 methodId = bytes4(keccak256("configFunc(string,address,uint8)"));
-    //     bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,_function,_address,_opMode));
-    //     return result;
-    // }
+    function callAddMember(address paidao, address _address, string role) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("addMember(address,bytes)"));
+        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,_address,bytes(role)));
+        return result;
+    }
 
     // function callConfigOthersFunc(address paidao, address _contract, address _caller, string _str, uint8 _opMode) public returns (bool) {
     //     bytes4 methodId = bytes4(keccak256("configOthersFunc(address,address,string,uint8)"));
@@ -65,11 +65,11 @@ contract FakePerson is Template {
     //     return result;
     // }
 
-    // function callBurn(address paidao, uint amount, uint96 id) public returns (bool) {
-    //     bytes4 methodId = bytes4(keccak256("burn()"));
-    //     bool result = FakePaiDao(paidao).call.value(amount,id)(abi.encodeWithSelector(methodId));
-    //     return result;
-    // }
+    function callBurn(address paidao, uint amount, uint96 id) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("burn()"));
+        bool result = PAIDAO(paidao).call.value(amount,id)(abi.encodeWithSelector(methodId));
+        return result;
+    }
 
     // function callEveryThingIsOk(address paidao) public returns (bool) {
     //     bytes4 methodId = bytes4(keccak256("everyThingIsOk()"));
@@ -220,10 +220,56 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(!tempBool);//5
 
         ASSET_PIS = paiDAO.PISGlobalId();
-        paiDAO.mint(100000000,p2);
+        paiDAO.mint(100000000,p2);//6
         assertEq(100000000,flow.balance(p2,ASSET_PIS));
     }
 
+    function testAssetRelated() public {
+        FakePaiDaoNoGovernance paiDAO;
+        paiDAO = new FakePaiDaoNoGovernance("PAIDAO");
+        paiDAO.init();
+        ASSET_PIS = paiDAO.PISGlobalId();
+        FakePerson p1 = new FakePerson();
+        paiDAO.mint(100000000,p1);
+        (bool exist, string memory name, string memory symbol, string memory description, uint32 assetType, uint totalSupply) =
+            paiDAO.getAssetInfo(0);
+        assertTrue(exist);//0
+        assertEq(name,"PIS");//1
+        assertEq(symbol,"PIS");//2
+        assertEq(description,"Share of PAIDAO");//3
+        assertEq(uint(assetType),0);//4
+        assertEq(totalSupply,100000000);//5
+
+        paiDAO.mint(100000000,p1);
+        (,,,,,totalSupply) = paiDAO.getAssetInfo(0);
+        assertEq(totalSupply,200000000);//6
+        bool tempBool = p1.callBurn(paiDAO,50000000,ASSET_PIS);
+        assertTrue(tempBool);//7
+        (,,,,,totalSupply) = paiDAO.getAssetInfo(0);
+        assertEq(totalSupply,150000000);//8
+    }
+
+    function testGovernance() public {
+        FakePaiDao paiDAO;
+        paiDAO = new FakePaiDao("PAIDAO");
+        ASSET_PIS = paiDAO.PISGlobalId();
+
+        FakePerson p1 = new FakePerson();
+        FakePerson p2 = new FakePerson();
+
+        paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
+        assertTrue(paiDAO.addressExist(bytes(ADMIN),p1));//0
+        bool tempBool = p1.callMint(paiDAO,100000000,p2);
+        assertTrue(tempBool);//1
+        tempBool = p2.callMint(paiDAO,100000000,p2);
+        assertTrue(!tempBool);//2
+        assertTrue(!paiDAO.addressExist(bytes(ADMIN),p2));//0
+        tempBool = p1.callAddMember(paiDAO,p2,"ADMIN");
+        assertTrue(tempBool);//3
+        assertTrue(paiDAO.addressExist(bytes(ADMIN),p2));//0
+        // tempBool = p2.callMint(paiDAO,100000000,p2);
+        // assertTrue(tempBool);//4
+    }
         // ///test mint
         // tempBool = p1.callTempMintPIS(paiDAO,100000000,p3);
         // assertTrue(tempBool);//4
