@@ -1,67 +1,61 @@
 pragma solidity 0.4.25;
 
-// import "../library/template.sol";
-// import "./3rd/math.sol";
-
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
+import "github.com/evilcc2018/dapp-bin/library/asset.sol";
+import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/registry.sol";
 
-contract PAIIssuer is Template, DSMath {
-    string private name = "PAI_ISSUER";
-    uint32 private orgnizationID;
-    uint32 private assetIndex;
-    uint32 private assetType;
-    uint256 private ASSET_PAI;
+contract PAIIssuer is Template, Asset, DSMath, ACLMaster {
+    ///params for organization
+    string public organizationName;
+    uint32 public organizationId;
+    uint32 private assetType = 0;
+    uint32 private assetIndex = 0;
+    bool registed = false;
+
+    ///params for PIS;
+    uint96 private PAIGlobalId;
+
+    ///params for burn
+    address private constant zeroAddr = 0x660000000000000000000000000000000000000000;
     
-    uint private totalSupply = 0;
-
-    bool private firstTry;
-    address private hole = 0x660000000000000000000000000000000000000000;
-
-    function() public payable {
-        require(msg.assettype == ASSET_PAI);
+    constructor(string _organizationName, address paiMainContract) public
+    {
+        organizationName = _organizationName;
+        master = ACLMaster(paiMainContract)
     }
 
-    function init(string _name) public {
-        name = _name;
-        /// TODO organization registration should be done in DAO
+    function init() public {
+        require(!registed);
         Registry registry = Registry(0x630000000000000000000000000000000000000065);
-        orgnizationID = registry.registerOrganization(name, templateName);
-        assetIndex = 1;
-        assetType = 0;
-        uint64 assetId = uint64(assetType) << 32 | uint64(orgnizationID);
-        uint96 asset = uint96(assetId) << 32 | uint96(assetIndex);
-        ASSET_PAI = asset;
-        firstTry = true;
+        organizationId = registry.registerOrganization(organizationName, templateName);
+        registed = true;
+
+        uint64 PAILocalId = (uint64(assetType) << 32 | uint64(organizationId));
+        PAIGlobalId = uint96(PAILocalId) << 32 | uint96(assetIndex);
     }
 
-    function mint(uint amount, address dest) public {
-        if(firstTry) {
-            firstTry = false;
-            flow.createAsset(assetType, assetIndex, amount);
-        } else {
+    function mint(uint amount, address dest) public auth("ISSUECALLER") {
+        //require(canPerform(bytes(ADMIN), msg.sender));
+        if(issuedAssets[assetIndex].existed) {
             flow.mintAsset(assetIndex, amount);
+            updateAsset(assetIndex, amount);
+        } else {
+            flow.createAsset(assetType, assetIndex, amount);
+            newAsset("PAI", "PAI", "PAI Stable Coin", assetType, assetIndex, amount);
         }
-        dest.transfer(amount, ASSET_PAI);
-        totalSupply = add(totalSupply, amount);
+        dest.transfer(amount, PAIGlobalId);
     }
 
     function burn() public payable {
-        require(msg.assettype == ASSET_PAI);
-        hole.transfer(msg.value, msg.assettype);
-        totalSupply = sub(totalSupply, msg.value);
+        require(msg.assettype == PAIGlobalId,
+                "Only PAI can be burned!");
+        issuedAssets[0].totalIssued = sub(issuedAssets[0].totalIssued, msg.value);
+        zeroAddr.transfer(msg.value, PAIGlobalId);
     }
 
-    function getAssetType() public view returns (uint256) {
-        return ASSET_PAI;
-    }
-
-    function getAssetInfo(uint32 index)
-        public
-        view 
-        returns (bool, string, string, string, uint32, uint)
-    {
-        return (true, "PAI", "PAI", "PAI Stable Coin", 0, totalSupply);
+    function getAssetType() public view returns (uint96) {
+        return PAIGlobalId;
     }
 }

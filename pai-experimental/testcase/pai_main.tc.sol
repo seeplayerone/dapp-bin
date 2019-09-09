@@ -243,11 +243,13 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(tempBool);//34
         tempBool = p3.callAddMember(paiDAO,p5,"CASHIER3");
         assertTrue(!tempBool);//35
+        tempBool = p2.callChangeSuperior(paiDAO,"CASHIER3","DIRECTOR4");
+        assertTrue(!tempBool);//36
         tempBool = p1.callChangeSuperior(paiDAO,"CASHIER3","DIRECTOR4");
-        assertTrue(tempBool);//36
+        assertTrue(tempBool);//37
         tempBool = p2.callAddMember(paiDAO,p5,"CASHIER3");
-        assertTrue(!tempBool);//37
+        assertTrue(!tempBool);//38
         tempBool = p3.callAddMember(paiDAO,p5,"CASHIER3");
-        assertTrue(tempBool);//38
+        assertTrue(tempBool);//39
     }
 }
