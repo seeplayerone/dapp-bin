@@ -37,14 +37,14 @@ contract ACLMaster is DSMath {
 
     function addMember(address _addr, bytes role) public {
         require(groups[role].exist);
-        require(canPerform(msg.sender, groups[role].superior));
+        require(canPerform(groups[role].superior, msg.sender));
         require(!addressExist(role,_addr));
         groups[role].members.push(_addr);
     }
 
     function removeMember(address _addr, bytes role) public {
         require(groups[role].exist);
-        require(canPerform(msg.sender, groups[role].superior));
+        require(canPerform(groups[role].superior,msg.sender));
         uint len = groups[role].members.length;
         if(0 == len) {
             return;
@@ -61,7 +61,7 @@ contract ACLMaster is DSMath {
 
     function resetMember(address[] _members, bytes role) public {
         require(groups[role].exist);
-        require(canPerform(msg.sender, groups[role].superior));
+        require(canPerform(groups[role].superior, msg.sender));
         groups[role].members.length = 0;
         if (_members.length > 0) {
             for (uint i = 0; i < _members.length; i++) {
@@ -72,7 +72,7 @@ contract ACLMaster is DSMath {
 
     function changeSuperior(bytes role, bytes newSuperior) public {
         require(groups[role].exist);
-        require(canPerform(msg.sender, groups[role].superior));
+        require(canPerform(groups[role].superior, msg.sender));
         require(groups[newSuperior].exist);
         groups[role].superior = newSuperior;
     }
@@ -94,16 +94,16 @@ contract ACLMaster is DSMath {
         return groups[role].members;
     }
 
-    function canPerform(address _addr, string role) public view returns (bool) {
+    function canPerform(string role, address _addr) public view returns (bool) {
         return addressExist(bytes(role), _addr);
     }
 
-    function canPerform(address _addr, bytes role) public view returns (bool) {
+    function canPerform(bytes role, address _addr) public view returns (bool) {
         return addressExist(role, _addr);
     }
 
     modifier auth(string role) {
-        require(canPerform(msg.sender,role));
+        require(canPerform(role, msg.sender));
         _;
     }
 }
