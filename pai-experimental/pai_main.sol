@@ -19,6 +19,8 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
     ///params for organization
     string public organizationName;
     uint32 public organizationId;
+    uint32 private assetType = 0;
+    uint32 private assetIndex = 0;
     bool registed = false;
     //address public tempAdmin;
 
@@ -40,19 +42,19 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
         organizationId = registry.registerOrganization(organizationName, templateName);
         registed = true;
 
-        uint64 PISLocalId = (uint64(1) << 32 | uint64(organizationId));
-        PISGlobalId = uint96(PISLocalId) << 32 | uint96(0);
+        uint64 PISLocalId = (uint64(assetType) << 32 | uint64(organizationId));
+        PISGlobalId = uint96(PISLocalId) << 32 | uint96(assetIndex);
     }
 
     function mint(uint amount, address dest) public
     // auth(ADMIN)
     {
-        if(issuedAssets[0].existed) {
-            flow.mintAsset(0, amount);
-            updateAsset(0, amount);
+        if(issuedAssets[assetIndex].existed) {
+            flow.mintAsset(assetIndex, amount);
+            updateAsset(assetIndex, amount);
         } else {
-            flow.createAsset(0, 0, amount);
-            newAsset("PIS", "PIS", "Share of PAIDAO", 0, 0, amount);
+            flow.createAsset(assetType, assetIndex, amount);
+            newAsset("PIS", "PIS", "Share of PAIDAO", assetType, assetIndex, amount);
         }
         dest.transfer(amount, PISGlobalId);
     }
