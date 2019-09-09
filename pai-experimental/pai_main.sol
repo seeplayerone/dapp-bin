@@ -1,9 +1,5 @@
 pragma solidity 0.4.25;
 
-// import "./3rd/math.sol";
-// import "../library/organization.sol";
-// import "./string_utils.sol";
-
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/library/acl_master.sol";
 import "github.com/evilcc2018/dapp-bin/library/asset.sol";
@@ -14,15 +10,12 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/registry.sol";
 
 
 contract PAIDAO is Template, Asset, DSMath, ACLMaster {
-    using StringLib for string;
-    
     ///params for organization
     string public organizationName;
     uint32 public organizationId;
     uint32 private assetType = 0;
     uint32 private assetIndex = 0;
     bool registed = false;
-    //address public tempAdmin;
 
     ///params for PIS;
     uint96 public PISGlobalId;
@@ -45,7 +38,7 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
         PISGlobalId = uint96(PISLocalId) << 32 | uint96(assetIndex);
     }
 
-    function mint(uint amount, address dest) public auth("ADMIN") {
+    function mint(uint amount, address dest) public auth(ADMIN) {
         if(issuedAssets[assetIndex].existed) {
             flow.mintAsset(assetIndex, amount);
             updateAsset(assetIndex, amount);

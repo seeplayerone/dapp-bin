@@ -230,7 +230,7 @@ contract TestCase is Template, DSTest, DSMath {
         paiDAO.init();
         ASSET_PIS = paiDAO.PISGlobalId();
         FakePerson p1 = new FakePerson();
-        paiDAO.mint(100000000,p1);
+        p1.callMint(paiDAO,100000000,p1);
         (bool exist, string memory name, string memory symbol, string memory description, uint32 assetType, uint totalSupply) =
             paiDAO.getAssetInfo(0);
         assertTrue(exist);//0
@@ -259,14 +259,14 @@ contract TestCase is Template, DSTest, DSMath {
 
         paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
         assertTrue(paiDAO.addressExist(bytes(ADMIN),p1));//0
-        bool tempBool = p1.callMint(paiDAO,100000000,p2);
+        bool tempBool = p1.callMint(paiDAO,100000000,p1);
         assertTrue(tempBool);//1
         tempBool = p2.callMint(paiDAO,100000000,p2);
         assertTrue(!tempBool);//2
-        assertTrue(!paiDAO.addressExist(bytes(ADMIN),p2));//0
+        assertTrue(!paiDAO.addressExist(bytes(ADMIN),p2));//3
         tempBool = p1.callAddMember(paiDAO,p2,"ADMIN");
-        assertTrue(tempBool);//3
-        assertTrue(paiDAO.addressExist(bytes(ADMIN),p2));//0
+        assertTrue(tempBool);//4
+        assertTrue(paiDAO.addressExist(bytes(ADMIN),p2));//5
         // tempBool = p2.callMint(paiDAO,100000000,p2);
         // assertTrue(tempBool);//4
     }
