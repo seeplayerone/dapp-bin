@@ -62,8 +62,6 @@ contract TestCase is Template, DSTest {
         FakePaiDao paiDAO;
         FakePerson p1 = new FakePerson();
         FakePerson p2 = new FakePerson();
-        // FakePerson p4 = new FakePerson();
-        // FakePerson p5 = new FakePerson();
 
         paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
         paiDAO.init();
@@ -73,11 +71,16 @@ contract TestCase is Template, DSTest {
         ASSET_PAI = issuer.PAIGlobalId();
 
         bool tempBool = p1.callMint(issuer,100000000,p1);
-        assertTrue(tempBool);
+        assertTrue(!tempBool);//0
         tempBool = p2.callMint(issuer,100000000,p1);
-        assertTrue(!tempBool);
-
-
-
+        assertTrue(!tempBool);//1
+        tempBool = p1.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN");
+        assertTrue(tempBool);//2
+        tempBool = p1.callAddMember(paiDAO,p2,"PAIMINTER");
+        assertTrue(tempBool);//3
+        tempBool = p1.callMint(issuer,100000000,p1);
+        assertTrue(!tempBool);//4
+        tempBool = p2.callMint(issuer,100000000,p1);
+        assertTrue(tempBool);//5
     }
 }

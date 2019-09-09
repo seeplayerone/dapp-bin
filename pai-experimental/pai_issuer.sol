@@ -35,8 +35,7 @@ contract PAIIssuer is Template, Asset, DSMath, ACLSlave {
         registed = true;
     }
 
-    function mint(uint amount, address dest) public auth("ISSUECALLER") {
-        //require(canPerform(bytes(ADMIN), msg.sender));
+    function mint(uint amount, address dest) public auth("PAIMINTER") {
         if(issuedAssets[assetIndex].existed) {
             flow.mintAsset(assetIndex, amount);
             updateAsset(assetIndex, amount);
