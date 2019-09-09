@@ -270,6 +270,7 @@ contract TestCase is Template, DSTest, DSMath {
         tempBool = p1.callAddMember(paiDAO,p2,"ADMIN");
         assertTrue(tempBool);//4
         assertTrue(paiDAO.addressExist(bytes(ADMIN),p2));//5
+        assertTrue(paiDAO.canPerform(bytes(ADMIN),p1));//6
         // tempBool = p2.callMint(paiDAO,100000000,p2);
         // assertTrue(tempBool);//4
     }
