@@ -224,7 +224,7 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getBlock","params
         "merkleroot": "0000000000000000000000000000000000000000000000000000000000000000",
         "rawtx": [
             {
-                "hex": "......",
+                "hex": "0100000001000000000000......",
                 "txid": "b3864f91920528c8594513851baf99f043b3e2855e0ed876c8f13d6aea6bc6f4",
                 "hash": "b3864f91920528c8594513851baf99f043b3e2855e0ed876c8f13d6aea6bc6f4",
                 "size": 123,
