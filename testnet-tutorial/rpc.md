@@ -6,6 +6,8 @@
 * [asimov_getBlockHash](#asimov_getBlockHash)
 * [asimov_upTime](#asimov_upTime)
 * [asimov_validateAddress](#asimov_validateAddress)
+* [asimov_getCurrentNet](#asimov_getCurrentNet)
+* [asimov_getBestBlock](#asimov_getBestBlock)
 
 ## API Methods
 
@@ -125,6 +127,64 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_validateAddress",
     "jsonrpc": "2.0",
     "id": 1,
     "result": true
+}
+```
+---
+
+### asimov_getCurrentNet
+
+Returns current network identity.
+
+#### Parameters
+
+none
+
+#### Returns
+
+* `result`: network identity
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getCurrentNet"}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": 118034699
+}
+```
+---
+
+### asimov_getBestBlock
+
+Returns the hightest block of chain.
+
+#### Parameters
+
+none
+
+#### Returns
+
+* `hash`: block hash
+* `height`: block height 
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getBestBlock"}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "hash": "4b0d3df98b4b52165f4c579f0bdf86f308e4ce3f2539fee68a4d253a2a8ea56d",
+        "height": 1184
+    }
 }
 ```
 ---
