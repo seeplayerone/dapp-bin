@@ -1,7 +1,6 @@
 pragma solidity 0.4.25;
 
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
-
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
@@ -245,9 +244,5 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(!tempBool);//34
         tempBool = p3.callAddMember(paiDAO,p5,"CASHIER3");
         assertTrue(tempBool);//35
-        
-
-
-
     }
 }
