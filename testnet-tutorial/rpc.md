@@ -3,6 +3,8 @@
 ## API Method Summary
 
 * [asimov_getBlockChainInfo](#asimov_getBlockChainInfo)
+* [asimov_getBlockHash](#asimov_getBlockHash)
+* [asimov_upTime](#asimov_upTime)
 
 ## API Methods
 
@@ -21,8 +23,8 @@ none
 - `chain`: current network type
 - `blocks`: number of blocks
 - `bestblockhash`: current block hash
-- `mediantime`：
-- `pruned`：
+- `mediantime`：the median time of the past 11 block timestamp
+- `pruned`：whether reclaiming disc space
 
 #### Example
 ```json
@@ -72,3 +74,29 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getBlockHash","pa
 ```
 ---
 
+### asimov_upTime
+
+Returns running time of node.
+
+#### Parameters
+
+none
+
+#### Returns
+
+`result`: running seconds 
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_upTime"}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": 68
+}
+```
+---
