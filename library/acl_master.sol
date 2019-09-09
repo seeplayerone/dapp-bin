@@ -98,6 +98,10 @@ contract ACLMaster is DSMath {
         return addressExist(bytes(role), _addr);
     }
 
+    function canPerform(address _addr, bytes role) public view returns (bool) {
+        return addressExist(role, _addr);
+    }
+
     modifier auth(string role) {
         require(canPerform(msg.sender,role));
         _;
