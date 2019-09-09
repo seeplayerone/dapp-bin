@@ -61,6 +61,38 @@ contract FakePerson is Template {
         bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId, bytes(role),bytes(newSuperior)));
         return result;
     }
+}
 
-    
+contract FakePAIIssuer is PAIIssuer {
+    constructor(string _organizationName, address paiMainContract)
+        PAIIssuer(_organizationName,paiMainContract)
+    public {
+        templateName = "Fake-Template-Name-For-Test-pai_issuer";
+    }
+}
+
+contract FakePaiDao is PAIDAO {
+    constructor(string _organizationName)
+        PAIDAO(_organizationName)
+        public
+    {
+        templateName = "Fake-Template-Name-For-Test-pai_main";
+    }
+}
+
+contract FakePaiDaoNoGovernance is PAIDAO {
+    constructor(string _organizationName)
+        PAIDAO(_organizationName)
+        public
+    {
+        templateName = "Fake-Template-Name-For-Test-pai_main2";
+    }
+
+    function canPerform(string role, address _addr) public view returns (bool) {
+        return true;
+    }
+
+    function canPerform(bytes role, address _addr) public view returns (bool) {
+        return true;
+    }
 }

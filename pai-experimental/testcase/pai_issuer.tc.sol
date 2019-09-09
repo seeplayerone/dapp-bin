@@ -4,41 +4,8 @@ import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/fakeperson.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
 
-contract FakePAIIssuer is PAIIssuer {
-    constructor(string _organizationName, address paiMainContract)
-        PAIIssuer(_organizationName,paiMainContract)
-    public {
-        templateName = "Fake-Template-Name-For-Test-pai_issuer";
-    }
-}
-
-contract FakePaiDao is PAIDAO {
-    constructor(string _organizationName)
-        PAIDAO(_organizationName)
-        public
-    {
-        templateName = "Fake-Template-Name-For-Test-pai_main";
-    }
-}
-
-contract FakePaiDaoNoGovernance is PAIDAO {
-    constructor(string _organizationName)
-        PAIDAO(_organizationName)
-        public
-    {
-        templateName = "Fake-Template-Name-For-Test-pai_main2";
-    }
-
-    function canPerform(string role, address _addr) public view returns (bool) {
-        return true;
-    }
-
-    function canPerform(bytes role, address _addr) public view returns (bool) {
-        return true;
-    }
-}
 
 contract TestCase is Template, DSTest {
     uint96 ASSET_PIS;
