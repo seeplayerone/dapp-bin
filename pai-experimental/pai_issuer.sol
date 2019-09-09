@@ -23,17 +23,16 @@ contract PAIIssuer is Template, Asset, DSMath, ACLMaster {
     constructor(string _organizationName, address paiMainContract) public
     {
         organizationName = _organizationName;
-        master = ACLMaster(paiMainContract)
+        master = ACLMaster(paiMainContract);
     }
 
     function init() public {
         require(!registed);
         Registry registry = Registry(0x630000000000000000000000000000000000000065);
         organizationId = registry.registerOrganization(organizationName, templateName);
-        registed = true;
-
         uint64 PAILocalId = (uint64(assetType) << 32 | uint64(organizationId));
         PAIGlobalId = uint96(PAILocalId) << 32 | uint96(assetIndex);
+        registed = true;
     }
 
     function mint(uint amount, address dest) public auth("ISSUECALLER") {

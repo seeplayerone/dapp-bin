@@ -30,10 +30,9 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
         require(!registed);
         Registry registry = Registry(0x630000000000000000000000000000000000000065);
         organizationId = registry.registerOrganization(organizationName, templateName);
-        registed = true;
-
         uint64 PISLocalId = (uint64(assetType) << 32 | uint64(organizationId));
         PISGlobalId = uint96(PISLocalId) << 32 | uint96(assetIndex);
+        registed = true;
     }
 
     function mint(uint amount, address dest) public auth("ADMIN") {
