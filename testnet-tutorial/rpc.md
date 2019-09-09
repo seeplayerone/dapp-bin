@@ -190,7 +190,7 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getBestBlock"}' -
 ```
 ---
 
-### [flow_getBlock](#flow_getBlock)
+### asimov_getBlock
 
 Returns information of block.
 
