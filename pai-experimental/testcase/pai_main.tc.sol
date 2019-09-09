@@ -72,7 +72,7 @@ contract FakePaiDao is PAIDAO {
         PAIDAO(_organizationName)
         public
     {
-        templateName = "Fake-Template-Name-For-Test-Pai_main";
+        templateName = "Fake-Template-Name-For-Test-pai_main";
     }
 }
 
@@ -81,7 +81,7 @@ contract FakePaiDaoNoGovernance is PAIDAO {
         PAIDAO(_organizationName)
         public
     {
-        templateName = "Fake-Template-Name-For-Test-Pai_main2";
+        templateName = "Fake-Template-Name-For-Test-pai_main2";
     }
 
     function canPerform(string role, address _addr) public view returns (bool) {
