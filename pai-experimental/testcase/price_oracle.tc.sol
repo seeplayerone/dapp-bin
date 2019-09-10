@@ -11,10 +11,10 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol
 
 
 contract PriceOracleTest is Template, DSTest,DSMath {
-    PriceOracle private oracle;
+    TimefliesOracle private oracle;
 
     function testInitAndGovernance() public {
-        TimefliesOracle paiDAO;
+        FakePaiDao paiDAO;
         FakePerson p1 = new FakePerson();
         FakePerson p2 = new FakePerson();
 
