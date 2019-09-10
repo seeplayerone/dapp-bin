@@ -11,7 +11,6 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     /// asset prices against PAI
     /// price should be set in RAY
     bool private settlement;
-    uint public testState = 0;
 
     uint public lastUpdateBlock; // in blockheights
     uint public lastUpdatePrice; // in RAY
@@ -46,8 +45,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         require(newPrice > 0);
         updateSinglePriceInternal(newPrice);
         if(sub(height(),lastUpdateBlock) >= updateInterval) {
-            //updateOverallPrice();
-            testState = testState + 1;
+            updateOverallPrice();
         }
     }
 
