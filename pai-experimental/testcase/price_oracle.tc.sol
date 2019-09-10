@@ -34,7 +34,36 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         assertTrue(tempBool); //4
     }
 
-    // function testUpdateOverallPrice() public {
+    function testUpdateOverallPrice() public {
+        FakePaiDao paiDAO;
+        FakePerson p1 = new FakePerson();
+        FakePerson p2 = new FakePerson();
+        FakePerson p3 = new FakePerson();
+        FakePerson p4 = new FakePerson();
 
-    // }
+        paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
+        paiDAO.init();
+        
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        p1.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",7);
+        tempBool = p1.callAddMember(paiDAO,p1,"BTCOracle");
+        tempBool = p1.callAddMember(paiDAO,p2,"BTCOracle");
+        tempBool = p1.callAddMember(paiDAO,p3,"BTCOracle");
+        tempBool = p1.callAddMember(paiDAO,p4,"BTCOracle");
+
+        bool tempBool = p1.callUpdatePrice(oracle, RAY * 99/100);
+        assertTrue(tempBool); //0
+        tempBool = p2.callUpdatePrice(oracle, RAY * 99/100);
+        assertTrue(tempBool); //1
+        tempBool = p3.callUpdatePrice(oracle, RAY * 99/100);
+        assertTrue(tempBool); //2
+        tempBool = p4.callUpdatePrice(oracle, RAY * 99/100);
+        assertTrue(tempBool); //3
+
+        oracle.fly(50);
+        tempBool = p1.callUpdatePrice(oracle, RAY * 99/100);
+        assertTrue(tempBool); //4
+        assertEq(oracle.getPrice(), RAY * 99/100);//5
+
+    }
 }

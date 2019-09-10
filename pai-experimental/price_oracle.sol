@@ -69,18 +69,19 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         }
         lastUpdateBlock = height();
         lastUpdateIndex = lastUpdateIndex + 1; //overflow is expected;
-        uint priceCalculated = calculatePrice();
-        uint priceCompared1 = rmul(comparedPrice(),add(RAY,sensitivityRate));
-        uint priceCompared2 = rmul(comparedPrice(),sub(RAY,sensitivityRate));
-        if (priceCalculated > priceCompared1) {
-            lastUpdatePrice = priceCompared1;
-        } else if (priceCalculated < priceCompared2) {
-            lastUpdatePrice = priceCompared2;
-        } else {
-            lastUpdatePrice = priceCalculated;
-        }
-        priceHistory[lastUpdateIndex] = lastUpdatePrice;
-        pirces.length = 0;
+        lastUpdatePrice = calculatePrice();
+        //uint priceCalculated = calculatePrice();
+        // uint priceCompared1 = rmul(comparedPrice(),add(RAY,sensitivityRate));
+        // uint priceCompared2 = rmul(comparedPrice(),sub(RAY,sensitivityRate));
+        // if (priceCalculated > priceCompared1) {
+        //     lastUpdatePrice = priceCompared1;
+        // } else if (priceCalculated < priceCompared2) {
+        //     lastUpdatePrice = priceCompared2;
+        // } else {
+        //     lastUpdatePrice = priceCalculated;
+        // }
+        // priceHistory[lastUpdateIndex] = lastUpdatePrice;
+        // pirces.length = 0;
     }
 
     function comparedPrice() internal view returns(uint) {
@@ -93,20 +94,21 @@ contract PriceOracle is Template, ACLSlave, DSMath {
 
     function calculatePrice() internal view returns (uint) {
         require(pirces.length > 2);
-        uint sum;
-        uint maxPrice;
-        uint minPrice;
-        uint len = pirces.length;
-        for(uint i; i < len; i++) {
-            if(pirces[i].price > maxPrice) {
-                maxPrice = pirces[i].price;
-            }
-            if(pirces[i].price < minPrice || 0 == minPrice) {
-                minPrice = pirces[i].price;
-            }
-            sum = add(sum,pirces[i].price);
-        }
-        return sub(sum,add(maxPrice,minPrice)) / (len - 2);
+        return pirces[0].price;
+        // uint sum;
+        // uint maxPrice;
+        // uint minPrice;
+        // uint len = pirces.length;
+        // for(uint i; i < len; i++) {
+        //     if(pirces[i].price > maxPrice) {
+        //         maxPrice = pirces[i].price;
+        //     }
+        //     if(pirces[i].price < minPrice || 0 == minPrice) {
+        //         minPrice = pirces[i].price;
+        //     }
+        //     sum = add(sum,pirces[i].price);
+        // }
+        // return sub(sum,add(maxPrice,minPrice)) / (len - 2);
     }
 
     function getPrice() public view returns (uint256) {
