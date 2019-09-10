@@ -4,7 +4,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 
 contract ACLMaster is DSMath {
     mapping(uint => bytes) roles;
-    mapping(bytes => PermissionGroup) public groups;
+    mapping(bytes => PermissionGroup) groups;
     struct PermissionGroup {
         bool exist;
         uint32 memberLimit; //when =0 represents no limit
@@ -99,6 +99,10 @@ contract ACLMaster is DSMath {
 
     function getMembers(bytes role) public view returns (address[]) {
         return groups[role].members;
+    }
+
+    function getMemberLimit(bytes role) public view returns (uint32) {
+        return groups[role].memberLimit;
     }
 
     function canPerform(string role, address _addr) public view returns (bool) {

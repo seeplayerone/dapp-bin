@@ -190,7 +190,7 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(!tempBool);//48
         tempBool = p1.callChangeMemberLimit(paiDAO,"TESTLIMITATION",4);
         assertTrue(tempBool);//49
-        (,uint32 limit,,) = paiDAO.groups(bytes(TESTLIMITATION));
+        uint32 limit = paiDAO.getMemberLimit(bytes(TESTLIMITATION));
         assertEq(uint(limit),0);
         tempBool = p1.callResetMembers(paiDAO,list2,"TESTLIMITATION");
         assertTrue(tempBool);//50
