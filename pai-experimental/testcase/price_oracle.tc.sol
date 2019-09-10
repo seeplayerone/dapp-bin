@@ -94,12 +94,12 @@ contract PriceOracleTest is Template, DSTest,DSMath {
             admin.callAddMember(paiDAO,p[i],"BTCOracle");
         }
 
-        for(uint j = 0; j < 10; j++) {
+        for(uint j = 0; j < 9; j++) {
             for(i = 0; i < 5; i++) {
                 p[i].callUpdatePrice(oracle, RAY * (101 + j)/100);
             }
             oracle.fly(30);
-            p[1].callUpdatePrice(oracle, RAY );
+            p[1].callUpdatePrice(oracle, RAY);
             assertEq(oracle.getPrice(), RAY * (101 + j)/100);
         }
 
@@ -109,7 +109,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
             }
             oracle.fly(30);
             p[1].callUpdatePrice(oracle, RAY);
-            assertEq(oracle.getPrice(), RAY * (101 + j) * 105/10000);
+            assertEq(oracle.getPrice(), RAY * (100 + j) * 105/10000);
         }
     }
 }

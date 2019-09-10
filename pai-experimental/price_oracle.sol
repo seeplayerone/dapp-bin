@@ -68,6 +68,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
             return;
         }
         lastUpdateBlock = height();
+        lastUpdateIndex = lastUpdateIndex + 1; //overflow is expected;
         uint priceCalculated = calculatePrice();
         uint priceCompared1 = rmul(comparedPrice(),add(RAY,sensitivityRate));
         uint priceCompared2 = rmul(comparedPrice(),sub(RAY,sensitivityRate));
@@ -78,7 +79,6 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         } else {
             lastUpdatePrice = priceCalculated;
         }
-        lastUpdateIndex = lastUpdateIndex + 1; //overflow is expected;
         priceHistory[lastUpdateIndex] = lastUpdatePrice;
         pirces.length = 0;
     }
