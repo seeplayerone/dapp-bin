@@ -24,6 +24,10 @@
 * [asimov_getContractTemplate](#asimov_getContractTemplate)
 * [asimov_callReadOnlyFunction](#asimov_callReadOnlyFunction)
 * [asimov_getRawTransaction](#asimov_getRawTransaction)
+* [asimov_getTransactionReceipt](#asimov_getTransactionReceipt)
+* [asimov_sendRawTransaction](#asimov_sendRawTransaction)
+* [asimov_signRawTransaction](#asimov_signRawTransaction)
+* [asimov_searchRawTransactions](#asimov_searchRawTransactions)
 
 ## API Methods
 
@@ -804,7 +808,7 @@ Returns template info of contract.
 #### Example
 ```json
 # Request
-curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"flow_getContractTemplate","params":["0x638d214fce47190f4b49cb84947a6f9a44ac482ff4"]}}' -H "Content-type: application/json" http://localhost:8545/
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getContractTemplate","params":["0x638d214fce47190f4b49cb84947a6f9a44ac482ff4"]}}' -H "Content-type: application/json" http://localhost:8545/
 
 # Response
 {
@@ -838,7 +842,7 @@ Call contract's pure or view function.
 #### Example
 ```json
 # Request
-curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"flow_callReadOnlyFunction","params":["0x666e55294d0ee2b7306b9a765b576df9c8ed73a877","0x638d214fce47190f4b49cb84947a6f9a44ac482ff4","2fb97c1d","getTemplateInfo","[{\"constant\": true,\"inputs\": [],\"name\": \"getTemplateInfo\",\"outputs\": [{\"name\": \"\",\"type\": \"uint16\"},{\"name\": \"\",\"type\": \"string\"}],\"payable\": false,\"stateMutability\": \"view\",\"type\": \"function\"},{\"constant\": true,\"inputs\": [],\"name\": \"getInfo\",\"outputs\": [{\"name\": \"\",\"type\": \"string\"},{\"name\": \"\",\"type\": \"uint256\"}],\"payable\": false,\"stateMutability\": \"view\",\"type\": \"function\"},{\"constant\": false,\"inputs\": [{\"name\": \"_fName\",\"type\": \"string\"},{\"name\": \"_age\",\"type\": \"uint256\"}],\"name\": \"setInfo\",\"outputs\": [],\"payable\": false,\"stateMutability\": \"nonpayable\",\"type\": \"function\"},{\"constant\": false,\"inputs\": [{\"name\": \"_category\",\"type\": \"uint16\"},{\"name\": \"_templateName\",\"type\": \"string\"}],\"name\": \"initTemplate\",\"outputs\": [],\"payable\": false,\"stateMutability\": \"nonpayable\",\"type\": \"function\"},{\"anonymous\": false,\"inputs\": [{\"indexed\": false,\"name\": \"name\",\"type\": \"string\"},{\"indexed\": false,\"name\": \"age\",\"type\": \"uint256\"}],\"name\": \"Instructor\",\"type\": \"event\"}]"]}}' -H "Content-type: application/json" http://localhost:8545/
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_callReadOnlyFunction","params":["0x666e55294d0ee2b7306b9a765b576df9c8ed73a877","0x638d214fce47190f4b49cb84947a6f9a44ac482ff4","2fb97c1d","getTemplateInfo","[{\"constant\": true,\"inputs\": [],\"name\": \"getTemplateInfo\",\"outputs\": [{\"name\": \"\",\"type\": \"uint16\"},{\"name\": \"\",\"type\": \"string\"}],\"payable\": false,\"stateMutability\": \"view\",\"type\": \"function\"},{\"constant\": true,\"inputs\": [],\"name\": \"getInfo\",\"outputs\": [{\"name\": \"\",\"type\": \"string\"},{\"name\": \"\",\"type\": \"uint256\"}],\"payable\": false,\"stateMutability\": \"view\",\"type\": \"function\"},{\"constant\": false,\"inputs\": [{\"name\": \"_fName\",\"type\": \"string\"},{\"name\": \"_age\",\"type\": \"uint256\"}],\"name\": \"setInfo\",\"outputs\": [],\"payable\": false,\"stateMutability\": \"nonpayable\",\"type\": \"function\"},{\"constant\": false,\"inputs\": [{\"name\": \"_category\",\"type\": \"uint16\"},{\"name\": \"_templateName\",\"type\": \"string\"}],\"name\": \"initTemplate\",\"outputs\": [],\"payable\": false,\"stateMutability\": \"nonpayable\",\"type\": \"function\"},{\"anonymous\": false,\"inputs\": [{\"indexed\": false,\"name\": \"name\",\"type\": \"string\"},{\"indexed\": false,\"name\": \"age\",\"type\": \"uint256\"}],\"name\": \"Instructor\",\"type\": \"event\"}]"]}}' -H "Content-type: application/json" http://localhost:8545/
 
 # Response
 {
@@ -913,6 +917,174 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getRawTransaction
         "gaslimit": 0,
         "gasused": 0
     }
+}
+```
+---
+
+### asimov_getTransactionReceipt
+
+Returns receipt of given transaction hash.
+
+#### Parameters
+
+* transaction hash
+
+#### Returns
+
+* information of receipt
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getTransactionReceipt","params":["22afe58927c8a7d8a25f10297db4a9a936a2beb68bb9a65a1667c2bb918b623a"]}}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "root": "0xe0faee16c5ff783cadc4ceb5e1e0587415e7b354351121b226d0da303671a892",
+        "status": "0x0",
+        "cumulativeGasUsed": "0x0",
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "logs": [],
+        "transactionHash": "22afe58927c8a7d8a25f10297db4a9a936a2beb68bb9a65a1667c2bb918b623a",
+        "contractAddress": "0x000000000000000000000000000000000000000000",
+        "gasUsed": "0x0"
+    }
+}
+```
+---
+
+### asimov_sendRawTransaction
+
+Sent raw transaction to block chain.
+
+#### Parameters
+
+* transaction hex
+
+#### Returns
+
+* transaction hash
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_sendRawTransaction","params":["0100000001b607d5f75ed6015f4355958b32c62d54da008628c1ba9dc6b0996241d7b37c850000000000ffffffff010084d717000000001a76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac0c000000000000000000000000000000000000000000"]}}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "error": {
+        "code": -32000,
+        "message": "-22: TX rejected: failed to validate input 5f6143bcab099d57cb7ba68bf89e3e7d3202592df47b4cd309cafabf20a6c830:0 which references output b607d5f75ed6015f4355958b32c62d54da008628c1ba9dc6b0996241d7b37c85:0 - index 0 is invalid for stack size 0 (input script bytes , prev output script bytes 76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac)"
+    }
+}
+```
+---
+
+### flow_signRawTransaction
+
+Sign raw transaction.
+
+#### Parameters
+
+* raw transaction
+* transaction inputs
+* sign type: "ALL"、"NONE"、"SINGLE"、"ALL|ANYONECANPAY"、"NONE|ANYONECANPAY"、"SINGLE|ANYONECANPAY"
+
+#### Returns
+
+* sign result
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_signRawTransaction","params":["0100000001b607d5f75ed6015f4355958b32c62d54da008628c1ba9dc6b0996241d7b37c850000000000ffffffff010084d717000000001a76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac0c000000000000000000000000000000000000000000",[{"txid":"b607d5f75ed6015f4355958b32c62d54da008628c1ba9dc6b0996241d7b37c85","vout":0,"address":"0x666e55294d0ee2b7306b9a765b576df9c8ed73a877","account":"","scriptPubKey":"21028ff24dc9bf0a9020a191f734815ace4bcce694c280b5d380883138577737ebb1ac","amount":5,"confirmations":0,"spendable":false,"assets":"000000000000000000000000","checked":true,"privateKey":"0xe7f95cb9426ffe0061cea3319b96a133d724056f9d0c6b75e62ff813fea3c9b3"}],"ALL"]}}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "hex": "0100000001b607d5f75ed6015f4355958b32c62d54da008628c1ba9dc6b0996241d7b37c8500000000484730440220711c4b5408c700a033e28f21e14b814851129f489524822bbd183e6413d9b81b02201e09cda45557f33fada8553694937d34505157bcbce78c9aed9a2e66c801fa8101ffffffff010084d717000000001a76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac0c000000000000000000000000000000000000000000",
+        "complete": true
+    }
+}
+```
+### flow_searchRawTransactions
+
+Returns raw transactions.
+
+#### Parameters
+
+- transaction associated address
+- get detail or not
+- transaction offset
+- number of transactions
+- get last output or not
+- reverse or not
+- addresses not included
+
+#### Returns
+
+* information of raw transaction
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_searchRawTransactions","params":["0x666e55294d0ee2b7306b9a765b576df9c8ed73a877",true,0,1,false,false,[]]}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": [
+        {
+            "hex": "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff1151000e2f503253482f6173696d6f76642fffffffff0100e87648170000001a76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac0c000000000000000000000000000000000000000000",
+            "txid": "4930275d7d82676d7d2855d300a0e7b990c0f8327d9dae958ac56cabfada6d18",
+            "hash": "",
+            "size": "",
+            "vsize": "",
+            "version": 1,
+            "locktime": 0,
+            "vin": [
+                {
+                    "coinbase": "51000e2f503253482f6173696d6f76642f",
+                    "sequence": 4294967295
+                }
+            ],
+            "vout": [
+                {
+                    "value": 1000,
+                    "n": 0,
+                    "scriptPubKey": {
+                        "asm": "OP_DUP OP_HASH160 666e55294d0ee2b7306b9a765b576df9c8ed73a877 OP_IFLAG_EQUALVERIFY OP_CHECKSIG",
+                        "hex": "76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac",
+                        "reqSigs": 1,
+                        "type": "pubkeyhash",
+                        "addresses": [
+                            "0x666e55294d0ee2b7306b9a765b576df9c8ed73a877"
+                        ]
+                    },
+                    "data": "",
+                    "asset": "000000000000000000000000"
+                }
+            ],
+            "blockhash": "d999b02caa6dd0dd7cea55cd9a1d7bd4bfcbbfcd431fea5d8fb8304b42ec9cc2",
+            "confirmations": 5461,
+            "time": 1568011152,
+            "blocktime": 1568011152,
+            "gaslimit": 470778607,
+            "gasused": 2541
+        }
+    ]
 }
 ```
 ---
