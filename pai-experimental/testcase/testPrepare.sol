@@ -129,7 +129,7 @@ contract TestTimeflies {
     }
 
     function height() public view returns (uint256) {
-        return block.number;
+        return testHeight;
     }
 
     function fly(uint age) public {
