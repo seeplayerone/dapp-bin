@@ -58,8 +58,10 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         //         return;
         //     }
         // }
-        pirces[len].updater = msg.sender;
-        pirces[len].price = newPrice;
+        singlePirce memory temp;
+        temp.updater = msg.sender;
+        temp.price = newPrice;
+        pirces.push(temp);
     }
 
     function updateOverallPrice() internal {
