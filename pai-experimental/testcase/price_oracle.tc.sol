@@ -31,9 +31,10 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         assertTrue(tempBool); //3
         tempBool = p2.callUpdatePrice(oracle,2*RAY);
         assertTrue(tempBool); //4
+        assertEq(oracle.testState(),1);
     }
 
     function testUpdateOverallPrice() public {
-        
+
     }
 }
