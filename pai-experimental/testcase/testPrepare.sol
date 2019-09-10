@@ -105,7 +105,7 @@ contract FakePaiDaoNoGovernance is PAIDAO {
     }
 }
 
-contract TestTimeflies is DSNote {
+contract TestTimeflies {
     uint originalTime;
     uint originalHeight;
     uint testTime;
