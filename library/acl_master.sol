@@ -24,7 +24,7 @@ contract ACLMaster is DSMath {
     
     function createNewRole(bytes newRole, bytes superior, uint32 limit) public auth(ADMIN) {
         require(!groups[newRole].exist);
-        require(groups[superior].exist)
+        require(groups[superior].exist);
         indexForACL = add(indexForACL,1);
         roles[indexForACL] = newRole;
         groups[newRole].exist = true;
