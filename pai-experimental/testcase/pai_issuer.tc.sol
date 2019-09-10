@@ -7,7 +7,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
 
 
-contract TestCase is Template, DSTest {
+contract TestPaiIssuer is Template, DSTest {
     uint96 ASSET_PIS;
     uint96 ASSET_PAI;
     function() public payable {}

@@ -6,12 +6,11 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
 
-contract TestCase is Template, DSTest, DSMath {
+contract TestPaiMain is Template, DSTest, DSMath {
     function() public payable {}
 
     uint96 ASSET_PIS;
     string ADMIN = "ADMIN";
-    string TESTLIMITATION = "TESTLIMITATION";
 
     function testInit() public {
         FakePaiDaoNoGovernance paiDAO;

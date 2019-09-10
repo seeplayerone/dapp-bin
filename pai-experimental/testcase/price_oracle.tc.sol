@@ -7,23 +7,18 @@ pragma solidity 0.4.25;
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/test.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
 
-contract PriceOracleTest is Template, DSTest {
-    PriceOracle private oracle;
 
-    function setup() public {
-        oracle = new PriceOracle();        
-    }
+contract PriceOracleTest is Template, DSTest,DSMath {
+    TimefliesOracle private oracle;
+    function testInit() public {
+        FakePaiDao paiDAO;
+        FakePerson p1 = new FakePerson();
 
-    function testUpdatePriceSuccess() public {
-        setup();
-        oracle.updatePrice(0, 88);
-        assertEq(88, oracle.getPrice(0));
-    }
+        paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
+        paiDAO.init();
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
 
-    function testUpdatePriceWrong() public {
-        setup();
-        oracle.updatePrice(0, 88);
-        assertEq(77, oracle.getPrice(0));
     }
 }
