@@ -179,26 +179,21 @@ contract TestCase is Template, DSTest, DSMath {
         tempBool = p1.callAddMember(paiDAO,p4,"TESTLIMITATION");
         assertTrue(tempBool);//46
 
-        address[] list2;
-        assertEq(uint(list2.length),0);
-        //list2.length = 0;
-        list2.push(p2);
-        list2.push(p3);
-        list2.push(p4);
-        list2.push(p5);
-        assertEq(uint(list2.length),4);//47
-        uint32 limit = paiDAO.getMemberLimit(bytes(TESTLIMITATION));
-        assertEq(uint(limit),3);//48
-        tempBool = p1.callResetMembers(paiDAO,list2,"TESTLIMITATION");
-        assertTrue(!tempBool); //49
+        list1.length = 0;
+        list1.push(p2);
+        list1.push(p3);
+        list1.push(p4);
+        list1.push(p5);
+        tempBool = p1.callResetMembers(paiDAO,list1,"TESTLIMITATION");
+        assertTrue(!tempBool); //47
         tempBool = p2.callChangeMemberLimit(paiDAO,"TESTLIMITATION",4);
-        assertTrue(!tempBool);//50
+        assertTrue(!tempBool);//48
         tempBool = p1.callChangeMemberLimit(paiDAO,"TESTLIMITATION",4);
-        assertTrue(tempBool);//51
+        assertTrue(tempBool);//49
         limit = paiDAO.getMemberLimit(bytes(TESTLIMITATION));
-        assertEq(uint(limit),4);//52
-        tempBool = p1.callResetMembers(paiDAO,list2,"TESTLIMITATION");
-        assertTrue(tempBool);//53
+        assertEq(uint(limit),4);//50
+        tempBool = p1.callResetMembers(paiDAO,list1,"TESTLIMITATION");
+        assertTrue(tempBool);//51
 
     }
 }
