@@ -65,6 +65,11 @@ contract PriceOracle is Template, ACLSlave, DSMath {
 
     function updateOverallPrice() internal {
         if (master.getMemberLimit(bytes(ORACLE)) / 2 >= pirces.length) {
+            lastUpdateBlock = height();
+            lastUpdateIndex = lastUpdateIndex + 1;
+            //actually,the following code describes the logic of updating, but it is not necessary to be run
+            //lastUpdatePrice = lastUpdatePrice;
+            priceHistory[lastUpdateIndex] = lastUpdatePrice;
             return;
         }
         lastUpdateBlock = height();
