@@ -78,6 +78,38 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         tempBool = p1.callUpdatePrice(oracle, RAY * 99/100);
         assertTrue(tempBool); //9
         assertEq(oracle.getPrice(), RAY * 201/200);//10
+    }
 
+    function testSensitivity() public {
+        FakePaiDao paiDAO;
+        FakePerson admin = new FakePerson();
+        paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
+        paiDAO.init();
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9);
+
+        FakePerson[5] memory p;
+        for(uint i = 0; i < 5; i++) {
+            p[i] = new FakePerson();
+            admin.callAddMember(paiDAO,p[i],"BTCOracle");
+        }
+
+        for(uint j = 0; j < 10; j++) {
+            for(i = 0; i < 5; i++) {
+                p[i].callUpdatePrice(oracle, RAY * (101 + j)/100);
+            }
+            oracle.fly(30);
+            p[1].callUpdatePrice(oracle, RAY );
+            assertEq(oracle.getPrice(), RAY * (101 + j)/100);
+        }
+
+        for(j = 0; j < 10; j++) {
+            for(i = 0; i < 5; i++) {
+                p[i].callUpdatePrice(oracle, RAY * 10000);
+            }
+            oracle.fly(30);
+            p[1].callUpdatePrice(oracle, RAY);
+            assertEq(oracle.getPrice(), RAY * (101 + j) * 105/10000);
+        }
     }
 }
