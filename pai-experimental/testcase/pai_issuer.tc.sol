@@ -74,7 +74,7 @@ contract TestCase is Template, DSTest {
         assertTrue(!tempBool);//0
         tempBool = p2.callMint(issuer,100000000,p1);
         assertTrue(!tempBool);//1
-        tempBool = p1.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN");
+        tempBool = p1.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
         assertTrue(tempBool);//2
         tempBool = p1.callAddMember(paiDAO,p2,"PAIMINTER");
         assertTrue(tempBool);//3

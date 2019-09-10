@@ -80,7 +80,7 @@ contract ACLMaster is DSMath {
 
     function changeMemberLimit(bytes role, uint32 newlimit) public {
         require(groups[role].exist);
-        require(canPerform(groups[groups[role].superior].superior, msg.sender));
+        require(canPerform(groups[role].superior, msg.sender));
         groups[role].memberLimit = newlimit;
     }
 
