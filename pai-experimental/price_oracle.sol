@@ -37,7 +37,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         priceHistory[0] = lastUpdatePrice;
         updateInterval = 6;
         sensitivityTime = 60;
-        sensitivityRate = RAY / 5;
+        sensitivityRate = RAY / 20;
     }
 
     function updatePrice(uint256 newPrice) public auth(ORACLE) {
@@ -69,7 +69,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         }
         lastUpdateBlock = height();
         lastUpdateIndex = lastUpdateIndex + 1; //overflow is expected;
-        lastUpdatePrice = calculatePrice();
+        lastUpdatePrice = comparedPrice();
         //uint priceCalculated = calculatePrice();
         // uint priceCompared1 = rmul(comparedPrice(),add(RAY,sensitivityRate));
         // uint priceCompared2 = rmul(comparedPrice(),sub(RAY,sensitivityRate));
