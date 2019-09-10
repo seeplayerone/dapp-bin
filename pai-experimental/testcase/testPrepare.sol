@@ -21,9 +21,9 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callCreateNewRole(address paidao, string newRole, string superior) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("createNewRole(bytes,bytes)"));
-        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,bytes(newRole),bytes(superior)));
+    function callCreateNewRole(address paidao, string newRole, string superior, uint32 limit) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("createNewRole(bytes,bytes,uint32)"));
+        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,bytes(newRole),bytes(superior),limit));
         return result;
     }
 
@@ -60,6 +60,12 @@ contract FakePerson is Template {
     function callChangeSuperior(address paidao, string role, string newSuperior) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("changeSuperior(bytes,bytes)"));
         bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId, bytes(role),bytes(newSuperior)));
+        return result;
+    }
+
+    function callChangeMemberLimit(address paidao, string role, uint32 limit) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("changeMemberLimit(bytes,uint32)"));
+        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId, bytes(role),limit));
         return result;
     }
 }
