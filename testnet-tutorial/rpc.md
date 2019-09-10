@@ -14,6 +14,7 @@
 * [asimov_getBalances](#asimov_getBalances)
 * [asimov_getBlockListByHeight](#asimov_getBlockListByHeight)
 * [asimov_getUtxoByAddress](#asimov_getUtxoByAddress)
+* [asimov_getNetTotals](#asimov_getNetTotals)
 
 ## API Methods
 
@@ -516,6 +517,37 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getUtxoByAddress"
             "assets": "000000000000000000000000"
         }
     ]
+}
+```
+---
+
+### asimov_getNetTotals
+
+Returns bytes of received and sent.
+
+#### Parameters
+
+none
+
+#### Returns
+
+* information of net
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getNetTotals"}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "totalbytesrecv": 0,
+        "totalbytessent": 0,
+        "timemillis": 1568096785830
+    }
 }
 ```
 ---
