@@ -20,6 +20,8 @@
 * [asimov_decodeScript](#asimov_decodeScript)
 * [asimov_getGenesisContract](#asimov_getGenesisContract)
 * [asimov_getGenesisContractByHeight](#asimov_getGenesisContractByHeight)
+* [asimov_getContractTemplateList](#asimov_getContractTemplateList)
+* [asimov_getContractTemplateName](#asimov_getContractTemplateName)
 
 ## API Methods
 
@@ -726,7 +728,7 @@ Returns genesis contract at given block height.
 
 #### Returns
 
-* information of genesis contract
+* abi of genesis contract
 
 
 #### Example
@@ -742,6 +744,71 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getGenesisContrac
         "exist": true,
         "abi": "[{\"constant\":false,\"inputs\":[{\"name\":\"_category\",\"type\":\"uint16\"},{\"name\":\"_name\",\"type\":\"string\"}],\"name\":\"enable\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_category\",\"type\":\"uint16\"},{\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"getApprovedTemplate\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"},{\"name\":\"\",\"type\":\"bytes32\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint8\"},{\"name\":\"\",\"type\":\"uint8\"},{\"name\":\"\",\"type\":\"uint8\"},{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_category\",\"type\":\"uint16\"},{\"name\":\"_name\",\"type\":\"string\"}],\"name\":\"reject\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_category\",\"type\":\"uint16\"}],\"name\":\"getSubmittedTemplatesCount\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_category\",\"type\":\"uint16\"},{\"name\":\"_name\",\"type\":\"string\"}],\"name\":\"approve\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"THRESHOLD\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_category\",\"type\":\"uint16\"},{\"name\":\"_name\",\"type\":\"string\"},{\"name\":\"_key\",\"type\":\"bytes32\"}],\"name\":\"create\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_category\",\"type\":\"uint16\"},{\"name\":\"_name\",\"type\":\"string\"}],\"name\":\"approveForTest\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_category\",\"type\":\"uint16\"},{\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"getSubmittedTemplate\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"},{\"name\":\"\",\"type\":\"bytes32\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint8\"},{\"name\":\"\",\"type\":\"uint8\"},{\"name\":\"\",\"type\":\"uint8\"},{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"init\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_category\",\"type\":\"uint16\"},{\"name\":\"_name\",\"type\":\"string\"}],\"name\":\"disable\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_category\",\"type\":\"uint16\"},{\"name\":\"name\",\"type\":\"string\"}],\"name\":\"getTemplate\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"},{\"name\":\"\",\"type\":\"bytes32\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint8\"},{\"name\":\"\",\"type\":\"uint8\"},{\"name\":\"\",\"type\":\"uint8\"},{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"ALL_APPROVER\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_category\",\"type\":\"uint16\"}],\"name\":\"getApprovedTemplatesCount\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
     }
+}
+```
+---
+
+### asimov_getContractTemplateList
+
+Returns contract template list.
+
+#### Parameters
+
+* approved or not
+* category
+
+#### Returns
+
+* contract template list
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getContractTemplateList","params":[true,1]}}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": [
+        {
+            "name": "vote01",
+            "key": "14d84139e497e1fbeb8016721aaa44d279444c17fa199ce239dcccc80f0a44ae",
+            "createTime": 1567581114,
+            "approveCount": 1,
+            "rejectCount": 0,
+            "reviewers": 1,
+            "status": 1
+        }
+    ]
+}
+```
+---
+
+### asimov_getContractTemplateName
+
+Returns template name of contract.
+
+#### Parameters
+
+* contract address
+
+#### Returns
+
+* template name
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"flow_getContractTemplateName","params":["0x638d214fce47190f4b49cb84947a6f9a44ac482ff4"]}}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": "TemplateName"
 }
 ```
 ---
