@@ -3,7 +3,7 @@ pragma solidity 0.4.25;
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_oracle.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
 
 contract FakePerson is Template {
     function() public payable {}
