@@ -10,6 +10,8 @@
 * [asimov_getBestBlock](#asimov_getBestBlock)
 * [asimov_getBlock](#asimov_getBlock)
 * [asimov_getBlockHeader](#asimov_getBlockHeader)
+* [asimov_getBalance](#asimov_getBalance)
+* [asimov_getBalances](#asimov_getBalances)
 
 ## API Methods
 
@@ -307,6 +309,75 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getBlockHeader","
         "gaslimist": 160000000,
         "gasused": 2583
     }
+}
+```
+---
+
+### asimov_getBalance
+
+Returns balance of given address
+
+#### Parameters
+
+* address
+
+#### Returns
+
+* balance of assets
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getBalance","params":["0x666e55294d0ee2b7306b9a765b576df9c8ed73a877"]}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": [
+        {
+            "asset": "000000000000000000000000",
+            "value": "2818000"
+        }
+    ]
+}
+```
+---
+
+### asimov_getBalances
+
+Returns balance of given addresses
+
+#### Parameters
+
+* addresses
+
+#### Returns
+
+* balance of assets
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getBalances","params":[["0x666e55294d0ee2b7306b9a765b576df9c8ed73a877"]]}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": [
+        {
+            "address": "0x666e55294d0ee2b7306b9a765b576df9c8ed73a877",
+            "assets": [
+                {
+                    "asset": "000000000000000000000000",
+                    "value": "2877000"
+                }
+            ]
+        }
+    ]
 }
 ```
 ---
