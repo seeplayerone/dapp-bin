@@ -45,19 +45,19 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         require(!settlement);
         require(newPrice > 0);
         updateSinglePriceInternal(newPrice);
-        if(sub(height(),lastUpdateBlock) >= updateInterval) {
-            updateOverallPrice();
-        }
+        // if(sub(height(),lastUpdateBlock) >= updateInterval) {
+        //     updateOverallPrice();
+        // }
     }
 
     function updateSinglePriceInternal(uint newPrice) internal {
         uint len = pirces.length;
-        for(uint i; i < len; i++) {
-            if(msg.sender == pirces[i].updater) {
-                pirces[i].price = newPrice;
-                return;
-            }
-        }
+        // for(uint i; i < len; i++) {
+        //     if(msg.sender == pirces[i].updater) {
+        //         pirces[i].price = newPrice;
+        //         return;
+        //     }
+        // }
         pirces[len].updater = msg.sender;
         pirces[len].price = newPrice;
     }
