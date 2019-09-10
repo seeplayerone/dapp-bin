@@ -40,8 +40,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         sensitivityRate = RAY / 5;
     }
 
-    function updatePrice(uint256 newPrice) public //auth(ORACLE) 
-    {
+    function updatePrice(uint256 newPrice) public auth(ORACLE) {
         require(!settlement);
         require(newPrice > 0);
         updateSinglePriceInternal(newPrice);
