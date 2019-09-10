@@ -126,7 +126,7 @@ contract TestTimeflies {
         return testHeight;
     }
 
-    function fly(uint age) public note {
+    function fly(uint age) public {
         if (0 == age) {
             testTime = originalTime;
             testHeight = originalHeight;
