@@ -94,21 +94,20 @@ contract PriceOracle is Template, ACLSlave, DSMath {
 
     function calculatePrice() internal view returns (uint) {
         require(pirces.length > 2);
-        return pirces[0].price;
-        // uint sum;
-        // uint maxPrice;
-        // uint minPrice;
-        // uint len = pirces.length;
-        // for(uint i; i < len; i++) {
-        //     if(pirces[i].price > maxPrice) {
-        //         maxPrice = pirces[i].price;
-        //     }
-        //     if(pirces[i].price < minPrice || 0 == minPrice) {
-        //         minPrice = pirces[i].price;
-        //     }
-        //     sum = add(sum,pirces[i].price);
-        // }
-        // return sub(sum,add(maxPrice,minPrice)) / (len - 2);
+        uint sum;
+        uint maxPrice;
+        uint minPrice;
+        uint len = pirces.length;
+        for(uint i; i < len; i++) {
+            if(pirces[i].price > maxPrice) {
+                maxPrice = pirces[i].price;
+            }
+            if(pirces[i].price < minPrice || 0 == minPrice) {
+                minPrice = pirces[i].price;
+            }
+            sum = add(sum,pirces[i].price);
+        }
+        return sub(sum,add(maxPrice,minPrice)) / (len - 2);
     }
 
     function getPrice() public view returns (uint256) {
