@@ -145,7 +145,7 @@ contract TestTimeflies {
 
 contract TimefliesOracle is PriceOracle, TestTimeflies {
     constructor(string orcaleGroupName, address paiMainContract, uint _price)
-        TestTimeflies()
+        //TestTimeflies()
         PriceOracle(orcaleGroupName, paiMainContract, _price)
         public
     {
