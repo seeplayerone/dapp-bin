@@ -987,7 +987,7 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_sendRawTransactio
 ```
 ---
 
-### flow_signRawTransaction
+### asimov_signRawTransaction
 
 Sign raw transaction.
 
@@ -1017,7 +1017,7 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_signRawTransactio
     }
 }
 ```
-### flow_searchRawTransactions
+### asimov_searchRawTransactions
 
 Returns raw transactions.
 
