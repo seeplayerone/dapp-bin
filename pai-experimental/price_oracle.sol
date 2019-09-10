@@ -69,18 +69,17 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         }
         lastUpdateBlock = height();
         lastUpdateIndex = lastUpdateIndex + 1; //overflow is expected;
-        lastUpdatePrice = comparedPrice();
-        //uint priceCalculated = calculatePrice();
-        // uint priceCompared1 = rmul(comparedPrice(),add(RAY,sensitivityRate));
-        // uint priceCompared2 = rmul(comparedPrice(),sub(RAY,sensitivityRate));
-        // if (priceCalculated > priceCompared1) {
-        //     lastUpdatePrice = priceCompared1;
-        // } else if (priceCalculated < priceCompared2) {
-        //     lastUpdatePrice = priceCompared2;
-        // } else {
-        //     lastUpdatePrice = priceCalculated;
-        // }
-        // priceHistory[lastUpdateIndex] = lastUpdatePrice;
+        uint priceCalculated = calculatePrice();
+        uint priceCompared1 = rmul(comparedPrice(),add(RAY,sensitivityRate));
+        uint priceCompared2 = rmul(comparedPrice(),sub(RAY,sensitivityRate));
+        if (priceCalculated > priceCompared1) {
+            lastUpdatePrice = priceCompared1;
+        } else if (priceCalculated < priceCompared2) {
+            lastUpdatePrice = priceCompared2;
+        } else {
+            lastUpdatePrice = priceCalculated;
+        }
+        priceHistory[lastUpdateIndex] = lastUpdatePrice;
         pirces.length = 0;
     }
 
