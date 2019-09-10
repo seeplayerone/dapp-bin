@@ -18,7 +18,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     uint public sensitivityTime; // must be multiple of updateInterval,  in blockheights
     uint public sensitivityRate; // in RAY
 
-    uint[128] private priceHistory;
+    uint[256] private priceHistory;
     uint8 private lastUpdateIndex;
     string public ORACLE;
 
