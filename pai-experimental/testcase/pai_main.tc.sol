@@ -8,9 +8,10 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol
 
 contract TestCase is Template, DSTest, DSMath {
     function() public payable {}
-    
+
     uint96 ASSET_PIS;
     string ADMIN = "ADMIN";
+    string TESTLIMITATION = "TESTLIMITATION";
 
     function testInit() public {
         FakePaiDaoNoGovernance paiDAO;
@@ -89,9 +90,9 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(!tempBool);//6
 
 
-        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR","ADMIN");
+        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR","ADMIN",0);
         assertTrue(tempBool);//7
-        tempBool = p1.callCreateNewRole(paiDAO,"CASHIER","DIRECTOR");
+        tempBool = p1.callCreateNewRole(paiDAO,"CASHIER","DIRECTOR",0);
         assertTrue(tempBool);//8
         tempBool = p1.callAddMember(paiDAO,p3,"DIRECTOR");
         assertTrue(tempBool);//9
@@ -104,9 +105,9 @@ contract TestCase is Template, DSTest, DSMath {
         tempBool = p3.callAddMember(paiDAO,p5,"CASHIER");
         assertTrue(!tempBool);//13
 
-        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR2","ADMIN");
+        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR2","ADMIN",0);
         assertTrue(tempBool);//14
-        tempBool = p1.callCreateNewRole(paiDAO,"CASHIER2","DIRECTOR2");
+        tempBool = p1.callCreateNewRole(paiDAO,"CASHIER2","DIRECTOR2",0);
         assertTrue(tempBool);//15
         tempBool = p1.callAddMember(paiDAO,p4,"CASHIER2");
         assertTrue(!tempBool);//16
@@ -140,11 +141,11 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(tempBool); //28
 
 
-        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR3","ADMIN");
+        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR3","ADMIN",0);
         assertTrue(tempBool);//29
-        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR4","ADMIN");
+        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR4","ADMIN",0);
         assertTrue(tempBool);//30
-        tempBool = p1.callCreateNewRole(paiDAO,"CASHIER3","DIRECTOR3");
+        tempBool = p1.callCreateNewRole(paiDAO,"CASHIER3","DIRECTOR3",0);
         assertTrue(tempBool);//31
         tempBool = p1.callAddMember(paiDAO,p2,"DIRECTOR3");
         assertTrue(tempBool);//32
@@ -162,5 +163,37 @@ contract TestCase is Template, DSTest, DSMath {
         assertTrue(!tempBool);//38
         tempBool = p3.callAddMember(paiDAO,p5,"CASHIER3");
         assertTrue(tempBool);//39
+
+        tempBool = p1.callCreateNewRole(paiDAO,"TESTLIMITATION","ADMIN",3);
+        assertTrue(tempBool);//40
+        tempBool = p1.callAddMember(paiDAO,p1,"TESTLIMITATION");
+        assertTrue(tempBool);//41
+        tempBool = p1.callAddMember(paiDAO,p2,"TESTLIMITATION");
+        assertTrue(tempBool);//42
+        tempBool = p1.callAddMember(paiDAO,p3,"TESTLIMITATION");
+        assertTrue(tempBool);//43
+        tempBool = p1.callAddMember(paiDAO,p4,"TESTLIMITATION");
+        assertTrue(!tempBool);//44
+        tempBool = p1.callRemoveMember(paiDAO,p2,"TESTLIMITATION");
+        assertTrue(tempBool);//45
+        tempBool = p1.callAddMember(paiDAO,p4,"TESTLIMITATION");
+        assertTrue(tempBool);//46
+
+        address[] list2;
+        list2.push(p2);
+        list2.push(p3);
+        list2.push(p4);
+        list2.push(p5);
+        tempBool = p1.callResetMembers(paiDAO,list2,"TESTLIMITATION");
+        assertTrue(!tempBool); //47
+        tempBool = p2.callChangeMemberLimit(paiDAO,"TESTLIMITATION",4);
+        assertTrue(!tempBool);//48
+        tempBool = p1.callChangeMemberLimit(paiDAO,"TESTLIMITATION",4);
+        assertTrue(tempBool);//49
+        (,uint32 limit,,) = paiDAO.groups(bytes(TESTLIMITATION));
+        assertEq(uint(limit),0);
+        tempBool = p1.callResetMembers(paiDAO,list2,"TESTLIMITATION");
+        assertTrue(tempBool);//50
+
     }
 }
