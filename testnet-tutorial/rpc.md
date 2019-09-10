@@ -21,7 +21,9 @@
 * [asimov_getGenesisContract](#asimov_getGenesisContract)
 * [asimov_getGenesisContractByHeight](#asimov_getGenesisContractByHeight)
 * [asimov_getContractTemplateList](#asimov_getContractTemplateList)
-* [asimov_getContractTemplateName](#asimov_getContractTemplateName)
+* [asimov_getContractTemplate](#asimov_getContractTemplate)
+* [asimov_callReadOnlyFunction](#asimov_callReadOnlyFunction)
+* [asimov_getRawTransaction](#asimov_getRawTransaction)
 
 ## API Methods
 
@@ -786,9 +788,9 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getContractTempla
 ```
 ---
 
-### asimov_getContractTemplateName
+### asimov_getContractTemplate
 
-Returns template name of contract.
+Returns template info of contract.
 
 #### Parameters
 
@@ -796,19 +798,121 @@ Returns template name of contract.
 
 #### Returns
 
-* template name
+* template info
 
 
 #### Example
 ```json
 # Request
-curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"flow_getContractTemplateName","params":["0x638d214fce47190f4b49cb84947a6f9a44ac482ff4"]}}' -H "Content-type: application/json" http://localhost:8545/
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"flow_getContractTemplate","params":["0x638d214fce47190f4b49cb84947a6f9a44ac482ff4"]}}' -H "Content-type: application/json" http://localhost:8545/
 
 # Response
 {
     "jsonrpc": "2.0",
     "id": 1,
-    "result": "TemplateName"
+    "result": {
+        "template_name": "TemplateName",
+        "template_type": 1
+    }
+}
+```
+---
+
+### asimov_callReadOnlyFunction
+
+Call contract's pure or view function.
+
+#### Parameters
+
+* caller address
+* contract address
+* input data
+* function name
+* contract abi
+
+#### Returns
+
+* return value of function
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"flow_callReadOnlyFunction","params":["0x666e55294d0ee2b7306b9a765b576df9c8ed73a877","0x638d214fce47190f4b49cb84947a6f9a44ac482ff4","2fb97c1d","getTemplateInfo","[{\"constant\": true,\"inputs\": [],\"name\": \"getTemplateInfo\",\"outputs\": [{\"name\": \"\",\"type\": \"uint16\"},{\"name\": \"\",\"type\": \"string\"}],\"payable\": false,\"stateMutability\": \"view\",\"type\": \"function\"},{\"constant\": true,\"inputs\": [],\"name\": \"getInfo\",\"outputs\": [{\"name\": \"\",\"type\": \"string\"},{\"name\": \"\",\"type\": \"uint256\"}],\"payable\": false,\"stateMutability\": \"view\",\"type\": \"function\"},{\"constant\": false,\"inputs\": [{\"name\": \"_fName\",\"type\": \"string\"},{\"name\": \"_age\",\"type\": \"uint256\"}],\"name\": \"setInfo\",\"outputs\": [],\"payable\": false,\"stateMutability\": \"nonpayable\",\"type\": \"function\"},{\"constant\": false,\"inputs\": [{\"name\": \"_category\",\"type\": \"uint16\"},{\"name\": \"_templateName\",\"type\": \"string\"}],\"name\": \"initTemplate\",\"outputs\": [],\"payable\": false,\"stateMutability\": \"nonpayable\",\"type\": \"function\"},{\"anonymous\": false,\"inputs\": [{\"indexed\": false,\"name\": \"name\",\"type\": \"string\"},{\"indexed\": false,\"name\": \"age\",\"type\": \"uint256\"}],\"name\": \"Instructor\",\"type\": \"event\"}]"]}}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": [
+        1,
+        "TemplateName"
+    ]
+}
+```
+---
+
+### asimov_getRawTransaction
+
+Returns raw transaction.
+
+#### Parameters
+
+* transaction hash
+* get detail information or not
+* get extra vin or not
+
+#### Returns
+
+* information of raw
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getRawTransaction","params":["4930275d7d82676d7d2855d300a0e7b990c0f8327d9dae958ac56cabfada6d18",true,true]}}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "hex": "010000000100000000000000......",
+        "txid": "4930275d7d82676d7d2855d300a0e7b990c0f8327d9dae958ac56cabfada6d18",
+        "hash": "4930275d7d82676d7d2855d300a0e7b990c0f8327d9dae958ac56cabfada6d18",
+        "size": 121,
+        "version": 1,
+        "locktime": 0,
+        "vin": [
+            {
+                "coinbase": "51000e2f503253482f6173696d6f76642f",
+                "sequence": 4294967295
+            }
+        ],
+        "vout": [
+            {
+                "value": 1000,
+                "n": 0,
+                "scriptPubKey": {
+                    "asm": "OP_DUP OP_HASH160 666e55294d0ee2b7306b9a765b576df9c8ed73a877 OP_IFLAG_EQUALVERIFY OP_CHECKSIG",
+                    "hex": "76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac",
+                    "reqSigs": 1,
+                    "type": "pubkeyhash",
+                    "addresses": [
+                        "0x666e55294d0ee2b7306b9a765b576df9c8ed73a877"
+                    ]
+                },
+                "data": "",
+                "asset": "000000000000000000000000"
+            }
+        ],
+        "blockhash": "d999b02caa6dd0dd7cea55cd9a1d7bd4bfcbbfcd431fea5d8fb8304b42ec9cc2",
+        "confirmations": 4607,
+        "time": 1568011152,
+        "blocktime": 1568011152,
+        "gaslimit": 0,
+        "gasused": 0
+    }
 }
 ```
 ---
