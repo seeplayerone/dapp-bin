@@ -70,7 +70,7 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callUpdatePrice(address oracle, uint newPrice) public retunrs (bool) {
+    function callUpdatePrice(address oracle, uint newPrice) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("updatePrice(uint256)"));
         bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId, newPrice));
         return result;
