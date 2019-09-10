@@ -73,7 +73,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         if (priceCalculated > priceCompared1) {
             lastUpdatePrice = priceCompared1;
         } else if (priceCalculated < priceCompared2) {
-            lastUpdatePrice = priceCompared2);
+            lastUpdatePrice = priceCompared2;
         } else {
             lastUpdatePrice = priceCalculated;
         }
