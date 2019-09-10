@@ -6,7 +6,7 @@ pragma solidity 0.4.25;
 
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/test.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
 
 
@@ -22,7 +22,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
 
         assertEq(oracle.getPrice(), RAY);//0
-        tempBool = p1.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",0);
+        bool tempBool = p1.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",0);
         assertTrue(tempBool); //1
         tempBool = p2.callUpdatePrice(oracle,2*RAY);
         assertTrue(!tempBool); //2
