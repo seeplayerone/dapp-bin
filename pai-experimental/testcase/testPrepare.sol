@@ -133,7 +133,7 @@ contract TestTimeflies {
             return;
         }
         testTime = testTime + age;
-        testHeight = testHeight + int(age / 5);
+        testHeight = testHeight + uint(age / 5);
     }
 }
 
