@@ -32,7 +32,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     constructor(string orcaleGroupName, address paiMainContract, uint _price) public {
         ORACLE = orcaleGroupName;
         master = ACLMaster(paiMainContract);
-        lastUpdateBlock = height();
+        lastUpdateBlock = block.number;
         lastUpdatePrice = _price;
         lastUpdateIndex = 0;
         priceHistory[0] = lastUpdatePrice;
