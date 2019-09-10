@@ -7,6 +7,7 @@ contract ACLMaster is DSMath {
     mapping(bytes => PermissionGroup) groups;
     struct PermissionGroup {
         bool exist;
+        uint32 memberLimit; //when =0 represents no limit
         bytes superior;
         address[] members;
     }
@@ -21,24 +22,21 @@ contract ACLMaster is DSMath {
         groups[bytes(ADMIN)].members.push(msg.sender);
     }
     
-    function createNewRole(bytes newRole, bytes superior) public auth(ADMIN) {
+    function createNewRole(bytes newRole, bytes superior, uint32 limit) public auth(ADMIN) {
         require(!groups[newRole].exist);
-        if(!groups[superior].exist) {
-            indexForACL = add(indexForACL,1);
-            roles[indexForACL] = superior;
-            groups[superior].exist = true;
-            groups[superior].superior = bytes(ADMIN);
-        }
+        require(groups[superior].exist)
         indexForACL = add(indexForACL,1);
         roles[indexForACL] = newRole;
         groups[newRole].exist = true;
         groups[newRole].superior = superior;
+        groups[newRole].memberLimit = limit;
     }
 
     function addMember(address _addr, bytes role) public {
         require(groups[role].exist);
         require(canPerform(groups[role].superior, msg.sender));
         require(!addressExist(role,_addr));
+        require(0 == groups[role].memberLimit || groups[role].members.length < groups[role].memberLimit);
         groups[role].members.push(_addr);
     }
 
@@ -64,6 +62,7 @@ contract ACLMaster is DSMath {
     function resetMembers(address[] _members, bytes role) public {
         require(groups[role].exist);
         require(canPerform(groups[role].superior, msg.sender));
+        require(0 == groups[role].memberLimit||_members.length <= groups[role].memberLimit);
         groups[role].members.length = 0;
         if (_members.length > 0) {
             for (uint i = 0; i < _members.length; i++) {
@@ -77,6 +76,13 @@ contract ACLMaster is DSMath {
         require(canPerform(groups[groups[role].superior].superior, msg.sender));
         require(groups[newSuperior].exist);
         groups[role].superior = newSuperior;
+    }
+
+    function changeMemberLimit(bytes role, uint32 newlimit) public {
+        require(groups[role].exist);
+        require(canPerform(groups[groups[role].superior].superior, msg.sender));
+        require(groups[newSuperior].exist);
+        groups[role].memberLimit = newlimit;
     }
 
     function addressExist(bytes role, address _addr) public view returns (bool) {
