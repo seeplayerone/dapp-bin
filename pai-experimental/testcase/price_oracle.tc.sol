@@ -65,5 +65,19 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         assertTrue(tempBool); //4
         assertEq(oracle.getPrice(), RAY * 99/100);//5
 
+        tempBool = p1.callUpdatePrice(oracle, RAY * 101/100);
+        assertTrue(tempBool); //5
+        tempBool = p2.callUpdatePrice(oracle, RAY * 102/100);
+        assertTrue(tempBool); //6
+        tempBool = p3.callUpdatePrice(oracle, RAY * 103/100);
+        assertTrue(tempBool); //7
+        tempBool = p4.callUpdatePrice(oracle, RAY * 98/100);
+        assertTrue(tempBool); //8
+
+        oracle.fly(50);
+        tempBool = p1.callUpdatePrice(oracle, RAY * 99/100);
+        assertTrue(tempBool); //9
+        assertEq(oracle.getPrice(), RAY * 201/200);//10
+
     }
 }

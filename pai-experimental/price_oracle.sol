@@ -81,7 +81,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         //     lastUpdatePrice = priceCalculated;
         // }
         // priceHistory[lastUpdateIndex] = lastUpdatePrice;
-        // pirces.length = 0;
+        pirces.length = 0;
     }
 
     function comparedPrice() internal view returns(uint) {
