@@ -62,7 +62,7 @@ contract ACLMaster is DSMath {
     function resetMembers(address[] _members, bytes role) public {
         require(groups[role].exist);
         require(canPerform(groups[role].superior, msg.sender));
-        //require(0 == groups[role].memberLimit||_members.length <= groups[role].memberLimit);
+        require(0 == groups[role].memberLimit||_members.length <= groups[role].memberLimit);
         groups[role].members.length = 0;
         if (_members.length > 0) {
             for (uint i = 0; i < _members.length; i++) {
