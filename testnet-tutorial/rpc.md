@@ -15,6 +15,8 @@
 * [asimov_getBlockListByHeight](#asimov_getBlockListByHeight)
 * [asimov_getUtxoByAddress](#asimov_getUtxoByAddress)
 * [asimov_getNetTotals](#asimov_getNetTotals)
+* [asimov_createRawTransaction](#asimov_createRawTransaction)
+* [asimov_decodeRawTransaction](#asimov_decodeRawTransaction)
 
 ## API Methods
 
@@ -547,6 +549,97 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getNetTotals"}' -
         "totalbytesrecv": 0,
         "totalbytessent": 0,
         "timemillis": 1568096785830
+    }
+}
+```
+---
+
+### asimov_createRawTransaction
+
+Creat an raw transaction.
+
+#### Parameters
+
+* transaction inputs
+* transaction outputs
+* lock time
+
+#### Returns
+
+* information of raw transaction
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"jsonrp":"1.0","method":"asimov_createRawTransaction","params":[[{"txid":"b607d5f75ed6015f4355958b32c62d54da008628c1ba9dc6b0996241d7b37c85","vout":0,"address":"0x666e55294d0ee2b7306b9a765b576df9c8ed73a877","account":"","scriptPubKey":"21028ff24dc9bf0a9020a191f734815ace4bcce694c280b5d380883138577737ebb1ac","amount":5,"confirmations":0,"spendable":false,"assets":"000000000000000000000000","checked":true,"privateKey":"0xe7f95cb9426ffe0061cea3319b96a133d724056f9d0c6b75e62ff813fea3c9b3"}],[{"address":"0x666e55294d0ee2b7306b9a765b576df9c8ed73a877","amount":"4","assets":"000000000000000000000000"}],0],"id":1548904273272}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1548904273272,
+    "result": {
+        "hex": "0100000001b607d5f75ed6015f4355958b32c62d54da008628c1ba9dc6b0996241d7b37c850000000000ffffffff010084d717000000001a76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac0c000000000000000000000000000000000000000000",
+        "contractaddr": {}
+    }
+}
+```
+---
+
+### asimov_decodeRawTransaction
+
+Decode given raw transaction
+
+#### Parameters
+
+* encoded transaction's hex
+
+#### Returns
+
+* information of raw transaction
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_decodeRawTransaction","params":["0100000001b607d5f75ed6015f4355958b32c62d54da008628c1ba9dc6b0996241d7b37c850000000000ffffffff010084d717000000001a76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac0c000000000000000000000000000000000000000000"]}}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "txid": "5f6143bcab099d57cb7ba68bf89e3e7d3202592df47b4cd309cafabf20a6c830",
+        "version": 1,
+        "locktime": 0,
+        "vin": [
+            {
+                "txid": "b607d5f75ed6015f4355958b32c62d54da008628c1ba9dc6b0996241d7b37c85",
+                "vout": 0,
+                "scriptSig": {
+                    "asm": "",
+                    "hex": ""
+                },
+                "sequence": 4294967295
+            }
+        ],
+        "vout": [
+            {
+                "value": 4,
+                "n": 0,
+                "scriptPubKey": {
+                    "asm": "OP_DUP OP_HASH160 666e55294d0ee2b7306b9a765b576df9c8ed73a877 OP_IFLAG_EQUALVERIFY OP_CHECKSIG",
+                    "hex": "76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac",
+                    "reqSigs": 1,
+                    "type": "pubkeyhash",
+                    "addresses": [
+                        "0x666e55294d0ee2b7306b9a765b576df9c8ed73a877"
+                    ]
+                },
+                "data": "",
+                "asset": "000000000000000000000000"
+            }
+        ]
     }
 }
 ```
