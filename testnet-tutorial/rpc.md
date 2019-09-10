@@ -12,6 +12,8 @@
 * [asimov_getBlockHeader](#asimov_getBlockHeader)
 * [asimov_getBalance](#asimov_getBalance)
 * [asimov_getBalances](#asimov_getBalances)
+* [asimov_getBlockListByHeight](#asimov_getBlockListByHeight)
+* [asimov_getUtxoByAddress](#asimov_getUtxoByAddress)
 
 ## API Methods
 
@@ -376,6 +378,142 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getBalances","par
                     "value": "2877000"
                 }
             ]
+        }
+    ]
+}
+```
+---
+
+### asimov_getBlockListByHeight
+
+Returns block list.
+
+#### Parameters
+
+* block height offset
+* number of blocks
+
+#### Returns
+
+* block list
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getBlockListByHeight","params":[1,1]}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": [
+        {
+            "hash": "d999b02caa6dd0dd7cea55cd9a1d7bd4bfcbbfcd431fea5d8fb8304b42ec9cc2",
+            "confirmations": 3023,
+            "size": 653,
+            "height": 1,
+            "version": 536870912,
+            "merkleroot": "0000000000000000000000000000000000000000000000000000000000000000",
+            "rawtx": [
+                {
+                    "hex": "01000000010000000000000000......",
+                    "txid": "4930275d7d82676d7d2855d300a0e7b990c0f8327d9dae958ac56cabfada6d18",
+                    "hash": "4930275d7d82676d7d2855d300a0e7b990c0f8327d9dae958ac56cabfada6d18",
+                    "size": 121,
+                    "version": 1,
+                    "locktime": 0,
+                    "vin": [
+                        {
+                            "coinbase": "51000e2f503253482f6173696d6f76642f",
+                            "sequence": 4294967295
+                        }
+                    ],
+                    "vout": [
+                        {
+                            "value": 1000,
+                            "n": 0,
+                            "scriptPubKey": {
+                                "asm": "OP_DUP OP_HASH160 666e55294d0ee2b7306b9a765b576df9c8ed73a877 OP_IFLAG_EQUALVERIFY OP_CHECKSIG",
+                                "hex": "76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac",
+                                "reqSigs": 1,
+                                "type": "pubkeyhash",
+                                "addresses": [
+                                    "0x666e55294d0ee2b7306b9a765b576df9c8ed73a877"
+                                ]
+                            },
+                            "data": "",
+                            "asset": "000000000000000000000000"
+                        }
+                    ],
+                    "blockhash": "d999b02caa6dd0dd7cea55cd9a1d7bd4bfcbbfcd431fea5d8fb8304b42ec9cc2",
+                    "confirmations": 3023,
+                    "time": 1568011152,
+                    "blocktime": 1568011152,
+                    "gaslimit": 0,
+                    "gasused": 0
+                }
+            ],
+            "time": 1568011152,
+            "txCount": 1,
+            "previousblockhash": "ca9807c89dbcf8a5d58cd16545f603ab896e08895bab4f84a8a9a377e7f6789a",
+            "stateroot": "",
+            "round": 0,
+            "slot": 0,
+            "gaslimit": 470778607,
+            "gasused": 2541,
+            "reward": 1000
+        }
+    ]
+}
+```
+---
+
+### asimov_getUtxoByAddress
+
+Returns UTXO of given address.
+
+#### Parameters
+
+* address
+* asset (optional, "")
+
+#### Returns
+
+* UTXO information
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getUtxoByAddress","params":[["0x666e55294d0ee2b7306b9a765b576df9c8ed73a877"],"000000000000000000000000"]}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": [
+        {
+            "txid": "b607d5f75ed6015f4355958b32c62d54da008628c1ba9dc6b0996241d7b37c85",
+            "vout": 0,
+            "address": "0x666e55294d0ee2b7306b9a765b576df9c8ed73a877",
+            "account": "",
+            "scriptPubKey": "76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac",
+            "amount": 1000,
+            "confirmations": 0,
+            "spendable": false,
+            "assets": "000000000000000000000000"
+        },
+        {
+            "txid": "bb4948fdcc0ad22a70f1fdae7d489d769c5b3315cf6f6a8cb5cbfa03a390e0d2",
+            "vout": 0,
+            "address": "0x666e55294d0ee2b7306b9a765b576df9c8ed73a877",
+            "account": "",
+            "scriptPubKey": "76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac",
+            "amount": 1000,
+            "confirmations": 0,
+            "spendable": false,
+            "assets": "000000000000000000000000"
         }
     ]
 }
