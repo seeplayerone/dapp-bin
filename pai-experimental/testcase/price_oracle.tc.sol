@@ -20,5 +20,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         paiDAO.init();
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
 
+        assertEq(oracle.getPrice(), RAY);
+
     }
 }

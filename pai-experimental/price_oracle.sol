@@ -36,32 +36,20 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         lastUpdateIndex = 0;
         priceHistory[0] = lastUpdatePrice;
         updateInterval = 6;
-        sensitivityTime = 120;
+        sensitivityTime = 60;
         sensitivityRate = RAY / 5;
     }
 
     function updatePrice(uint256 newPrice) public auth(ORACLE) {
         require(!settlement);
         require(newPrice > 0);
-        updatePriceInternal(newPrice);
-        if (sub(height(),lastUpdateBlock) <= updateInterval && master.getMemberLimit(bytes(ORACLE)) / 2 < pirces.length) {
-            lastUpdateBlock = add(lastUpdateBlock, mul(sub(height(),lastUpdateBlock) / updateInterval, updateInterval));
-            lastUpdateIndex = lastUpdateIndex + uint8 (sub(height(),lastUpdateBlock) / updateInterval); //overflow is expected;
-            uint priceCalculated = calculatePrice();
-            uint priceCompared = comparedPrice();
-            if (rmul(priceCalculated,add(RAY,sensitivityRate)) > priceCompared) {
-                lastUpdatePrice = rmul(priceCalculated,add(RAY,sensitivityRate));
-            } else if (rmul(priceCalculated,sub(RAY,sensitivityRate)) < priceCompared) {
-                lastUpdatePrice = rmul(priceCalculated,sub(RAY,sensitivityRate));
-            } else {
-                lastUpdatePrice = priceCalculated;
-            }
-            priceHistory[lastUpdateIndex] = lastUpdatePrice;
-            pirces.length = 0;
+        updateSinglePriceInternal(newPrice);
+        if(sub(height(),lastUpdateBlock) >= updateInterval) {
+            updateOverallPrice();
         }
     }
 
-    function updatePriceInternal(uint newPrice) internal {
+    function updateSinglePriceInternal(uint newPrice) internal {
         uint len = pirces.length;
         for(uint i; i < len; i++) {
             if(msg.sender == pirces[i].updater) {
@@ -73,12 +61,30 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         pirces[len].price = newPrice;
     }
 
+    function updateOverallPrice() internal {
+        if (master.getMemberLimit(bytes(ORACLE)) / 2 >= pirces.length) {
+            return;
+        }
+        lastUpdateBlock = height();
+        lastUpdateIndex = lastUpdateIndex + 1; //overflow is expected;
+        uint priceCalculated = calculatePrice();
+        uint priceCompared1 = rmul(comparedPrice(),add(RAY,sensitivityRate));
+        uint priceCompared2 = rmul(comparedPrice(),sub(RAY,sensitivityRate));
+        if (priceCalculated > priceCompared1) {
+            lastUpdatePrice = priceCompared1;
+        } else if (priceCalculated < priceCompared2) {
+            lastUpdatePrice = priceCompared2);
+        } else {
+            lastUpdatePrice = priceCalculated;
+        }
+        priceHistory[lastUpdateIndex] = lastUpdatePrice;
+        pirces.length = 0;
+    }
+
     function comparedPrice() internal view returns(uint) {
         uint8 index = lastUpdateIndex - uint8(sensitivityTime / updateInterval);  //overflow is expected;
-        for(uint8 i = 0; i < 3; i++) {
-            if(priceHistory[index + i] > 0) {
-                return priceHistory[index + i];
-            }
+        if(priceHistory[index] > 0) {
+            return priceHistory[index];
         }
         return lastUpdatePrice;
     }
