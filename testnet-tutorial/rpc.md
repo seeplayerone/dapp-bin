@@ -28,6 +28,7 @@
 * [asimov_sendRawTransaction](#asimov_sendRawTransaction)
 * [asimov_signRawTransaction](#asimov_signRawTransaction)
 * [asimov_searchRawTransactions](#asimov_searchRawTransactions)
+* [asimov_searchAllRawTransactions](#asimov_searchAllRawTransactions)
 
 ## API Methods
 
@@ -1084,6 +1085,39 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_searchRawTransact
             "gaslimit": 470778607,
             "gasused": 2541
         }
+    ]
+}
+```
+---
+
+### asimov_searchAllRawTransactions
+
+Return all raw transactions of given addresses.
+
+#### Parameters
+
+* transaction associated addresses
+* get detail or not
+* get last output or not
+* reverse or not
+
+#### Returns
+
+* information of raw transaction
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_searchAllRawTransactions","params":[["0x666e55294d0ee2b7306b9a765b576df9c8ed73a877"],false,false,false]}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": [
+        "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff1151000e2f503253482f6173696d6f76642fffffffff0100e87648170000001a76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac0c000000000000000000000000000000000000000000",
+        "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff1152000e2f503253482f6173696d6f76642fffffffff0100e87648170000001a76a915666e55294d0ee2b7306b9a765b576df9c8ed73a877c5ac0c000000000000000000000000000000000000000000"
     ]
 }
 ```
