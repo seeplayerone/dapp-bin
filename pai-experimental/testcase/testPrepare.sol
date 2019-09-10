@@ -3,6 +3,7 @@ pragma solidity 0.4.25;
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_oracle.sol";
 
 contract FakePerson is Template {
     function() public payable {}
@@ -101,5 +102,46 @@ contract FakePaiDaoNoGovernance is PAIDAO {
 
     function canPerform(bytes role, address _addr) public view returns (bool) {
         return true;
+    }
+}
+
+contract TestTimeflies is DSNote {
+    uint originalTime;
+    uint originalHeight;
+    uint testTime;
+    uint testHeight;
+
+    constructor() public {
+        originalTime = now;
+        testTime = now;
+        originalHeight = block.number;
+        testHeight = block.number;
+    }
+
+    function timeNow() public view returns (uint256) {
+        return testTime;
+    }
+
+    function height() public view returns (uint256) {
+        return testHeight;
+    }
+
+    function fly(uint age) public note {
+        if (0 == age) {
+            testTime = originalTime;
+            testHeight = originalHeight;
+            return;
+        }
+        testTime = testTime + age;
+        testHeight = testHeight + int(age / 5);
+    }
+}
+
+contract TimefliesOracle is PriceOracle, TestTimeflies {
+    constructor(string orcaleGroupName, address paiMainContract, uint _price)
+        PriceOracle(orcaleGroupName, paiMainContract, _price)
+        public
+    {
+
     }
 }
