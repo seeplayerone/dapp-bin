@@ -52,12 +52,12 @@ contract PriceOracle is Template, ACLSlave, DSMath {
 
     function updateSinglePriceInternal(uint newPrice) internal {
         uint len = pirces.length;
-        // for(uint i; i < len; i++) {
-        //     if(msg.sender == pirces[i].updater) {
-        //         pirces[i].price = newPrice;
-        //         return;
-        //     }
-        // }
+        for(uint i; i < len; i++) {
+            if(msg.sender == pirces[i].updater) {
+                pirces[i].price = newPrice;
+                return;
+            }
+        }
         singlePirce memory temp;
         temp.updater = msg.sender;
         temp.price = newPrice;
