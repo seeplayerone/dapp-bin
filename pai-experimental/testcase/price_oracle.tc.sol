@@ -202,7 +202,10 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         paiDAO.init();
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
         admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9);
-        admin.callCreateNewRole(paiDAO,"ORACLEMANAGER","ADMIN",9);
+        admin.callCreateNewRole(paiDAO,"ORACLEMANAGER","ADMIN",0);
+        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
+        admin.callAddMember(paiDAO,admin,"DIRECTORVOTE");
+        admin.callModifyDisableOracleLimit(oracle,uint8(2));
 
         FakePerson p1 = new FakePerson();
         FakePerson p2 = new FakePerson();
@@ -221,5 +224,18 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         assertTrue(tempBool);
         tempBool = manager.callDisableOne(oracle, p1);
         assertTrue(tempBool);
+        tempBool = p1.callUpdatePrice(oracle, RAY * 101 / 100);
+        assertTrue(!tempBool);
+
+        tempBool = admin.callAddMember(paiDAO,p2,"BTCOracle");
+        assertTrue(tempBool);
+        tempBool = p2.callUpdatePrice(oracle, RAY * 101 / 100);
+        assertTrue(tempBool);
+        tempBool = manager.callDisableOne(oracle, p2);
+        assertTrue(tempBool);
+        tempBool = p2.callUpdatePrice(oracle, RAY * 101 / 100);
+        assertTrue(!tempBool);
+
+
     }
 }
