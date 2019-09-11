@@ -124,6 +124,18 @@ contract FakePerson is Template {
         bool result = Setting(setting).call(abi.encodeWithSelector(methodId, newRate));
         return result;
     }
+
+    function callUpdateDepositRate(address setting, uint newRate) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("updateDepositRate(uint256)"));
+        bool result = Setting(setting).call(abi.encodeWithSelector(methodId, newRate));
+        return result;
+    }
+
+    function callUpdateRatioLimit(address setting, uint96 assetGlobalId, uint newRate) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("updateRatioLimit(uint96,uint256)"));
+        bool result = Setting(setting).call(abi.encodeWithSelector(methodId,assetGlobalId,newRate));
+        return result;
+    }
 }
 
 contract FakePAIIssuer is PAIIssuer {
