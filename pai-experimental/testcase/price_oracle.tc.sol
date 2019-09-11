@@ -194,4 +194,32 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         p[0].callUpdatePrice(oracle, RAY * 101 / 100);
         assertEq(oracle.getPrice(), RAY * 101 / 100);
     }
+
+    function testDIsable() public {
+        FakePaiDao paiDAO;
+        FakePerson admin = new FakePerson();
+        paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
+        paiDAO.init();
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9);
+        admin.callCreateNewRole(paiDAO,"ORACLEMANAGER","ADMIN",9);
+
+        FakePerson p1 = new FakePerson();
+        FakePerson p2 = new FakePerson();
+        FakePerson manager = new FakePerson();
+
+        bool tempBool = p1.callUpdatePrice(oracle, RAY * 101 / 100);
+        assertTrue(!tempBool);
+        tempBool = admin.callAddMember(paiDAO,p1,"BTCOracle");
+        assertTrue(tempBool);
+        tempBool = p1.callUpdatePrice(oracle, RAY * 101 / 100);
+        assertTrue(tempBool);
+
+        tempBool = manager.callDisableOne(oracle, p1);
+        assertTrue(!tempBool);
+        tempBool = admin.callAddMember(paiDAO,manager,"ORACLEMANAGER");
+        assertTrue(tempBool);
+        tempBool = manager.callDisableOne(oracle, p1);
+        assertTrue(tempBool);
+    }
 }

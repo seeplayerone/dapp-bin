@@ -21,7 +21,6 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     uint[256] private priceHistory;
     uint8 private lastUpdateIndex;
     uint8 public disableOracleLimit;
-    uint8 public indexOfDisabledOracle;
     string public ORACLE;
     address[] public disabledOracle;
 
@@ -41,6 +40,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         updateInterval = 6;
         sensitivityTime = 60;
         sensitivityRate = RAY / 20;
+        disableOracleLimit = 5;
     }
 
     function updatePrice(uint256 newPrice) public auth(ORACLE) {
@@ -141,7 +141,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         disabledOracle.length = 0;
     }
     
-    function disableOne(address addr) public auth("ORACLEMANGER") {
+    function disableOne(address addr) public auth("ORACLEMANAGER") {
         require(disableOracleLimit > disabledOracle.length);
         for(uint i = 0; i < disabledOracle.length; i++) {
             if (addr == disabledOracle[i]) {
@@ -151,7 +151,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         disabledOracle.push(addr);
     }
 
-    function enableOne(address addr) public auth("ORACLEMANGER") {
+    function enableOne(address addr) public auth("ORACLEMANAGER") {
         uint len = disabledOracle.length;
         for(uint i = 0; i < len; i++) {
             if (addr == disabledOracle[i]) {
@@ -162,6 +162,10 @@ contract PriceOracle is Template, ACLSlave, DSMath {
                 return;
             }
         }
+    }
+
+    function disabledNumber() public view returns (uint) {
+        return disabledOracle.length;
     }
 
     function disabled(address addr) public view returns (bool) {

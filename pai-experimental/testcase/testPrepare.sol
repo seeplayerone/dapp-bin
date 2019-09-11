@@ -75,6 +75,19 @@ contract FakePerson is Template {
         bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId, newPrice));
         return result;
     }
+
+    function callDisableOne(address oracle, address addr) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("disableOne(address)"));
+        bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId, addr));
+        return result;
+    }
+
+    function callEnableOne(address oracle, address addr) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("enableOne(address)"));
+        bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId, addr));
+        return result;
+    }
+
 }
 
 contract FakePAIIssuer is PAIIssuer {
