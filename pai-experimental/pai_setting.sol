@@ -2,8 +2,9 @@ pragma solidity 0.4.25;
 
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 
-contract Setting is Template, ACLSlave {
+contract Setting is Template, DSMath, ACLSlave {
     uint public lendingInterestRate; // in RAY
     uint public depositInterestRate; // in RAY
     mapping(uint96 => uint) public mintPaiRatioLimit; //in RAY
