@@ -4,6 +4,7 @@ import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
 
 contract FakePerson is Template {
     function() public payable {}
@@ -99,7 +100,7 @@ contract FakePerson is Template {
         bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId, newInterval));
         return result;
     }
-    
+
     function callModifySensitivityTime(address oracle, uint newTime) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("modifySensitivityTime(uint256)"));
         bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId, newTime));
@@ -115,6 +116,12 @@ contract FakePerson is Template {
     function callEmptyDisabledOracle(address oracle) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("emptyDisabledOracle()"));
         bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId));
+        return result;
+    }
+
+    function callUpdateLendingRate(address setting, uint newRate) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("updateLendingRate(uint256)"));
+        bool result = PriceOracle(setting).call(abi.encodeWithSelector(methodId, newRate));
         return result;
     }
 }
