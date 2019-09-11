@@ -11,6 +11,8 @@ contract Setting is Template, ACLSlave {
     constructor(address paiMainContract) public {
         master = ACLMaster(paiMainContract);
         globalOpen = true;
+        lendingInterestRate = RAY / 5;
+        depositInterestRate = RAY / 5;
     }
 
     function updateLendingRate(uint newRate) public auth("DIRECTORVOTE") {

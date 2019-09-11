@@ -121,7 +121,7 @@ contract FakePerson is Template {
 
     function callUpdateLendingRate(address setting, uint newRate) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("updateLendingRate(uint256)"));
-        bool result = PriceOracle(setting).call(abi.encodeWithSelector(methodId, newRate));
+        bool result = Setting(setting).call(abi.encodeWithSelector(methodId, newRate));
         return result;
     }
 }

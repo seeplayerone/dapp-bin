@@ -26,8 +26,10 @@ contract GlobalSettingTest is Template, DSTest, DSMath {
 
         bool tempBool = p2.callUpdateLendingRate(setting, RAY/10);
         assertTrue(!tempBool);
+        assertEq(setting.lendingInterestRate(),RAY/10);
         tempBool = p1.callUpdateLendingRate(setting, RAY/10);
         assertTrue(tempBool);
+        assertEq(setting.lendingInterestRate(),RAY/10);
 
 
 
