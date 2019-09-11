@@ -11,12 +11,12 @@ contract ACLMaster is DSMath {
         bytes superior;
         address[] members;
     }
-    uint public indexForACL;
+    uint public indexOfACL;
     string constant ADMIN = "ADMIN";
 
     constructor() public {
-        indexForACL = 1;
-        roles[indexForACL] = bytes(ADMIN);
+        indexOfACL = 1;
+        roles[indexOfACL] = bytes(ADMIN);
         groups[bytes(ADMIN)].exist = true;
         groups[bytes(ADMIN)].superior = bytes(ADMIN);
         groups[bytes(ADMIN)].members.push(msg.sender);
@@ -25,8 +25,8 @@ contract ACLMaster is DSMath {
     function createNewRole(bytes newRole, bytes superior, uint32 limit) public auth(ADMIN) {
         require(!groups[newRole].exist);
         require(groups[superior].exist);
-        indexForACL = add(indexForACL,1);
-        roles[indexForACL] = newRole;
+        indexOfACL = add(indexOfACL,1);
+        roles[indexOfACL] = newRole;
         groups[newRole].exist = true;
         groups[newRole].superior = superior;
         groups[newRole].memberLimit = limit;

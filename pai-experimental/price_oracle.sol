@@ -15,12 +15,15 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     uint public lastUpdateBlock; // in blockheights
     uint public lastUpdatePrice; // in RAY
     uint public updateInterval;  // in blockheights
-    uint public sensitivityTime; // must be multiple of updateInterval,  in blockheights
+    uint public sensitivityTime; // should be multiple of updateInterval,  in blockheights
     uint public sensitivityRate; // in RAY
 
     uint[256] private priceHistory;
     uint8 private lastUpdateIndex;
+    uint8 public disableOracleLimit;
+    uint8 public indexOfDisabledOracle;
     string public ORACLE;
+    address[] public disabledOracle;
 
     struct singlePirce {
         address updater;
@@ -112,6 +115,52 @@ contract PriceOracle is Template, ACLSlave, DSMath {
             sum = add(sum,pirces[i].price);
         }
         return sub(sum,add(maxPrice,minPrice)) / (len - 2);
+    }
+
+    function modifyUpdateInterval(uint newInterval) public auth("DIRECTORVOTE") {
+        require(newInterval > 0);
+        updateInterval = newInterval;
+    }
+
+    function modifySensitivityTime(uint newTime) public auth("DIRECTORVOTE") {
+        require(newTime > updateInterval);
+        sensitivityTime = newTime;
+    }
+
+    function modifySensitivityRate(uint newRate) public auth("DIRECTORVOTE") {
+        require(newRate > RAY /1000);
+        sensitivityRate = newRate;
+    }
+
+    function modifyDisableOracleLimit(uint8 newlimit) public auth("DIRECTORVOTE") {
+        disableOracleLimit = newlimit;
+    }
+
+    function emptyDisabledOracle() public auth("DIRECTORVOTE") {
+        disabledOracle.length = 0;
+    }
+    
+    function disableOne(address addr) public auth("ORACLEMANGER") {
+        require(disableOracleLimit > disabledOracle.length);
+        for(uint i = 0; i < disabledOracle.length; i++) {
+            if (addr == disabledOracle[i]) {
+                return;
+            }
+        }
+        disabledOracle.push(addr);
+    }
+
+    function enableOne(address addr) public auth("ORACLEMANGER") {
+        uint len = disabledOracle.length;
+        for(uint i = 0; i < len; i++) {
+            if (addr == disabledOracle[i]) {
+                if(i != len - 1) {
+                    disabledOracle[i] = disabledOracle[len - 1];
+                }
+                disabledOracle.length--;
+                return;
+            }
+        }
     }
 
     function getPrice() public view returns (uint256) {

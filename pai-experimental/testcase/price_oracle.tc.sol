@@ -182,10 +182,16 @@ contract PriceOracleTest is Template, DSTest,DSMath {
             admin.callAddMember(paiDAO,p[i],"BTCOracle");
         }
 
-        p[1].callUpdatePrice(oracle, RAY * 101 /100);
-        p[1].callUpdatePrice(oracle, RAY * 101 /100);
-        p[1].callUpdatePrice(oracle, RAY * 101 /100);
-        p[1].callUpdatePrice(oracle, RAY * 101 /100);
-        
+        p[0].callUpdatePrice(oracle, RAY * 101 / 100);
+        p[1].callUpdatePrice(oracle, RAY * 101 / 100);
+        p[2].callUpdatePrice(oracle, RAY * 101 / 100);
+        p[3].callUpdatePrice(oracle, RAY * 101 / 100);
+        oracle.fly(30);
+        p[0].callUpdatePrice(oracle, RAY * 101 / 100);
+        assertEq(oracle.getPrice(), RAY);
+        p[4].callUpdatePrice(oracle, RAY * 101 / 100);
+        oracle.fly(30);
+        p[0].callUpdatePrice(oracle, RAY * 101 / 100);
+        assertEq(oracle.getPrice(), RAY * 101 / 100);
     }
 }
