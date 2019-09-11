@@ -46,6 +46,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     function updatePrice(uint256 newPrice) public auth(ORACLE) {
         require(!settlement);
         require(newPrice > 0);
+        require(!disabled(msg.sender));
         updateSinglePriceInternal(newPrice);
         if(sub(height(),lastUpdateBlock) >= updateInterval) {
             updateOverallPrice();
@@ -70,7 +71,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         if (master.getMemberLimit(bytes(ORACLE)) / 2 >= pirces.length) {
             lastUpdateBlock = height();
             lastUpdateIndex = lastUpdateIndex + 1;
-            //actually,the following code describes the logic of updating, but it is not necessary to be run
+            //the lastUpdatePrice also needs to be updated, but its value needs no change, so the following code is noted.
             //lastUpdatePrice = lastUpdatePrice;
             priceHistory[lastUpdateIndex] = lastUpdatePrice;
             return;
@@ -161,6 +162,15 @@ contract PriceOracle is Template, ACLSlave, DSMath {
                 return;
             }
         }
+    }
+
+    function disabled(address addr) public view returns (bool) {
+        for(uint i = 0; i < disabledOracle.length; i++) {
+            if (addr == disabledOracle[i]) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function getPrice() public view returns (uint256) {
