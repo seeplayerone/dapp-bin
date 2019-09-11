@@ -284,7 +284,32 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         tempBool = p2.callModifySensitivityRate(oracle, RAY / 10);
         assertTrue(!tempBool);
 
+        tempBool = p1.callModifyUpdateInterval(oracle, 100);
+        assertTrue(tempBool);
+        assertEq(oracle.updateInterval(),100);
+        p1.callModifyUpdateInterval(oracle, 200);
+        assertEq(oracle.updateInterval(),200);
+        tempBool = p1.callModifyUpdateInterval(oracle, 0);
+        assertTrue(!tempBool);
 
+        tempBool = p1.callModifySensitivityTime(oracle, 500);
+        assertTrue(tempBool);
+        assertEq(oracle.sensitivityTime(),500);
+        tempBool = p1.callModifySensitivityTime(oracle, 1000);
+        assertTrue(tempBool);
+        assertEq(oracle.sensitivityTime(),1000);
+        tempBool = p1.callModifySensitivityTime(oracle, 200);
+        assertTrue(!tempBool);
+        p1.callModifyUpdateInterval(oracle, 100);
+        tempBool = p1.callModifySensitivityTime(oracle, 100);
+        assertTrue(!tempBool);
 
+        tempBool = p1.callModifySensitivityRate(oracle, RAY / 10);
+        assertTrue(tempBool);
+        assertEq(oracle.sensitivityRate(), RAY / 10);
+        p1.callModifySensitivityRate(oracle, RAY / 20);
+        assertEq(oracle.sensitivityRate(), RAY / 20);
+        tempBool = p1.callModifySensitivityRate(oracle, RAY / 10000);
+        assertTrue(!tempBool);
     }
 }

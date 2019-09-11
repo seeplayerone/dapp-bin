@@ -129,7 +129,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     }
 
     function modifySensitivityRate(uint newRate) public auth("DIRECTORVOTE") {
-        require(newRate > RAY /1000);
+        require(newRate > RAY /10000);
         sensitivityRate = newRate;
     }
 
