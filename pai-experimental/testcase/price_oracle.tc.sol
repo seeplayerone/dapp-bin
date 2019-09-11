@@ -195,7 +195,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         assertEq(oracle.getPrice(), RAY * 101 / 100);
     }
 
-    function testDIsable() public {
+    function testDisableEnable() public {
         FakePaiDao paiDAO;
         FakePerson admin = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
@@ -209,6 +209,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
 
         FakePerson p1 = new FakePerson();
         FakePerson p2 = new FakePerson();
+        FakePerson p3 = new FakePerson();
         FakePerson manager = new FakePerson();
 
         bool tempBool = p1.callUpdatePrice(oracle, RAY * 101 / 100);
@@ -235,7 +236,33 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         assertTrue(tempBool);
         tempBool = p2.callUpdatePrice(oracle, RAY * 101 / 100);
         assertTrue(!tempBool);
+        assertEq(oracle.disabledNumber(),2);
+        assertTrue(oracle.disabled(p1));
+        assertTrue(oracle.disabled(p2));
 
+        tempBool = admin.callAddMember(paiDAO,p3,"BTCOracle");
+        assertTrue(tempBool);
+        tempBool = manager.callDisableOne(oracle, p3);
+        assertTrue(!tempBool);
+        tempBool = manager.callEnableOne(oracle, p1);
+        assertTrue(tempBool);
+        assertTrue(!oracle.disabled(p1));
+        assertEq(oracle.disabledNumber(),1);
+        tempBool = p1.callUpdatePrice(oracle, RAY * 101 / 100);
+        assertTrue(tempBool);
+        tempBool = manager.callDisableOne(oracle, p3);
+        assertTrue(tempBool);
+        assertTrue(oracle.disabled(p3));
+        assertEq(oracle.disabledNumber(),2);
+        tempBool = p3.callUpdatePrice(oracle, RAY * 101 / 100);
+        assertTrue(!tempBool);
 
+        tempBool = admin.callEmptyDisabledOracle(oracle);
+        assertTrue(tempBool);
+        assertEq(oracle.disabledNumber(),0);
+        tempBool = p2.callUpdatePrice(oracle, RAY * 101 / 100);
+        assertTrue(!tempBool);
+        tempBool = p3.callUpdatePrice(oracle, RAY * 101 / 100);
+        assertTrue(!tempBool);
     }
 }
