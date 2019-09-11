@@ -213,56 +213,78 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         FakePerson manager = new FakePerson();
 
         bool tempBool = p1.callUpdatePrice(oracle, RAY * 101 / 100);
-        assertTrue(!tempBool);
+        assertTrue(!tempBool);//0
         tempBool = admin.callAddMember(paiDAO,p1,"BTCOracle");
-        assertTrue(tempBool);
+        assertTrue(tempBool);//1
         tempBool = p1.callUpdatePrice(oracle, RAY * 101 / 100);
-        assertTrue(tempBool);
+        assertTrue(tempBool);//2
 
         tempBool = manager.callDisableOne(oracle, p1);
-        assertTrue(!tempBool);
+        assertTrue(!tempBool);//3
         tempBool = admin.callAddMember(paiDAO,manager,"ORACLEMANAGER");
-        assertTrue(tempBool);
+        assertTrue(tempBool);//4
         tempBool = manager.callDisableOne(oracle, p1);
-        assertTrue(tempBool);
+        assertTrue(tempBool);//5
         tempBool = p1.callUpdatePrice(oracle, RAY * 101 / 100);
-        assertTrue(!tempBool);
+        assertTrue(!tempBool);//6
 
         tempBool = admin.callAddMember(paiDAO,p2,"BTCOracle");
-        assertTrue(tempBool);
+        assertTrue(tempBool);//7
         tempBool = p2.callUpdatePrice(oracle, RAY * 101 / 100);
-        assertTrue(tempBool);
+        assertTrue(tempBool);//8
         tempBool = manager.callDisableOne(oracle, p2);
-        assertTrue(tempBool);
+        assertTrue(tempBool);//9
         tempBool = p2.callUpdatePrice(oracle, RAY * 101 / 100);
-        assertTrue(!tempBool);
-        assertEq(oracle.disabledNumber(),2);
-        assertTrue(oracle.disabled(p1));
-        assertTrue(oracle.disabled(p2));
+        assertTrue(!tempBool);//10
+        assertEq(oracle.disabledNumber(),2);//11
+        assertTrue(oracle.disabled(p1));//12
+        assertTrue(oracle.disabled(p2));//13
 
         tempBool = admin.callAddMember(paiDAO,p3,"BTCOracle");
-        assertTrue(tempBool);
+        assertTrue(tempBool);//14
         tempBool = manager.callDisableOne(oracle, p3);
-        assertTrue(!tempBool);
+        assertTrue(!tempBool);//15
         tempBool = manager.callEnableOne(oracle, p1);
-        assertTrue(tempBool);
-        assertTrue(!oracle.disabled(p1));
-        assertEq(oracle.disabledNumber(),1);
+        assertTrue(tempBool);//16
+        assertTrue(!oracle.disabled(p1));//17
+        assertEq(oracle.disabledNumber(),1);//18
         tempBool = p1.callUpdatePrice(oracle, RAY * 101 / 100);
-        assertTrue(tempBool);
+        assertTrue(tempBool);//19
         tempBool = manager.callDisableOne(oracle, p3);
-        assertTrue(tempBool);
-        assertTrue(oracle.disabled(p3));
-        assertEq(oracle.disabledNumber(),2);
+        assertTrue(tempBool);//20
+        assertTrue(oracle.disabled(p3));//21
+        assertEq(oracle.disabledNumber(),2);//22
         tempBool = p3.callUpdatePrice(oracle, RAY * 101 / 100);
-        assertTrue(!tempBool);
+        assertTrue(!tempBool);//23
 
         tempBool = admin.callEmptyDisabledOracle(oracle);
-        assertTrue(tempBool);
-        assertEq(oracle.disabledNumber(),0);
+        assertTrue(tempBool);//24
+        assertEq(oracle.disabledNumber(),0);//25
         tempBool = p2.callUpdatePrice(oracle, RAY * 101 / 100);
-        assertTrue(!tempBool);
+        assertTrue(tempBool);//26
         tempBool = p3.callUpdatePrice(oracle, RAY * 101 / 100);
+        assertTrue(tempBool);//27
+    }
+
+    function testSetting() public {
+        FakePaiDao paiDAO;
+        FakePerson admin = new FakePerson();
+        FakePerson p1 = new FakePerson();
+        FakePerson p2 = new FakePerson();
+        paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
+        paiDAO.init();
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
+        admin.callAddMember(paiDAO,p1,"DIRECTORVOTE");
+
+        bool tempBool = p2.callModifyUpdateInterval(oracle, 100);
         assertTrue(!tempBool);
+        tempBool = p2.callModifySensitivityTime(oracle, 500);
+        assertTrue(!tempBool);
+        tempBool = p2.callModifySensitivityRate(oracle, RAY / 10);
+        assertTrue(!tempBool);
+
+
+
     }
 }

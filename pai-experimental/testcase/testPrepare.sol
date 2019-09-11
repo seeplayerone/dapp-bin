@@ -94,6 +94,24 @@ contract FakePerson is Template {
         return result;
     }
 
+    function callModifyUpdateInterval(address oracle, uint newInterval) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("modifyUpdateInterval(uint256)"));
+        bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId, newInterval));
+        return result;
+    }
+    
+    function callModifySensitivityTime(address oracle, uint newTime) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("modifySensitivityTime(uint256)"));
+        bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId, newTime));
+        return result;
+    }
+
+    function callModifySensitivityRate(address oracle, uint newRate) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("modifySensitivityRate(uint256)"));
+        bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId, newRate));
+        return result;
+    }
+
     function callEmptyDisabledOracle(address oracle) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("emptyDisabledOracle()"));
         bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId));
