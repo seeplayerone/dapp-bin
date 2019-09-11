@@ -46,6 +46,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     function updatePrice(uint256 newPrice) public auth(ORACLE) {
         require(!settlement);
         require(newPrice > 0);
+        require(newPrice < (1 << 200));
         require(!disabled(msg.sender));
         updateSinglePriceInternal(newPrice);
         if(sub(height(),lastUpdateBlock) >= updateInterval) {
@@ -104,13 +105,13 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         require(pirces.length > 2);
         uint sum;
         uint maxPrice;
-        uint minPrice;
+        uint minPrice = uint(-1);
         uint len = pirces.length;
         for(uint i; i < len; i++) {
             if(pirces[i].price > maxPrice) {
                 maxPrice = pirces[i].price;
             }
-            if(pirces[i].price < minPrice || 0 == minPrice) {
+            if(pirces[i].price < minPrice) {
                 minPrice = pirces[i].price;
             }
             sum = add(sum,pirces[i].price);
