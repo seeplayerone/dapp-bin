@@ -193,6 +193,9 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         oracle.fly(30);
         p[0].callUpdatePrice(oracle, RAY * 101 / 100);
         assertEq(oracle.getPrice(), RAY * 101 / 100);
+
+        bool tempBool = p[0].callUpdatePrice(oracle, 2 ** 220);
+        assertTrue(!tempBool);
     }
 
     function testDisableEnable() public {
