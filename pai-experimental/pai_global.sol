@@ -2,10 +2,8 @@ pragma solidity 0.4.25;
 
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 
-
-contract PAIIssuer is Template, DSMath, ACLSlave {
+contract Setting is Template, ACLSlave {
     uint public lendingInterestRate; // in RAY
     uint public depositInterestRate; // in RAY
     mapping(uint96 => uint) public mintPaiRatioLimit; //in RAY
@@ -16,16 +14,14 @@ contract PAIIssuer is Template, DSMath, ACLSlave {
     }
 
     function updateLendingRate(uint newRate) public auth("DIRECTORVOTE") {
-        require(newRate > 0);
         lendingInterestRate = newRate;
     }
 
     function updateDepositRate(uint newRate) public auth("DIRECTORVOTE") {
-        require(newRate > 0);
         depositInterestRate = newRate;
     }
 
-    function setRatioLimit(uint96 assetGlobalId, uint ratio) public auth("DIRECTORVOTE") {
+    function updateRatioLimit(uint96 assetGlobalId, uint ratio) public auth("DIRECTORVOTE") {
         mintPaiRatioLimit[assetGlobalId] = ratio;
     }
 
