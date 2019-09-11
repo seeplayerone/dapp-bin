@@ -136,6 +136,18 @@ contract FakePerson is Template {
         bool result = Setting(setting).call(abi.encodeWithSelector(methodId,assetGlobalId,newRate));
         return result;
     }
+
+    function callGlobalShutDown(address setting) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("globalShutDown()"));
+        bool result = Setting(setting).call(abi.encodeWithSelector(methodId));
+        return result;
+    }
+
+    function callGlobalReopen(address setting) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("globalReopen()"));
+        bool result = Setting(setting).call(abi.encodeWithSelector(methodId));
+        return result;
+    }
 }
 
 contract FakePAIIssuer is PAIIssuer {

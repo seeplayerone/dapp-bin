@@ -36,7 +36,7 @@ contract GlobalSettingTest is Template, DSTest, DSMath {
         assertEq(setting.depositInterestRate(),RAY / 5);
         tempBool = p1.callUpdateDepositRate(setting, RAY / 10);
         assertTrue(tempBool);
-        assertEq(setting.callUpdateDepositRate(),RAY / 10);
+        assertEq(setting.depositInterestRate(),RAY / 10);
 
         tempBool = p2.callUpdateRatioLimit(setting, uint96(123), RAY / 10);
         assertTrue(!tempBool);
@@ -45,7 +45,19 @@ contract GlobalSettingTest is Template, DSTest, DSMath {
         assertTrue(tempBool);
         assertEq(setting.mintPaiRatioLimit(uint96(123)), RAY / 10);
 
-
+        assertTrue(setting.globalOpen());
+        tempBool = p2.callGlobalShutDown(setting);
+        assertTrue(!tempBool);
+        assertTrue(setting.globalOpen());
+        tempBool = p1.callGlobalShutDown(setting);
+        assertTrue(tempBool);
+        assertTrue(!setting.globalOpen());
+        tempBool = p2.callGlobalReopen(setting);
+        assertTrue(!tempBool);
+        assertTrue(!setting.globalOpen());
+        tempBool = p1.callGlobalReopen(setting);
+        assertTrue(tempBool);
+        assertTrue(setting.globalOpen());
 
     }
 }
