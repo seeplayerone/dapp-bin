@@ -29,6 +29,9 @@
 * [asimov_signRawTransaction](#asimov_signRawTransaction)
 * [asimov_searchRawTransactions](#asimov_searchRawTransactions)
 * [asimov_searchAllRawTransactions](#asimov_searchAllRawTransactions)
+* [asimov_getMempoolTransactions](#asimov_getMempoolTransactions)
+* [asimov_getContractTemplateInfoByName](#asimov_getContractTemplateInfoByName)
+* [asimov_getContractTemplateInfoByKey](#asimov_getContractTemplateInfoByKey)
 
 ## API Methods
 
@@ -1122,3 +1125,96 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_searchAllRawTrans
 ```
 ---
 
+### asimov_getMempoolTransactions
+
+ Returns transactions in mempool.
+
+#### Parameters
+
+* transaction hash array
+
+#### Returns
+
+* information of transaction
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getMempoolTransactions","params":[["22afe58927c8a7d8a25f10297db4a9a936a2beb68bb9a65a1667c2bb918b623a"]]}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {}
+}
+```
+---
+
+### asimov_getContractTemplateInfoByName
+
+Returns information of contract template.
+
+#### Parameters
+
+* category
+* template name
+
+#### Returns
+
+* information of contract template
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getContractTemplateInfoByName","params":[1, "btefo"]}}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "category": 1,
+        "template_name": "btefo",
+        "byte_code": "6080604052604051620083923803806200839283398......",
+        "abi": "......",
+        "source": "solidity source code"
+    }
+}
+```
+---
+
+### asimov_getContractTemplateInfoByKey
+
+Returns information of contract template.
+
+#### Parameters
+
+* template key
+
+#### Returns
+
+* information of contract template
+
+
+#### Example
+```json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getContractTemplateInfoByKey","params":["14d84139e497e1fbeb8016721aaa44d279444c17fa199ce239dcccc80f0a44ae"]}}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "category": 1,
+        "template_name": "vote01",
+        "byte_code": "6080604052600060025534801561001557600080fd5......",
+        "abi": "......",
+        "source": "pragma solidity 0.4.25;......"
+    }
+}
+```
+---
