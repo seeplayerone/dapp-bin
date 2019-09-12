@@ -83,14 +83,53 @@ contract TestBase is Template, DSTest, DSMath {
 contract SettingTest is TestBase {
     function testSetAssetCollateral() public {
         setup();
-        // assertEq(uint(cdp.ASSET_COLLATERAL()),uint(ASSET_BTC));
-        // assertEq(cdp.priceOracle(),oracle);
-        //tempBool = p1.callSetAssetCollateral(cdp,uint96(123),address(0x456));
-        // assertTrue(!tempBool);
-        bool tempBool = admin.callSetAssetCollateral(cdp,uint96(123),address(p2));
+        assertEq(uint(cdp.ASSET_COLLATERAL()),uint(ASSET_BTC));
+        assertEq(cdp.priceOracle(),oracle);
+        bool tempBool = p1.callSetAssetCollateral(cdp,uint96(123),p2);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetAssetCollateral(cdp,uint96(123),p2);
         assertTrue(tempBool);
-        // assertEq(uint(cdp.ASSET_COLLATERAL()),123);
-        // assertEq(cdp.priceOracle(),address(0x456));
+        assertEq(uint(cdp.ASSET_COLLATERAL()),123);
+        assertEq(cdp.priceOracle(),p2);
+    }
+
+    function testUpdateBaseInterestRate() public {
+        setup();
+        assertEq(cdp.annualizedInterestRate(),RAY / 5);
+        assertEq(cdp.secondInterestRate(),1000000005781378656804591713);
+        //exp(log(1.2)/365/86400)*10^27 = 1000000005781378662058164224
+        admin.callUpdateLendingRate(setting, RAY / 10);
+        assertEq(cdp.annualizedInterestRate(),RAY / 5);
+        assertEq(cdp.secondInterestRate(),1000000005781378656804591713);
+        cdp.updateBaseInterestRate();
+        assertEq(cdp.annualizedInterestRate(),RAY / 10);
+        assertEq(cdp.secondInterestRate(),1000000003022265980097387650);
+        //exp(log(1.1)/365/86400)*10^27 = 1000000003022265970012364960
+    }
+
+    function testUpdateCutDown() public {
+        setup();
+        assertEq(cdp.cutDown(1), RAY * 4 / 1000);
+        assertEq(cdp.cutDown(2), RAY * 6 / 1000);
+        assertEq(cdp.cutDown(3), RAY * 8 / 1000);
+        assertEq(cdp.cutDown(4), RAY * 10 / 1000);
+        assertEq(cdp.cutDown(5), RAY * 12 / 1000);
+        assertEq(cdp.cutDown(6), 0);
+        assertEq(cdp.cutDown(7), 0);
+        assertEq(cdp.cutDown(8), 0);
+        assertEq(cdp.cutDown(9), 0);
+        assertEq(cdp.cutDown(10), 0);
+        bool tempBool = p1.callUpdateCutDown(cdp,1,RAY * 2 / 1000);
+        assertTrue(!tempBool);
+        for(uint8 i = 1 ; i <= 10; i++) {
+            admin.callUpdateCutDown(cdp,i,RAY * 2 / 1000);
+            assertEq(cdp.cutDown(i), RAY * 2 / 1000);
+        }
+        tempBool = admin.callUpdateCutDown(cdp,0,RAY * 2 / 1000);
+        assertTrue(!tempBool);
+        tempBool = admin.callUpdateCutDown(cdp,11,RAY * 2 / 1000);
+        assertTrue(!tempBool);
+
     }
 }
 
