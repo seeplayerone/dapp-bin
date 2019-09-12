@@ -183,10 +183,25 @@ contract SettingTest is TestBase {
     function testSwitchCDPTransfer() public {
         setup();
         assertTrue(!cdp.disableCDPTransfer());
-        bool tempBool = p1.callSwitchCDPTransfer(cdp,6,true);
+        bool tempBool = p1.callSwitchCDPTransfer(cdp,true);
         assertTrue(!tempBool);
-        tempBool = admin.callSwitchCDPTransfer(cdp,6,true);
+        tempBool = admin.callSwitchCDPTransfer(cdp,true);
         assertTrue(tempBool);
+        assertTrue(cdp.disableCDPTransfer());
+        admin.callSwitchCDPTransfer(cdp,false);
+        assertTrue(!cdp.disableCDPTransfer());
+    }
+
+    function testSwitchCDPCreation() public {
+        setup();
+        assertTrue(!cdp.disableCDPCreation());
+        bool tempBool = p1.callSwitchCDPCreation(cdp,true);
+        assertTrue(!tempBool);
+        tempBool = admin.callSwitchCDPCreation(cdp,true);
+        assertTrue(tempBool);
+        assertTrue(cdp.disableCDPCreation());
+        admin.callSwitchCDPCreation(cdp,false);
+        assertTrue(!cdp.disableCDPCreation());
     }
 }
 
