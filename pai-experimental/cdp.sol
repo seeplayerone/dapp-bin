@@ -151,9 +151,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         lastTimestamp = block.timestamp;
     }
 
-    function setAssetCollateral(uint96 assetType, address newPriceOracle) public note 
-    auth("DIRECTORVOTE") 
-    {
+    function setAssetCollateral(uint96 assetType, address newPriceOracle) public note auth("DIRECTORVOTE") {
         ASSET_COLLATERAL = assetType;
         emit SetParam(1,ASSET_COLLATERAL);
         priceOracle = PriceOracle(newPriceOracle);
@@ -433,20 +431,20 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         return priceOracle.getPrice();
     }
 
-    function setLiquidator(Liquidator newLiquidator) public note auth("DIRECTORVOTE") {
-        liquidator = newLiquidator;
+    function setLiquidator(address newLiquidator) public note auth("DIRECTORVOTE") {
+        liquidator = Liquidator(newLiquidator);
         emit SetContract(1,liquidator);
     }
 
-    function setPAIIssuer(PAIIssuer newIssuer) public note auth("DIRECTORVOTE") {
-        issuer = newIssuer;
+    function setPAIIssuer(address newIssuer) public note auth("DIRECTORVOTE") {
+        issuer = PAIIssuer(newIssuer);
         ASSET_PAI = issuer.PAIGlobalId();
         emit SetParam(0,ASSET_PAI);
         emit SetContract(2,issuer);
     }
 
-    function setSetting(Setting _setting) public note auth("DIRECTORVOTE") {
-        setting = _setting;
+    function setSetting(address _setting) public note auth("DIRECTORVOTE") {
+        setting = Setting(_setting);
         debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
         annualizedInterestRate = setting.lendingInterestRate();
         secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
