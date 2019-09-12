@@ -61,7 +61,7 @@ contract TestBase is Template, DSTest, DSMath {
         finance = new Finance(paiIssuer); // todo
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
-        cdp = new TimefliesCDP(paiIssuer, oracle, liquidator,setting,finance,ASSET_BTC,1000000000000);
+        cdp = new TimefliesCDP(paiDAO,paiIssuer, oracle, liquidator,setting,finance,ASSET_BTC,1000000000000);
         admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
         admin.callAddMember(paiDAO,cdp,"PAIMINTER");
 

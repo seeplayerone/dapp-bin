@@ -109,6 +109,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     }
 
     constructor(
+        address paiMainContract
         address _issuer,
         address _oracle,
         address _liquidator,
@@ -117,6 +118,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         uint96 collateralGlobalId,
         uint _debtCeiling
         ) public {
+        master = ACLMaster(paiMainContract);
         issuer = PAIIssuer(_issuer);
         ASSET_PAI = issuer.PAIGlobalId();
         priceOracle = PriceOracle(_oracle);
@@ -149,12 +151,12 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         lastTimestamp = block.timestamp;
     }
 
-    function setAssetCollateral(uint96 assetType, PriceOracle newPriceOracle) public note 
-    //auth("DIRECTORVOTE") 
+    function setAssetCollateral(uint96 assetType, address newPriceOracle) public note 
+    auth("DIRECTORVOTE") 
     {
         ASSET_COLLATERAL = assetType;
         emit SetParam(1,ASSET_COLLATERAL);
-        priceOracle = newPriceOracle;
+        priceOracle = PriceOracle(newPriceOracle);
         emit SetContract(0,priceOracle);
     }
 

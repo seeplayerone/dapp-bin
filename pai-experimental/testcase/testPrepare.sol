@@ -240,9 +240,9 @@ contract TimefliesOracle is PriceOracle, TestTimeflies {
 }
 
 contract TimefliesCDP is CDP, TestTimeflies {
-    constructor(address _issuer, address _oracle, address _liquidator,
+    constructor(address main, address _issuer, address _oracle, address _liquidator,
         address _setting, address _finance, uint96 collateralGlobalId, uint _debtCeiling)
-        CDP(_issuer, _oracle, _liquidator,_setting,_finance,collateralGlobalId,_debtCeiling)
+        CDP(main, _issuer, _oracle, _liquidator, _setting, _finance, collateralGlobalId, _debtCeiling)
         public
     {
 
