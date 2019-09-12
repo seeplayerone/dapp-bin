@@ -9,7 +9,7 @@ contract Finance is Template {
 
     constructor(address _issuer) public {
         issuer = PAIIssuer(_issuer);
-        ASSET_PAI = issuer.getAssetType();
+        ASSET_PAI = issuer.PAIGlobalId();
     }
 
     function() public payable {}
