@@ -129,7 +129,30 @@ contract SettingTest is TestBase {
         assertTrue(!tempBool);
         tempBool = admin.callUpdateCutDown(cdp,11,RAY * 2 / 1000);
         assertTrue(!tempBool);
+    }
 
+    function testUpdateTerm() public {
+        setup();
+        assertEq(cdp.term(1), 30 * 86400);
+        assertEq(cdp.term(2), 60 * 86400);
+        assertEq(cdp.term(3), 90 * 86400);
+        assertEq(cdp.term(4), 180 * 86400);
+        assertEq(cdp.term(5), 360 * 86400);
+        assertEq(cdp.term(6), 0);
+        assertEq(cdp.term(7), 0);
+        assertEq(cdp.term(8), 0);
+        assertEq(cdp.term(9), 0);
+        assertEq(cdp.term(10), 0);
+        bool tempBool = p1.callUpdateTerm(cdp,6,1 days);
+        assertTrue(!tempBool);
+        for(uint8 i = 6 ; i <= 10; i++) {
+            admin.callUpdateTerm(cdp,i,2 days);
+            assertEq(cdp.term(i), 2 * 86400);
+        }
+        for(i = 0 ; i <= 5; i++) {
+            tempBool = admin.callUpdateTerm(cdp,i,2 days);
+            assertTrue(!tempBool);
+        }
     }
 }
 
