@@ -31,7 +31,7 @@ contract Settlement is Template, DSNote {
     ///     2. All CDPs are liquidated, withdraw operation is still allowed if more collaterals are left in CDPs.
     ///        A final collateral price is calculated for users to redeem PAI for collateral from Liquidator.
     function terminatePhaseOne() public note {
-        require(!cdp.inSettlement());
+        require(!cdp.settlement());
 
         oracle.terminate();
 

@@ -27,7 +27,7 @@ contract TestBase is Template, DSTest, DSMath {
     }
 
     function setup() public {
-        admin = new FakerPerson();
+        admin = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.inti();
 
