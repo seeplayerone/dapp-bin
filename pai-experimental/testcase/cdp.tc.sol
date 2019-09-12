@@ -82,8 +82,17 @@ contract TestBase is Template, DSTest, DSMath {
 
 contract SettingTest is TestBase {
     function testSetAssetCollateral() public {
-        
+        setup;
+        bool tempBool = p1.callSetAssetCollateral(cdp,123,456);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetAssetCollateral(cdp,123,456);
+        assertTrue(tempBool);
+
     }
+}
+
+contract FunctionTest is TestBase {
+
 }
 
 // contract CDPTest is TestBase {

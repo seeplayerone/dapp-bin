@@ -151,6 +151,12 @@ contract FakePerson is Template {
         return result;
     }
 
+    function callSetAssetCollateral(address cdp, uint96 assetType, address newPriceOracle) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("setAssetCollateral(uint96,address)"));
+        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,assetType,newPriceOracle));
+        return result;
+    }
+
     function callBuyCDP(address cdp, uint record, uint amount, uint96 id) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("buyCDP(uint256)"));
         bool result = TimefliesCDP(cdp).call.value(amount,id)(abi.encodeWithSelector(methodId,record));
