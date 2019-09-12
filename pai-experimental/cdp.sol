@@ -165,40 +165,40 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit SetParam(8, secondInterestRate);
     }
 
-    function updateCutDown(CDPType _type, uint _newCutDown) public note {
+    function updateCutDown(CDPType _type, uint _newCutDown) public note auth("DIRECTORVOTE") {
         require(_type != CDPType.CURRENT);
         cutDown[uint8(_type)] = _newCutDown;
         emit SetCutDown(_type,_newCutDown);
     }
 
-    function updateTerm(CDPType _type, uint _newTerm) public note {
+    function updateTerm(CDPType _type, uint _newTerm) public note auth("DIRECTORVOTE") {
         require(_type > CDPType._360DAYS);
         term[uint8(_type)] = _newTerm;
         emit SetTerm(_type,_newTerm);
     }
 
-    function changeState(CDPType _type, bool newState) public note {
+    function changeState(CDPType _type, bool newState) public note auth("DIRECTORVOTE") {
         require(_type > CDPType._360DAYS);
         enable[uint8(_type)] = newState;
         emit SetState(_type,newState);
     }
 
-    function switchCDPTransfer(bool newState) public note {
+    function switchCDPTransfer(bool newState) public note auth("DIRECTORVOTE") {
         disableCDPTransfer = newState;
         emit FunctionSwitch(0,newState);
     }
 
-    function switchCDPCreation(bool newState) public note {
+    function switchCDPCreation(bool newState) public note auth("DIRECTORVOTE") {
         disableCDPCreation = newState;
         emit FunctionSwitch(1,newState);
     }
 
-    function switchAllCDPFunction(bool newState) public note {
+    function switchAllCDPFunction(bool newState) public note auth("DIRECTORVOTE") {
         disableALLCDPFunction = newState;
         emit FunctionSwitch(2,newState);
     }
 
-    function updateCreateCollateralRatio(uint _newRatio, uint _newTolerance) public note {
+    function updateCreateCollateralRatio(uint _newRatio, uint _newTolerance) public note auth("DIRECTORVOTE") {
         require(_newRatio - _newTolerance >= liquidationRatio);
         require(_newTolerance <= RAY / 10);
         createCollateralRatio = _newRatio;
@@ -207,19 +207,19 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit SetParam(4,_newTolerance);
     }
 
-    function updateLiquidationRatio(uint newRatio) public note {
+    function updateLiquidationRatio(uint newRatio) public note auth("DIRECTORVOTE") {
         require(newRatio >= RAY);
         liquidationRatio = newRatio;
         emit SetParam(5,liquidationRatio);
     }
 
-    function updateLiquidationPenalty(uint newPenalty) public note {
+    function updateLiquidationPenalty(uint newPenalty) public note auth("DIRECTORVOTE") {
         require(newPenalty >= RAY);
         liquidationPenalty = newPenalty;
         emit SetParam(6,liquidationPenalty);
     }
 
-    function updateDebtCeiling(uint newCeiling) public note {
+    function updateDebtCeiling(uint newCeiling) public note auth("DIRECTORVOTE") {
         debtCeiling = newCeiling;
         emit SetParam(7,debtCeiling);
     }
@@ -417,23 +417,35 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         return flow.balance(this, ASSET_COLLATERAL);
     }
 
-    function setPriceOracle(PriceOracle newPriceOracle) public {
+    function setPriceOracle(PriceOracle newPriceOracle) public note auth("DIRECTORVOTE"){
         priceOracle = newPriceOracle;
+        emit SetContract(0,priceOracle);
     }
 
-    function getCollateralPrice() public view returns (uint256){
+    function getCollateralPrice() public view returns (uint256) {
         return priceOracle.getPrice();
     }
 
-    function setLiquidator(Liquidator newLiquidator) public {
+    function setLiquidator(Liquidator newLiquidator) public note auth("DIRECTORVOTE") {
         liquidator = newLiquidator;
+        emit SetContract(1,liquidator);
     }
 
-    function setPAIIssuer(PAIIssuer newIssuer) public {
+    function setPAIIssuer(PAIIssuer newIssuer) public note auth("DIRECTORVOTE") {
         issuer = newIssuer;
         ASSET_PAI = issuer.PAIGlobalId();
         emit SetParam(0,ASSET_PAI);
-        emit SetContract(0,issuer);
+        emit SetContract(2,issuer);
+    }
+
+    function setSetting(Setting _setting) public note auth("DIRECTORVOTE") {
+        setting = _setting;
+        emit SetContract(3,setting);
+    }
+
+    function setFinance(address _finance) public note auth("DIRECTORVOTE") {
+        finance = _finance;
+        emit SetContract(4,finance);
     }
 
     function safe(uint record) public returns (bool) {
@@ -510,7 +522,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         return sub(annualizedInterestRate,cutDown[uint8(_type)]);
     }
 
-    function terminate() public note {
+    function terminate() public note auth("SettlementContract") {
         require(!settlement);
         settlement = true;
         liquidationPenalty = RAY;

@@ -148,6 +148,12 @@ contract FakePerson is Template {
         bool result = Setting(setting).call(abi.encodeWithSelector(methodId));
         return result;
     }
+
+    function callBuyCDP(address cdp, uint record, uint amount, uint96 id) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("buyCDP(uint256)"));
+        bool result = TimefliesCDP(cdp).call.value(amount,id)(abi.encodeWithSelector(methodId,record));
+        return result;
+    }
 }
 
 contract FakePAIIssuer is PAIIssuer {
@@ -219,6 +225,16 @@ contract TestTimeflies {
 contract TimefliesOracle is PriceOracle, TestTimeflies {
     constructor(string orcaleGroupName, address paiMainContract, uint _price)
         PriceOracle(orcaleGroupName, paiMainContract, _price)
+        public
+    {
+
+    }
+}
+
+contract TimefliesCDP is CDP, TestTimeflies {
+    constructor(address _issuer, address _oracle, address _liquidator,
+        address _setting, address _finance, uint96 collateralGlobalId, uint _debtCeiling)
+        CDP(_issuer, _oracle, _liquidator,_setting,_finance,collateralGlobalId,_debtCeiling)
         public
     {
 
