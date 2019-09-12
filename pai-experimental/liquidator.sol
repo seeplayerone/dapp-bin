@@ -32,7 +32,7 @@ contract Liquidator is DSMath, DSNote, Template {
         issuer = PAIIssuer(_issuer);
 
         ASSET_BTC = 0;
-        ASSET_PAI = issuer.getAssetType();
+        ASSET_PAI = issuer.PAIGlobalId();
 
         discount = 970000000000000000000000000;
     }

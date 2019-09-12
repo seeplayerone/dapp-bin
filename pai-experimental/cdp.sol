@@ -13,10 +13,14 @@ import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/liquidator.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
+import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
 
-contract CDP is MathPI, DSNote, Template {
+contract CDP is MathPI, DSNote, Template, ACLSlave {
 
     event SetParam(uint paramType, uint param);
+    //please check specific meaning of type in each method
+    event SetContract(uint contractType, address contractAddress);
     //please check specific meaning of type in each method
     event SetCutDown(CDPType _type, uint _newCutDown);
     event PostCDP(uint CDPid, address newOwner, uint price);
@@ -31,12 +35,12 @@ contract CDP is MathPI, DSNote, Template {
     uint256 public CDPIndex = 0; /// how many CDPs have been created
     uint256 private liquidatedCDPIndex = 0; /// how many CDPs have been liquidated, only happens when the business is in settlement process
 
-    uint public baseInterestRate;///actually, the value is (1 + base interest rate)
+    uint public annualizedInterestRate;
+    uint public secondInterestRate;
 
     //There are 7 kinds of cdps, one is current lending and the others are time lending. All time lending cdp will be liquidated when expire.
     enum CDPType {CURRENT,_30DAYS,_60DAYS,_90DAYS,_180DAYS,_360DAYS}
     mapping(uint8 => uint) public cutDown;
-    mapping(uint8 => uint) public adjustedInterestRate;
     mapping(uint8 => uint) public term;
     uint public overdueBufferPeriod = 3 days;
 
@@ -56,13 +60,13 @@ contract CDP is MathPI, DSNote, Template {
     uint public closeCDPToleranceTime = 1 hours;
 
     uint private lastTimestamp;
-    uint private accumulatedRates; /// accumulated rates of current lending fees
+    uint private accumulatedRates = RAY; /// accumulated rates of current lending fees
 
     uint public totalPrincipal; /// total principal of all CDPs
 
-    uint public liquidationRatio; /// liquidation ratio
-    uint public liquidationPenalty; /// liquidation penalty
-    uint private lowerBorrowingLimit = 10000000; /// user should borrow at lest 0.1PAI once.
+    uint public liquidationRatio = RAY * 3 / 2; /// liquidation ratio
+    uint public liquidationPenalty = RAY * 113 /100; /// liquidation penalty
+    uint private lowerBorrowingLimit = 500000000; /// user should borrow at lest 5PAI once.
 
     uint public debtCeiling; /// debt ceiling
 
@@ -71,6 +75,8 @@ contract CDP is MathPI, DSNote, Template {
     Liquidator public liquidator; /// address of the liquidator;
     PriceOracle public priceOracle; /// price oracle of BTC'/PAI and PIS/PAI
     PAIIssuer public issuer; /// contract to mint/burn PAI stable coin
+    Setting public setting;  /// contract to storage global parameters
+    address public finance;  /// contract to be send profits
 
     uint private ASSET_COLLATERAL;
     uint private ASSET_PAI;
@@ -92,45 +98,41 @@ contract CDP is MathPI, DSNote, Template {
         uint256 endTime;
     }
 
-    constructor(address _issuer, address _oracle, address _liquidator) public {
-        baseInterestRate = 1000000005781380000000000000; // Annual interest rate = 20 %
-        accumulatedRates = RAY;
-        liquidationRatio = 1500000000000000000000000000;
-        liquidationPenalty = 1130000000000000000000000000;
+    constructor(
+        address _issuer,
+        address _oracle,
+        address _liquidator,
+        address _setting,
+        address _finance,
+        uint collateralGlobalId,
+        uint _debtCeiling
+        ) public {
+        issuer = PAIIssuer(_issuer);
+        ASSET_PAI = issuer.PAIGlobalId();
+        priceOracle = PriceOracle(_oracle);
+        liquidator = Liquidator(_liquidator);
+        setting = Setting(_setting);
+        annualizedInterestRate = setting.lendingInterestRate;
+        secondInterestRate = sub(optimalExp(generalLog(add(RAY,setting.annualizedInterestRate)) / 1 years),RAY);
+        finance = _finance;
+        ASSET_COLLATERAL = collateralGlobalId;
+        debtCeiling = _debtCeiling;
+
         cutDown[uint8(CDPType._30DAYS)] = RAY * 4 / 1000;
         cutDown[uint8(CDPType._60DAYS)] = RAY * 6 / 1000;
         cutDown[uint8(CDPType._90DAYS)] = RAY * 8 / 1000;
         cutDown[uint8(CDPType._180DAYS)] = RAY * 10 / 1000;
         cutDown[uint8(CDPType._360DAYS)] = RAY * 12 / 1000;
-        updateInterestRate(CDPType._30DAYS);
-        updateInterestRate(CDPType._60DAYS);
-        updateInterestRate(CDPType._90DAYS);
-        updateInterestRate(CDPType._180DAYS);
-        updateInterestRate(CDPType._360DAYS);
         term[uint8(CDPType._30DAYS)] = 30 days;
         term[uint8(CDPType._60DAYS)] = 60 days;
         term[uint8(CDPType._90DAYS)] = 90 days;
         term[uint8(CDPType._180DAYS)] = 180 days;
         term[uint8(CDPType._360DAYS)] = 360 days;
 
-        debtCeiling = 0;
-
-        lastTimestamp = era();
-
-        issuer = PAIIssuer(_issuer);
-        priceOracle = PriceOracle(_oracle);
-        liquidator = Liquidator(_liquidator);
-
-        ASSET_COLLATERAL = 0;
-        ASSET_PAI = issuer.getAssetType();
+        lastTimestamp = block.timestamp;
     }
 
-    function setAssetPAI(uint assetType) public note {
-        ASSET_PAI = assetType;
-        emit SetParam(0,ASSET_PAI);
-    }
-
-    function setAssetCollateral(uint assetType) public note {
+    function setAssetCollateral(uint assetType) public note auth("DIRECTORVOTE") {
         ASSET_COLLATERAL = assetType;
         emit SetParam(1,ASSET_COLLATERAL);
     }
@@ -139,28 +141,16 @@ contract CDP is MathPI, DSNote, Template {
         return block.timestamp;
     }
 
-    function updateBaseInterestRate(uint newRate) public note {
-        require(newRate >= RAY);
+    function updateBaseInterestRate() public note {
         updateRates();
-        baseInterestRate = optimalExp(generalLog(newRate) / 1 years);
-        updateInterestRate(CDPType._30DAYS);
-        updateInterestRate(CDPType._60DAYS);
-        updateInterestRate(CDPType._90DAYS);
-        updateInterestRate(CDPType._180DAYS);
-        updateInterestRate(CDPType._360DAYS);
-        emit SetParam(2,baseInterestRate);
-    }
-
-    function updateInterestRate(CDPType _type) internal {
-        require(_type != CDPType.CURRENT);
-        adjustedInterestRate[uint8(_type)] = optimalExp(generalLog(sub(rpow(baseInterestRate, 1 years), cutDown[uint8(_type)])) / 1 years);
-        require(adjustedInterestRate[uint8(_type)] >= RAY);
+        annualizedInterestRate = setting.lendingInterestRate;
+        secondInterestRate = sub(optimalExp(generalLog(add(RAY,setting.annualizedInterestRate)) / 1 years),RAY);
+        emit SetParam(2,annualizedInterestRate);
     }
 
     function updateCutDown(CDPType _type, uint _newCutDown) public note {
         require(_type != CDPType.CURRENT);
         cutDown[uint8(_type)] = _newCutDown;
-        updateInterestRate(_type);
         emit SetCutDown(_type,_newCutDown);
     }
 
@@ -260,7 +250,7 @@ contract CDP is MathPI, DSNote, Template {
             data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
             emit BorrowPAI(data.collateral, data.principal,rmul(data.accumulatedDebt, accumulatedRates), record, amount,0);
         } else {
-            newDebt = rmul(amount, rpow(adjustedInterestRate[uint8(data.cdpType)], term[uint8(data.cdpType)]));
+            newDebt = add(amount,rmul(amount, rmul(getInterestRate(data.cdpType), term[uint8(data.cdpType)])) / 1 years);
             data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
             data.endTime = add(era(), term[uint8(data.cdpType)]);
             emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount,data.endTime);
@@ -295,7 +285,7 @@ contract CDP is MathPI, DSNote, Template {
         (uint principal,uint interest) = debtOfCDP(record);
         uint payForPrincipal;
         uint payForInterest;
-        if(msg.value >= principal && rmul(msg.value,rpow(baseInterestRate,closeCDPToleranceTime)) >= add(principal,interest)) {
+        if(msg.value >= principal && rmul(msg.value,rpow(add(RAY,annualizedInterestRate),closeCDPToleranceTime)) >= add(principal,interest)) {
             //Actually there are little difference between Current and Time lending, but considering the
             //huge improvement in logic predication, the difference is ignored.
             //This will cause a little loss in interest income of Time lending.
@@ -377,6 +367,9 @@ contract CDP is MathPI, DSNote, Template {
 
     function setPAIIssuer(PAIIssuer newIssuer) public {
         issuer = newIssuer;
+        ASSET_PAI = issuer.getAssetType();
+        emit SetParam(0,ASSET_PAI);
+        emit SetContract(9,issuer);
     }
 
     function safe(uint record) public returns (bool) {
@@ -406,8 +399,8 @@ contract CDP is MathPI, DSNote, Template {
         if (deltaSeconds == 0) return;
 
         lastTimestamp = currentTimestamp;
-        if (baseInterestRate != RAY) {
-            accumulatedRates = rmul(accumulatedRates, rpow(baseInterestRate, deltaSeconds));
+        if (annualizedInterestRate != 0) {
+            accumulatedRates = rmul(accumulatedRates, rpow(add(RAY,annualizedInterestRate), deltaSeconds));
         }
     }
 
@@ -445,6 +438,10 @@ contract CDP is MathPI, DSNote, Template {
         emit CloseCDP(record);
         liquidator.transfer(collateralToLiquidator, ASSET_COLLATERAL);
         emit Liquidate(record, principalOfCollateral, interestOfCollateral, penaltyOfCollateral, collateralLeft);
+    }
+
+    function getInterestRate(CDPType _type) public view returns (uint) {
+        return sub(annualizedInterestRate,cutDown[uint8(_type)]);
     }
 
     function terminate() public note {
