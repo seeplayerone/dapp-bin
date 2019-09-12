@@ -80,6 +80,12 @@ contract TestBase is Template, DSTest, DSMath {
     }
 }
 
+contract SettingTest is TestBase {
+    function testSetAssetCollateral() public {
+        
+    }
+}
+
 // contract CDPTest is TestBase {
 
 //     function testBasic() public  {

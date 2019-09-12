@@ -149,9 +149,11 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         lastTimestamp = block.timestamp;
     }
 
-    function setAssetCollateral(uint96 assetType) public note auth("DIRECTORVOTE") {
+    function setAssetCollateral(uint96 assetType, PriceOracle newPriceOracle) public note auth("DIRECTORVOTE") {
         ASSET_COLLATERAL = assetType;
         emit SetParam(1,ASSET_COLLATERAL);
+        priceOracle = newPriceOracle;
+        emit SetContract(0,priceOracle);
     }
 
     function timeNow() public view returns (uint) {
@@ -421,11 +423,6 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
 
     function totalCollateral() public view returns (uint256) {
         return flow.balance(this, ASSET_COLLATERAL);
-    }
-
-    function setPriceOracle(PriceOracle newPriceOracle) public note auth("DIRECTORVOTE"){
-        priceOracle = newPriceOracle;
-        emit SetContract(0,priceOracle);
     }
 
     function getCollateralPrice() public view returns (uint256) {
