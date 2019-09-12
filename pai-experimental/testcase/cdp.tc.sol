@@ -29,7 +29,7 @@ contract TestBase is Template, DSTest, DSMath {
     function setup() public {
         admin = new FakerPerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
-        paiDAO.inti()
+        paiDAO.inti();
 
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
         admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",1);
@@ -53,7 +53,7 @@ contract TestBase is Template, DSTest, DSMath {
         btcIssuer.init("BTC");
         ASSET_BTC = uint96(btcIssuer.getAssetType());
 
-        liquidator = new Liquidator(oracle, paiIssuer);//todo 
+        liquidator = new Liquidator(oracle, paiIssuer);//todo
         liquidator.setAssetBTC(ASSET_BTC);//todo
         setting = new Setting(paiDAO);
         finance = new Finance(); // todo
