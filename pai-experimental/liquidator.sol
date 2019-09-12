@@ -90,7 +90,7 @@ contract Liquidator is DSMath, DSNote, Template {
 
     /// BTC' price against PAI
     function collateralPrice() public view returns (uint256) {
-        return settlementP2 ? settlementPrice : oracle.getPrice(ASSET_BTC);
+        return settlementP2 ? settlementPrice : oracle.getPrice();
     }
 
     /// the liquidator sells BTC'

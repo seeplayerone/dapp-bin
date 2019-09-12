@@ -36,7 +36,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     uint256 private liquidatedCDPIndex = 0; /// how many CDPs have been liquidated, only happens when the business is in settlement process
 
     uint public annualizedInterestRate;
-    uint public secondInterestRate;
+    uint public secondInterestRate; //  actually, it represents 1 + secondInterestRate
 
     //There are 7 kinds of cdps, one is current lending and the others are time lending. All time lending cdp will be liquidated when expire.
     enum CDPType {CURRENT,_30DAYS,_60DAYS,_90DAYS,_180DAYS,_360DAYS}
@@ -112,8 +112,8 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         priceOracle = PriceOracle(_oracle);
         liquidator = Liquidator(_liquidator);
         setting = Setting(_setting);
-        annualizedInterestRate = setting.lendingInterestRate;
-        secondInterestRate = sub(optimalExp(generalLog(add(RAY,setting.annualizedInterestRate)) / 1 years),RAY);
+        annualizedInterestRate = setting.lendingInterestRate();
+        secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
         finance = _finance;
         ASSET_COLLATERAL = collateralGlobalId;
         debtCeiling = _debtCeiling;
@@ -143,9 +143,10 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
 
     function updateBaseInterestRate() public note {
         updateRates();
-        annualizedInterestRate = setting.lendingInterestRate;
-        secondInterestRate = sub(optimalExp(generalLog(add(RAY,setting.annualizedInterestRate)) / 1 years),RAY);
-        emit SetParam(2,annualizedInterestRate);
+        annualizedInterestRate = setting.lendingInterestRate();
+        secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
+        emit SetParam(2, annualizedInterestRate);
+        emit SetParam(8, secondInterestRate);
     }
 
     function updateCutDown(CDPType _type, uint _newCutDown) public note {
@@ -263,7 +264,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
 
     /// create CDP + deposit BTC + borrow PAI
     function createDepositBorrow(uint amount, CDPType _type) public payable note returns(uint) {
-        require(mul(msg.value, priceOracle.getPrice(ASSET_COLLATERAL)) / amount >= sub(createCollateralRatio,createRatioTolerance));
+        require(mul(msg.value, priceOracle.getPrice()) / amount >= sub(createCollateralRatio,createRatioTolerance));
         require(amount >= lowerBorrowingLimit);
         uint id = createCDPInternal(_type);
         depositInternal(id);
@@ -369,7 +370,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         issuer = newIssuer;
         ASSET_PAI = issuer.getAssetType();
         emit SetParam(0,ASSET_PAI);
-        emit SetContract(9,issuer);
+        emit SetContract(0,issuer);
     }
 
     function safe(uint record) public returns (bool) {
@@ -399,8 +400,8 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         if (deltaSeconds == 0) return;
 
         lastTimestamp = currentTimestamp;
-        if (annualizedInterestRate != 0) {
-            accumulatedRates = rmul(accumulatedRates, rpow(add(RAY,annualizedInterestRate), deltaSeconds));
+        if (secondInterestRate != RAY) {
+            accumulatedRates = rmul(accumulatedRates, rpow(add(RAY,secondInterestRate), deltaSeconds));
         }
     }
 
