@@ -109,7 +109,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     }
 
     constructor(
-        address paiMainContract
+        address paiMainContract,
         address _issuer,
         address _oracle,
         address _liquidator,
