@@ -5,6 +5,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_finance.sol";
 
 contract FakePerson is Template {
     function() public payable {}

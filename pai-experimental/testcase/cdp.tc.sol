@@ -14,34 +14,52 @@ contract TestBase is Template, DSTest, DSMath {
     PriceOracle internal oracle;
     FakePAIIssuer internal paiIssuer;
     FakeBTCIssuer internal btcIssuer;
+    FakePerson internal admin;
+    FakePaiDao internal paiDAO;
+    Setting internal setting;
+    Finance internal finance;
 
-    uint internal ASSET_BTC;
-    uint internal ASSET_PAI;
+    uint96 internal ASSET_BTC;
+    uint96 internal ASSET_PAI;
 
     function() public payable {
 
     }
 
     function setup() public {
-        oracle = new PriceOracle();
+        admin = new FakerPerson();
+        paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
+        paiDAO.inti()
 
-        paiIssuer = new FakePAIIssuer();
-        paiIssuer.init("sb");
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",1);
+        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
+        admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
+        admin.callCreateNewRole(paiDAO,"SettlementContract","ADMIN",0);
+        admin.callAddMember(paiDAO,admin,"BTCOracle");
+        admin.callAddMember(paiDAO,admin,"DIRECTORVOTE");
+        admin.callAddMember(paiDAO,admin,"PISVOTE");
+        admin.callAddMember(paiDAO,admin,"SettlementContract");
+        admin.callUpdatePrice(oracle, RAY * 99/100);
+        oracle.fly(50);
+        admin.callUpdatePrice(oracle, RAY * 99/100);
+        assertEq(oracle.getPrice(), RAY * 99/100);
+
+        paiIssuer = new FakePAIIssuer("PAIISSUER",paiDAO);
+        paiIssuer.init();
         ASSET_PAI = paiIssuer.getAssetType();
 
         btcIssuer = new FakeBTCIssuer();
-        btcIssuer.init("sb2");
-        ASSET_BTC = btcIssuer.getAssetType();
+        btcIssuer.init("BTC");
+        ASSET_BTC = uint96(btcIssuer.getAssetType());
 
-        liquidator = new Liquidator(oracle, paiIssuer);
-        liquidator.setAssetBTC(ASSET_BTC);
+        liquidator = new Liquidator(oracle, paiIssuer);//todo 
+        liquidator.setAssetBTC(ASSET_BTC);//todo
+        setting = new Setting(paiDAO);
+        finance = new Finance(); // todo
 
-        cdp = new TimefliesCDP(paiIssuer, oracle, liquidator);
-        cdp.setAssetCollateral(ASSET_BTC);
+        cdp = new TimefliesCDP(paiIssuer, oracle, liquidator,setting,finance,ASSET_BTC,1000000000000);
 
-        oracle.updatePrice(ASSET_BTC, RAY);
-
-        paiIssuer.mint(1000000000000, this);
         btcIssuer.mint(1000000000000, this);
     }
 }
