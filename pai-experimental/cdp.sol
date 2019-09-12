@@ -121,7 +121,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         priceOracle = PriceOracle(_oracle);
         liquidator = Liquidator(_liquidator);
         setting = Setting(_setting);
-        debtRateCeiling = setting.mintPaiRatioLimit(ASSET_PAI);
+        debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
         annualizedInterestRate = setting.lendingInterestRate();
         secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
         finance = _finance;
@@ -440,6 +440,9 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
 
     function setSetting(Setting _setting) public note auth("DIRECTORVOTE") {
         setting = _setting;
+        debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
+        annualizedInterestRate = setting.lendingInterestRate();
+        secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
         emit SetContract(3,setting);
     }
 
