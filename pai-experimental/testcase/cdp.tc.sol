@@ -87,7 +87,7 @@ contract SettingTest is TestBase {
         // assertEq(cdp.priceOracle(),oracle);
         //tempBool = p1.callSetAssetCollateral(cdp,uint96(123),address(0x456));
         // assertTrue(!tempBool);
-        bool tempBool = admin.callSetAssetCollateral(cdp,uint96(123),p2);
+        bool tempBool = admin.callSetAssetCollateral(cdp,uint96(123),address(p2));
         assertTrue(tempBool);
         // assertEq(uint(cdp.ASSET_COLLATERAL()),123);
         // assertEq(cdp.priceOracle(),address(0x456));
