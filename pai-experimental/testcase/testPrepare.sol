@@ -169,6 +169,12 @@ contract FakePerson is Template {
         return result;
     }
 
+    function callChangeState(address cdp, uint8 CDPType, bool newState) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("changeState(uint8,bool)"));
+        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,CDPType,newState));
+        return result;
+    }
+
     function callBuyCDP(address cdp, uint record, uint amount, uint96 id) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("buyCDP(uint256)"));
         bool result = TimefliesCDP(cdp).call.value(amount,id)(abi.encodeWithSelector(methodId,record));

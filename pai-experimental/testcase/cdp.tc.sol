@@ -154,6 +154,31 @@ contract SettingTest is TestBase {
             assertTrue(!tempBool);
         }
     }
+
+    function testChangeState() public {
+        setup();
+        assertTrue(cdp.enable(0));
+        assertTrue(cdp.enable(1));
+        assertTrue(cdp.enable(2));
+        assertTrue(cdp.enable(3));
+        assertTrue(cdp.enable(4));
+        assertTrue(cdp.enable(5));
+        assertTrue(!cdp.enable(6));
+        assertTrue(!cdp.enable(7));
+        assertTrue(!cdp.enable(8));
+        assertTrue(!cdp.enable(9));
+        assertTrue(!cdp.enable(10));
+        bool tempBool = p1.callChangeState(cdp,6,true);
+        assertTrue(!tempBool);
+        for(uint8 i = 6 ; i <= 10; i++) {
+            admin.callChangeState(cdp,i,true);
+            assertTrue(cdp.enable(i));
+        }
+        for(i = 0 ; i <= 5; i++) {
+            admin.callChangeState(cdp,i,false);
+            assertTrue(!cdp.enable(i));
+        }
+    }
 }
 
 contract FunctionTest is TestBase {

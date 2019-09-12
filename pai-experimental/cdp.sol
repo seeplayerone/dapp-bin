@@ -183,7 +183,6 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     }
 
     function changeState(CDPType _type, bool newState) public note auth("DIRECTORVOTE") {
-        require(_type > CDPType._360DAYS);
         enable[uint8(_type)] = newState;
         emit SetState(_type,newState);
     }
