@@ -79,6 +79,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     bool public settlement; /// the business is in settlement stage
     bool public disableCDPTransfer;
     bool public disableCDPCreation;
+    bool public disableLiquidation;
     bool public disableALLCDPFunction;
 
     Liquidator public liquidator; /// address of the liquidator
@@ -193,9 +194,14 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit FunctionSwitch(1,newState);
     }
 
+    function switchdisableLiquidation(bool newState) public note auth("DIRECTORVOTE") {
+        disableLiquidation = newState;
+        emit FunctionSwitch(2,newState);
+    }
+
     function switchAllCDPFunction(bool newState) public note auth("DIRECTORVOTE") {
         disableALLCDPFunction = newState;
-        emit FunctionSwitch(2,newState);
+        emit FunctionSwitch(3,newState);
     }
 
     function updateCreateCollateralRatio(uint _newRatio, uint _newTolerance) public note auth("DIRECTORVOTE") {
@@ -487,6 +493,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     function liquidate(uint record) public note {
         require(setting.globalOpen());
         require(!disableALLCDPFunction);
+        require(!disableLiquidation);
         require(!safe(record) || settlement);
         CDPRecord storage data = CDPRecords[record];
         (uint principal, uint interest) = debtOfCDP(record);
