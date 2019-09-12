@@ -153,9 +153,9 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     //auth("DIRECTORVOTE") 
     {
         ASSET_COLLATERAL = assetType;
-        // emit SetParam(1,ASSET_COLLATERAL);
-        // priceOracle = PriceOracle(newPriceOracle);
-        // emit SetContract(0,priceOracle);
+        emit SetParam(1,ASSET_COLLATERAL);
+        priceOracle = PriceOracle(newPriceOracle);
+        emit SetContract(0,priceOracle);
     }
 
     function timeNow() public view returns (uint) {

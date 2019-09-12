@@ -82,7 +82,7 @@ contract TestBase is Template, DSTest, DSMath {
 
 contract SettingTest is TestBase {
     function testSetAssetCollateral() public {
-        setup;
+        setup();
         // assertEq(uint(cdp.ASSET_COLLATERAL()),uint(ASSET_BTC));
         // assertEq(cdp.priceOracle(),oracle);
         //tempBool = p1.callSetAssetCollateral(cdp,uint96(123),address(0x456));
