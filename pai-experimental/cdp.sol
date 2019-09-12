@@ -62,7 +62,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
 
     //If the difference between the money paid and the debt is less than one hour's interest,
     //The close request is still accepted
-    uint public closeCDPToleranceTime = 1 hours;
+    uint private closeCDPToleranceTime = 1 hours;
 
     uint private lastTimestamp;
     uint private accumulatedRates = RAY; /// accumulated rates of current lending fees
@@ -88,8 +88,8 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     Setting public setting;  /// contract to storage global parameters
     address public finance;  /// contract to be send profits
 
-    uint96 private ASSET_COLLATERAL;
-    uint96 private ASSET_PAI;
+    uint96 public ASSET_COLLATERAL;
+    uint96 public ASSET_PAI;
 
     mapping (uint => CDPRecord) public CDPRecords; /// all CDP records
 
