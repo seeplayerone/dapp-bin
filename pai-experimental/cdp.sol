@@ -149,10 +149,12 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         lastTimestamp = block.timestamp;
     }
 
-    function setAssetCollateral(uint96 assetType, address newPriceOracle) public note auth("DIRECTORVOTE") {
+    function setAssetCollateral(uint96 assetType, PriceOracle newPriceOracle) public note 
+    //auth("DIRECTORVOTE") 
+    {
         ASSET_COLLATERAL = assetType;
         emit SetParam(1,ASSET_COLLATERAL);
-        priceOracle = PriceOracle(newPriceOracle);
+        priceOracle = newPriceOracle;
         emit SetContract(0,priceOracle);
     }
 
