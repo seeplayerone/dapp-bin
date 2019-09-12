@@ -197,7 +197,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit FunctionSwitch(1,newState);
     }
 
-    function switchdisableLiquidation(bool newState) public note auth("DIRECTORVOTE") {
+    function switchLiquidation(bool newState) public note auth("DIRECTORVOTE") {
         disableLiquidation = newState;
         emit FunctionSwitch(2,newState);
     }

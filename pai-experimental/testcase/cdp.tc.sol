@@ -179,6 +179,15 @@ contract SettingTest is TestBase {
             assertTrue(!cdp.enable(i));
         }
     }
+
+    function testSwitchCDPTransfer() public {
+        setup();
+        assertTrue(!cdp.disableCDPTransfer());
+        bool tempBool = p1.callSwitchCDPTransfer(cdp,6,true);
+        assertTrue(!tempBool);
+        tempBool = admin.callSwitchCDPTransfer(cdp,6,true);
+        assertTrue(tempBool);
+    }
 }
 
 contract FunctionTest is TestBase {
