@@ -13,7 +13,7 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
     uint32 public organizationId;
     uint32 private assetType = 0;
     uint32 private assetIndex = 0;
-    bool registed = false;
+    bool private registed = false;
 
     ///params for PIS;
     uint96 public PISGlobalId;

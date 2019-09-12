@@ -12,7 +12,7 @@ contract PAIIssuer is Template, Asset, DSMath, ACLSlave {
     uint32 public organizationId;
     uint32 private assetType = 0;
     uint32 private assetIndex = 0;
-    bool registed = false;
+    bool private registed = false;
 
     ///params for PAI;
     uint96 public PAIGlobalId;
