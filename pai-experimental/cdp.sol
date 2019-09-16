@@ -124,11 +124,11 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         priceOracle = PriceOracle(_oracle);
         liquidator = Liquidator(_liquidator);
         setting = Setting(_setting);
-        debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
         annualizedInterestRate = setting.lendingInterestRate();
         secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
         finance = _finance;
         ASSET_COLLATERAL = collateralGlobalId;
+        debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
         debtCeiling = _debtCeiling;
 
         cutDown[uint8(CDPType._30DAYS)] = RAY * 4 / 1000;
@@ -156,6 +156,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit SetParam(1,ASSET_COLLATERAL);
         priceOracle = PriceOracle(newPriceOracle);
         emit SetContract(0,priceOracle);
+        // todo ratiolimit
     }
 
     function timeNow() public view returns (uint) {
