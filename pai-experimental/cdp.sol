@@ -373,9 +373,6 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
                 )
            )
         {
-            //Actually there are little difference between Current and Time lending, but considering the
-            //huge improvement in logic predication, the difference is ignored.
-            //This will cause a little loss in interest income of Time lending.
             uint change = 0;
             if(msg.value > add(principal,interest)) {
                 change = sub(msg.value,add(principal,interest));

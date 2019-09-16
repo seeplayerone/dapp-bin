@@ -610,13 +610,38 @@ contract FunctionTest is TestBase {
         assertEq(principal,1000000000);
         assertEq(interest,798123);
         cdp.fly(1000000);
+        assertEq(flow.balance(finance,ASSET_PAI),5000000);
         (principal, interest) = cdp.debtOfCDP(1);
         assertEq(principal,1000000000);
         assertEq(interest,6600873);//1.000000005781378656804591713**1000000*1000798123 - 1000000000 = 6600873
-        p1.callRepay(cdp,1,1006579923,ASSET_PAI);//1006600873/(1.000000005781378656804591713**3600) = 1006579922
+        assertEq(flow.balance(finance,ASSET_PAI),5000000 + 6600873);
+        
+        //test overpayed
+        p1.callRepay(cdp,1,1500000000,ASSET_PAI);
         (principal, interest) = cdp.debtOfCDP(1);
         assertEq(principal,0);
         assertEq(interest,0);
+
+        //test tolorance
+        p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        cdp.fly(1000000);
+        (principal, interest) = cdp.debtOfCDP(2);
+        assertEq(principal,1000000000);
+        assertEq(interest,5798123);
+        (principal, interest) = cdp.debtOfCDP(3);
+        assertEq(principal,1000000000);
+        assertEq(interest,5798123);
+        p1.callRepay(cdp,2,1005777190,ASSET_PAI);//1005798123/(1.000000005781378656804591713**3600) = 1005777189
+        p1.callRepay(cdp,3,1005777189,ASSET_PAI);
+        (principal, interest) = cdp.debtOfCDP(2);
+        assertEq(principal,0);
+        assertEq(interest,0);
+        (principal, interest) = cdp.debtOfCDP(3);
+        assertEq(principal,20934);
+        assertEq(interest,0);
+        assertEq(flow.balance(finance,ASSET_PAI),5000000 + 6600873 + 5777190  + 5798123);
+
 
     }
 
