@@ -361,7 +361,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         (uint principal,uint interest) = debtOfCDP(record);
         uint payForPrincipal;
         uint payForInterest;
-        if((CDPType.CURRENT == data.cdpType && msg.value >= principal && 
+        if((CDPType.CURRENT == data.cdpType && msg.value >= principal &&
             rmul(msg.value,rpow(secondInterestRate,closeCDPToleranceTime)) >= add(principal,interest)
            ) ||
             (msg.value >= add(principal,interest))) {
