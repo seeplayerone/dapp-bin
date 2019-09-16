@@ -70,7 +70,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     uint public totalPrincipal; /// total principal of all CDPs
 
     uint public liquidationRatio = RAY * 3 / 2; /// liquidation ratio
-    uint public liquidationPenalty = RAY * 113 /100; /// liquidation penalty
+    uint public liquidationPenalty = RAY * 113 / 100; /// liquidation penalty
     uint private lowerBorrowingLimit = 500000000; /// user should borrow at lest 5PAI once.
 
     uint public debtCeiling; /// debt ceiling, in collatral
