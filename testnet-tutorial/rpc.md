@@ -2,27 +2,36 @@
 
 ## API Method Summary
 
+### block
+
 * [asimov_getBlockChainInfo](#asimov_getBlockChainInfo)
 * [asimov_getBlockHash](#asimov_getBlockHash)
-* [asimov_upTime](#asimov_upTime)
-* [asimov_validateAddress](#asimov_validateAddress)
-* [asimov_getCurrentNet](#asimov_getCurrentNet)
 * [asimov_getBestBlock](#asimov_getBestBlock)
 * [asimov_getBlock](#asimov_getBlock)
 * [asimov_getBlockHeader](#asimov_getBlockHeader)
+* [asimov_getBlockListByHeight](#asimov_getBlockListByHeight)
+
+### node
+
+* [asimov_upTime](#asimov_upTime)
+* [asimov_getCurrentNet](#asimov_getCurrentNet)
+* [asimov_getNetTotals](#asimov_getNetTotals)
+
+### helper
+
+* [asimov_validateAddress](#asimov_validateAddress)
+* [asimov_decodeScript](#asimov_decodeScript)
+
+### balance
+
 * [asimov_getBalance](#asimov_getBalance)
 * [asimov_getBalances](#asimov_getBalances)
-* [asimov_getBlockListByHeight](#asimov_getBlockListByHeight)
 * [asimov_getUtxoByAddress](#asimov_getUtxoByAddress)
-* [asimov_getNetTotals](#asimov_getNetTotals)
+
+### transaction
+
 * [asimov_createRawTransaction](#asimov_createRawTransaction)
 * [asimov_decodeRawTransaction](#asimov_decodeRawTransaction)
-* [asimov_decodeScript](#asimov_decodeScript)
-* [asimov_getGenesisContract](#asimov_getGenesisContract)
-* [asimov_getGenesisContractByHeight](#asimov_getGenesisContractByHeight)
-* [asimov_getContractTemplateList](#asimov_getContractTemplateList)
-* [asimov_getContractTemplate](#asimov_getContractTemplate)
-* [asimov_callReadOnlyFunction](#asimov_callReadOnlyFunction)
 * [asimov_getRawTransaction](#asimov_getRawTransaction)
 * [asimov_getTransactionReceipt](#asimov_getTransactionReceipt)
 * [asimov_sendRawTransaction](#asimov_sendRawTransaction)
@@ -30,6 +39,17 @@
 * [asimov_searchRawTransactions](#asimov_searchRawTransactions)
 * [asimov_searchAllRawTransactions](#asimov_searchAllRawTransactions)
 * [asimov_getMempoolTransactions](#asimov_getMempoolTransactions)
+
+### system contract
+
+* [asimov_getGenesisContract](#asimov_getGenesisContract)
+* [asimov_getGenesisContractByHeight](#asimov_getGenesisContractByHeight)
+
+### contract
+
+* [asimov_getContractTemplateList](#asimov_getContractTemplateList)
+* [asimov_getContractTemplate](#asimov_getContractTemplate)
+* [asimov_callReadOnlyFunction](#asimov_callReadOnlyFunction)
 * [asimov_getContractTemplateInfoByName](#asimov_getContractTemplateInfoByName)
 * [asimov_getContractTemplateInfoByKey](#asimov_getContractTemplateInfoByKey)
 
