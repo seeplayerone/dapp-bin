@@ -540,6 +540,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     }
 
     function getInterestRate(CDPType _type) public view returns (uint) {
+        require(_type != CDPType.CURRENT);
         return sub(annualizedInterestRate,cutDown[uint8(_type)]);
     }
 
