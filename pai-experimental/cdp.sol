@@ -207,13 +207,13 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit FunctionSwitch(3,newState);
     }
 
-    function updateCreateCollateralRatio(uint _newRatio, uint _newTolerance) public note auth("DIRECTORVOTE") {
-        require(_newRatio - _newTolerance >= liquidationRatio);
-        require(_newTolerance <= RAY / 10);
-        createCollateralRatio = _newRatio;
-        createRatioTolerance = _newTolerance;
-        emit SetParam(3,_newRatio);
-        emit SetParam(4,_newTolerance);
+    function updateCreateCollateralRatio(uint newRatio, uint newTolerance) public note auth("DIRECTORVOTE") {
+        require(newRatio - newTolerance >= liquidationRatio);
+        require(newTolerance <= RAY / 10);
+        createCollateralRatio = newRatio;
+        createRatioTolerance = newTolerance;
+        emit SetParam(3,newRatio);
+        emit SetParam(4,newTolerance);
     }
 
     function updateLiquidationRatio(uint newRatio) public note auth("DIRECTORVOTE") {

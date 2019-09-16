@@ -209,7 +209,7 @@ contract SettingTest is TestBase {
         assertTrue(!cdp.disableLiquidation());
         bool tempBool = p1.callSwitchLiquidation(cdp,true);
         assertTrue(!tempBool);
-        tempBool = admin.disableLiquidation(cdp,true);
+        tempBool = admin.callSwitchLiquidation(cdp,true);
         assertTrue(tempBool);
         assertTrue(cdp.disableLiquidation());
         admin.callSwitchLiquidation(cdp,false);
@@ -221,11 +221,31 @@ contract SettingTest is TestBase {
         assertTrue(!cdp.disableALLCDPFunction());
         bool tempBool = p1.callSwitchAllCDPFunction(cdp,true);
         assertTrue(!tempBool);
-        tempBool = admin.disableALLCDPFunction(cdp,true);
+        tempBool = admin.callSwitchAllCDPFunction(cdp,true);
         assertTrue(tempBool);
         assertTrue(cdp.disableALLCDPFunction());
         admin.callSwitchAllCDPFunction(cdp,false);
         assertTrue(!cdp.disableALLCDPFunction());
+    }
+
+    function testUpdateCreateCollateralRatio() public {
+        setup();
+        assertEq(cdp.createCollateralRatio(), 2 * RAY);
+        assertEq(cdp.createRatioTolerance(), RAY / 20);
+        bool tempBool = p1.callUpdateCreateCollateralRatio(cdp, 3 * RAY, RAY * 7 / 100);
+        assertTrue(!tempBool);
+        tempBool = admin.callUpdateCreateCollateralRatio(cdp, 3 * RAY, RAY * 7 / 100);
+        assertTrue(tempBool);
+        assertEq(cdp.createCollateralRatio(), 3 * RAY);
+        assertEq(cdp.createRatioTolerance(), RAY * 7 / 100);
+        tempBool = admin.callUpdateCreateCollateralRatio(cdp, 3 * RAY, RAY * 11 / 100);
+        assertTrue(!tempBool);
+        assertEq(cdp.liquidationRatio(), RAY * 3 / 2);
+        tempBool = admin.callUpdateCreateCollateralRatio(cdp, RAY * 155 / 100, RAY / 20);
+        assertTrue(tempBool);
+        tempBool = admin.callUpdateCreateCollateralRatio(cdp, RAY * 154 / 100, RAY / 20);
+        assertTrue(!tempBool);
+
     }
 }
 
