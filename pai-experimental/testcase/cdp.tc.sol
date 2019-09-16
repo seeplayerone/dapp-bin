@@ -294,7 +294,7 @@ contract SettingTest is TestBase {
 contract FunctionTest is TestBase {
     function testTransferCDP() public {
         setup();
-        assertEq(flow.balance(p1,ASSET_BTC),0);
+        //assertEq(flow.balance(p1,ASSET_BTC),0);
         bool tempBool = p1.callCreateDepositBorrow(cdp,100000000,0,200000000,ASSET_BTC);
         assertTrue(tempBool);
     }
