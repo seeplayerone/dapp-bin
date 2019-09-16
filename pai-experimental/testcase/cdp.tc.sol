@@ -300,6 +300,19 @@ contract SettingTest is TestBase {
         assertTrue(tempBool);
         assertEq(cdp.liquidator(), p2);
     }
+
+    function testSetLiquidator() public {
+        setup();
+        assertEq(cdp.issuer(), paiIssuer);
+        FakePAIIssuer issuer2 = new FakePAIIssuer("PAIISSUER2",paiDAO);
+        issuer2.init();
+        bool tempBool = p1.callSetPAIIssuer(cdp, issuer2);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetPAIIssuer(cdp, issuer2);
+        assertTrue(tempBool);
+        assertEq(cdp.issuer(), issuer2);
+        assertEq(cdp.ASSET_PAI(), issuer2.PAIGlobalId());
+    }
 }
 
 contract FunctionTest is TestBase {
