@@ -258,6 +258,16 @@ contract SettingTest is TestBase {
         tempBool = admin.callUpdateLiquidationRatio(cdp, RAY * 19 / 20);
         assertTrue(!tempBool);
     }
+
+    function testUpdateDebtCeiling() public {
+        setup();
+        assertEq(cdp.debtCeiling(), 1000000000000);
+        bool tempBool = p1.callUpdateDebtCeiling(cdp, 2000000000000);
+        assertTrue(!tempBool);
+        tempBool = admin.callUpdateDebtCeiling(cdp, 2000000000000);
+        assertTrue(tempBool);
+        assertEq(cdp.liquidationRatio(), 2000000000000);
+    }
 }
 
 contract FunctionTest is TestBase {
