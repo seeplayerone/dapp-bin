@@ -61,7 +61,7 @@ contract TestBase is Template, DSTest, DSMath {
         finance = new Finance(paiIssuer); // todo
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
-        cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,ASSET_BTC,10000000000);
+        cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,ASSET_BTC,100000000000);
         admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
         admin.callAddMember(paiDAO,cdp,"PAIMINTER");
 
@@ -275,12 +275,12 @@ contract SettingTest is TestBase {
 
     function testUpdateDebtCeiling() public {
         setup();
-        assertEq(cdp.debtCeiling(), 10000000000);
-        bool tempBool = p1.callUpdateDebtCeiling(cdp, 20000000000);
+        assertEq(cdp.debtCeiling(), 100000000000);
+        bool tempBool = p1.callUpdateDebtCeiling(cdp, 200000000000);
         assertTrue(!tempBool);
-        tempBool = admin.callUpdateDebtCeiling(cdp, 20000000000);
+        tempBool = admin.callUpdateDebtCeiling(cdp, 200000000000);
         assertTrue(tempBool);
-        assertEq(cdp.debtCeiling(), 20000000000);
+        assertEq(cdp.debtCeiling(), 200000000000);
     }
 
     function testUpdateDebtRateCeiling() public {
@@ -439,17 +439,84 @@ contract FunctionTest is TestBase {
         p1.callCreateDepositBorrow(cdp,2000000000,1,4000000000,ASSET_BTC);
         (principal, interest) = cdp.debtOfCDP(2);
         assertEq(principal,2000000000);//10
-        assertEq(interest,0);
-        (_type,owner,collateral,principal,accumulatedDebt,endTime) = cdp.CDPRecords(2);
+        assertEq(interest,32219178); //0.196 * 30 /365 * 2000000000 = 32219178
+        (_type,owner,collateral,cdpprincipal,accumulatedDebt,endTime) = cdp.CDPRecords(2);
         assertEq(uint(_type),1);
         assertEq(owner,p1);
         assertEq(collateral,4000000000);
         assertEq(cdpprincipal,2000000000);//15
-        assertEq(accumulatedDebt,2000000000);
-        assertEq(endTime,cdp.timeNow()+30 * 86400);
+        assertEq(accumulatedDebt,2000000000 + 32219178);
+        assertEq(endTime, cdp.timeNow() + 30 * 86400);
         assertEq(cdp.totalCollateral(),6000000000);
         assertEq(cdp.totalPrincipal(),3000000000);
-        //p2.callCreateDepositBorrow(cdp,1000000000,2,2000000000,ASSET_BTC);
+        p2.callCreateDepositBorrow(cdp,1000000000,2,2000000000,ASSET_BTC);
+        (principal, interest) = cdp.debtOfCDP(3);
+        assertEq(principal,1000000000);//20
+        assertEq(interest,31890410); //0.194 * 60 / 365 * 1000000000 = 32219178
+        (_type,owner,collateral,cdpprincipal,accumulatedDebt,endTime) = cdp.CDPRecords(3);
+        assertEq(uint(_type),2);
+        assertEq(owner,p2);
+        assertEq(collateral,2000000000);
+        assertEq(cdpprincipal,1000000000);//15
+        assertEq(accumulatedDebt,1000000000 + 31890410);
+        assertEq(endTime, cdp.timeNow() + 60 * 86400);
+        assertEq(cdp.totalCollateral(),8000000000);
+        assertEq(cdp.totalPrincipal(),4000000000);
+    }
+
+    function testCreateFail() public {
+        setup();
+        bool tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        assertTrue(tempBool);
+        admin.callGlobalShutDown(setting);
+        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        assertTrue(!tempBool);
+        admin.callGlobalReopen(setting);
+        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        assertTrue(tempBool);
+
+        admin.callSwitchAllCDPFunction(cdp,true);
+        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        assertTrue(!tempBool);
+        admin.callSwitchAllCDPFunction(cdp,false);
+        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        assertTrue(tempBool);
+
+        admin.callSwitchCDPCreation(cdp,true);
+        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        assertTrue(!tempBool);
+        admin.callSwitchCDPCreation(cdp,false);
+        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        assertTrue(tempBool);
+
+        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,1950000000,ASSET_BTC);
+        assertTrue(tempBool);
+        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,1949999999,ASSET_BTC);
+        assertTrue(!tempBool);
+
+        tempBool = p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
+        assertTrue(tempBool);
+        tempBool = p1.callCreateDepositBorrow(cdp,499999999,0,1000000000,ASSET_BTC);
+        assertTrue(!tempBool);
+
+        tempBool = p2.callCreateDepositBorrow(cdp,1000000000,0,100000000000,ASSET_BTC);
+        assertTrue(!tempBool);
+       
+        admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY / 2);
+        cdp.updateDebtRateCeiling();
+        tempBool = p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
+        assertTrue(!tempBool);
+        assertEq(cdp.totalPrincipal(),5500000000);
+        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callMint(paiIssuer,6000000000,admin);
+        (,,,,,uint totalPaiSupply) = issuer.getAssetInfo(0);
+        assertEq(totalPaiSupply,11500000000);
+        p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
+        assertTrue(tempBool);
+
+
+
+
 
     }
 }
