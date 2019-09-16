@@ -259,9 +259,27 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callSetLiquidator(address cdp, address newliquidator) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("setLiquidator(uint256)"));
-        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,newliquidator));
+    function callSetLiquidator(address cdp, address addr) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("setLiquidator(address)"));
+        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,addr));
+        return result;
+    }
+
+    function callSetPAIIssuer(address cdp, address addr) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("setPAIIssuer(address)"));
+        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,addr));
+        return result;
+    }
+
+    function callSetSetting(address cdp, address addr) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("setSetting(address)"));
+        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,addr));
+        return result;
+    }
+    
+    function callSetFinance(address cdp, address addr) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("setFinance(address)"));
+        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,addr));
         return result;
     }
 
