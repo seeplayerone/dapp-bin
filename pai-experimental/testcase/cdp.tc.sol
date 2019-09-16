@@ -535,6 +535,19 @@ contract FunctionTest is TestBase {
         assertTrue(!tempBool);
     }
 
+    function testRepay() public {
+        setup();
+        p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
+        bool tempBool = p2.callRepay(cdp,1,1000000000,ASSET_BTC);
+        assertTrue(!tempBool);
+        (,,,uint collateral,,,,,) = cdp.CDPRecords(1);
+        assertEq(collateral,1000000000);
+        tempBool = p1.callRepay(cdp,1,1000000000,ASSET_BTC);
+        assertTrue(!tempBool);
+        (,,,collateral,,,,,) = cdp.CDPRecords(1);
+        assertEq(collateral,2000000000);
+    }
+
 }
 
 // contract CDPTest is TestBase {
