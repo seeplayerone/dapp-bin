@@ -540,12 +540,70 @@ contract FunctionTest is TestBase {
         p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
         bool tempBool = p2.callDeposit(cdp,1,1000000000,ASSET_BTC);
         assertTrue(!tempBool);
-        (,,,uint collateral,,,,,) = cdp.CDPRecords(1);
+        (,,uint collateral,,,) = cdp.CDPRecords(1);
         assertEq(collateral,1000000000);
         tempBool = p1.callDeposit(cdp,1,1000000000,ASSET_BTC);
-        assertTrue(!tempBool);
-        (,,,collateral,,,,,) = cdp.CDPRecords(1);
+        assertTrue(tempBool);
+        (,,collateral,,,) = cdp.CDPRecords(1);
         assertEq(collateral,2000000000);
+        
+        admin.callGlobalShutDown(setting);
+        tempBool = p1.callDeposit(cdp,1,1000000000,ASSET_BTC);
+        assertTrue(!tempBool);
+        admin.callGlobalReopen(setting);
+        tempBool = p1.callDeposit(cdp,1,1000000000,ASSET_BTC);
+        assertTrue(tempBool);
+
+        admin.callSwitchAllCDPFunction(cdp,true);
+        tempBool = p1.callDeposit(cdp,1,1000000000,ASSET_BTC);
+        assertTrue(!tempBool);
+        admin.callSwitchAllCDPFunction(cdp,false);
+        tempBool = p1.callDeposit(cdp,1,1000000000,ASSET_BTC);
+        assertTrue(tempBool);
+        admin.callTerminate(cdp);
+        tempBool = p1.callDeposit(cdp,1,1000000000,ASSET_BTC);
+        assertTrue(!tempBool);
+
+    }
+
+    function testRepay() public {
+        setup();
+        p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
+        bool tempBool = p2.callRepay(cdp,1,100000000,ASSET_PAI);
+        assertTrue(!tempBool);
+        (,,,uint principal,,) = cdp.CDPRecords(1);
+        assertEq(principal,500000000);
+        tempBool = p1.callRepay(cdp,1,100000000,ASSET_PAI);
+        assertTrue(tempBool);
+        (,,,principal,,) = cdp.CDPRecords(1);
+        assertEq(principal,400000000);
+
+        admin.callGlobalShutDown(setting);
+        tempBool = p1.callRepay(cdp,1,10000000,ASSET_PAI);
+        assertTrue(!tempBool);
+        admin.callGlobalReopen(setting);
+        tempBool = p1.callRepay(cdp,1,10000000,ASSET_PAI);
+        assertTrue(tempBool);
+
+        admin.callSwitchAllCDPFunction(cdp,true);
+        tempBool = p1.callRepay(cdp,1,10000000,ASSET_PAI);
+        assertTrue(!tempBool);
+        admin.callSwitchAllCDPFunction(cdp,false);
+        tempBool = p1.callRepay(cdp,1,10000000,ASSET_PAI);
+        assertTrue(tempBool);
+        admin.callTerminate(cdp);
+        tempBool = p1.callRepay(cdp,1,10000000,ASSET_PAI);
+        assertTrue(!tempBool);
+    }
+
+    function testAboutCalculation() public {
+        setup();
+        p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        cdp.fly(1000000);
+        (uint principal, uint interest) = cdp.debtOfCDP(1);
+        assertEq(principal,1000000000);
+        assertEq(interest,5798114);//1000000005781378656804591713^(1000000)*1000000000 - 1000000000 = 5798114
+
     }
 
 }

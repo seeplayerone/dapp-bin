@@ -488,7 +488,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
 
         lastTimestamp = currentTimestamp;
         if (secondInterestRate != RAY) {
-            accumulatedRates = rmul(accumulatedRates, rpow(add(RAY,secondInterestRate), deltaSeconds));
+            accumulatedRates = rmul(accumulatedRates, rpow(secondInterestRate, deltaSeconds));
         }
     }
 
