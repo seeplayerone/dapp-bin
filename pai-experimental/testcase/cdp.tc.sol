@@ -301,7 +301,7 @@ contract SettingTest is TestBase {
         assertEq(cdp.liquidator(), p2);
     }
 
-    function testSetLiquidator() public {
+    function testSetPAIIssuer() public {
         setup();
         assertEq(cdp.issuer(), paiIssuer);
         FakePAIIssuer issuer2 = new FakePAIIssuer("PAIISSUER2",paiDAO);
@@ -311,7 +311,34 @@ contract SettingTest is TestBase {
         tempBool = admin.callSetPAIIssuer(cdp, issuer2);
         assertTrue(tempBool);
         assertEq(cdp.issuer(), issuer2);
-        assertEq(cdp.ASSET_PAI(), issuer2.PAIGlobalId());
+        assertEq(uint(cdp.ASSET_PAI()), uint(issuer2.PAIGlobalId()));
+    }
+
+    function testSetSetting() public {
+        setup();
+        assertEq(cdp.setting(), setting);
+        Setting setting2 = new Setting(paiDAO);
+        admin.callUpdateRatioLimit(setting2, ASSET_BTC, RAY * 3);
+        admin.callUpdateLendingRate(setting2, RAY / 10);
+
+        bool tempBool = p1.callSetSetting(cdp, setting2);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetSetting(cdp, setting2);
+        assertTrue(tempBool);
+        assertEq(cdp.setting(), setting2);
+        assertEq(cdp.debtRateCeiling(), RAY * 3);
+        assertEq(cdp.annualizedInterestRate(),RAY / 10);
+        assertEq(cdp.secondInterestRate(),1000000003022265980097387650);
+    }
+
+    function testSetFinance() public {
+        setup();
+        assertEq(cdp.finance(), finance);
+        bool tempBool = p1.callSetFinance(cdp, p2);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetFinance(cdp, p2);
+        assertTrue(tempBool);
+        assertEq(cdp.finance(), p2);
     }
 }
 
