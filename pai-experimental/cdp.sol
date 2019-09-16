@@ -337,8 +337,8 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         require(mul(msg.value, priceOracle.getPrice()) / amount >= sub(createCollateralRatio,createRatioTolerance));
         require(amount >= lowerBorrowingLimit);
         require(add(msg.value,totalCollateral()) <= debtCeiling);
-        // (,,,,,uint totalPaiSupply) = issuer.getAssetInfo(0);
-        // require(add(totalPrincipal,amount) <= rmul(totalPaiSupply, debtRateCeiling) || 0 == totalPaiSupply);
+        (,,,,,uint totalPaiSupply) = issuer.getAssetInfo(0);
+        require(add(totalPrincipal,amount) <= rmul(totalPaiSupply, debtRateCeiling) || 0 == totalPaiSupply);
         uint id = createCDPInternal(_type);
         depositInternal(id);
         borrowInternal(id, amount);
