@@ -501,24 +501,40 @@ contract FunctionTest is TestBase {
 
         tempBool = p2.callCreateDepositBorrow(cdp,1000000000,0,100000000000,ASSET_BTC);
         assertTrue(!tempBool);
-       
+    }
+
+    function testCreateFail2() public {
+        setup();
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY / 2);
         cdp.updateDebtRateCeiling();
+        assertEq(cdp.totalPrincipal(),0);
+        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callMint(paiIssuer,5000000000,admin);
+        (,,,,,uint totalPaiSupply) = paiIssuer.getAssetInfo(0);
+        assertEq(totalPaiSupply,5000000000);
+        bool tempBool = p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
+        assertTrue(tempBool);
+        tempBool = p1.callCreateDepositBorrow(cdp,5000000000,0,10000000000,ASSET_BTC);
+        assertTrue(!tempBool);
+        tempBool = p1.callCreateDepositBorrow(cdp,4500000000,0,10000000000,ASSET_BTC);
+        assertTrue(tempBool);
+    }
+
+    function testCreateFail3() public {
+        setup();
+        bool tempBool = p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
+        assertTrue(tempBool);
+        admin.callChangeState(cdp,0,false);
         tempBool = p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
         assertTrue(!tempBool);
-        assertEq(cdp.totalPrincipal(),5500000000);
-        admin.callAddMember(paiDAO,admin,"PAIMINTER");
-        admin.callMint(paiIssuer,6000000000,admin);
-        (,,,,,uint totalPaiSupply) = issuer.getAssetInfo(0);
-        assertEq(totalPaiSupply,11500000000);
-        p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
+        admin.callChangeState(cdp,0,true);
+        tempBool = p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
         assertTrue(tempBool);
-
-
-
-
-
+        admin.callTerminate(cdp);
+        tempBool = p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
+        assertTrue(!tempBool);
     }
+
 }
 
 // contract CDPTest is TestBase {
