@@ -295,8 +295,32 @@ contract SettingTest is TestBase {
 contract FunctionTest is TestBase {
     function testTransferCDP() public {
         setup();
-        bool tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        uint idx = 1;
+        (,address owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p1);
+
+        p1.callTransferCDPOwnership(cdp,idx,p2,0);
+        (,owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p2);
+
+        p2.transferCDPOwnership(idx, p1,400000000);
+        (,owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p2);
+        bool tempBool = p1.callBuyCDP(cdp,idx,300000000,ASSET_PAI);
+        assertTrue(!tempBool);
+        tempBool = p1.callBuyCDP(cdp,idx,500000000,ASSET_PAI);
+        assertTrue(!tempBool);
+        admin.callMint(paiIssuer,400000000,admin);
+        assertEq(flow.balance(admin,ASSET_PAI),400000000);
+        tempBool = admin.callBuyCDP(cdp,idx,400000000,ASSET_PAI);
+        assertTrue(!tempBool);
+        tempBool = p1.callBuyCDP(cdp,idx,400000000,ASSET_PAI);
         assertTrue(tempBool);
+        (,owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p1);
+        assertEq(flow.balance(p2,ASSET_PAI),400000000);
+        assertEq(flow.balance(p1,ASSET_PAI),600000000);
     }
 
 }
