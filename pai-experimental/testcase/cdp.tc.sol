@@ -298,31 +298,128 @@ contract FunctionTest is TestBase {
         p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
         uint idx = 1;
         (,address owner,,,,) = cdp.CDPRecords(idx);
-        assertEq(owner, p1);
+        assertEq(owner, p1);//0
 
         p1.callTransferCDPOwnership(cdp,idx,p2,0);
         (,owner,,,,) = cdp.CDPRecords(idx);
-        assertEq(owner, p2);
+        assertEq(owner, p2);//1
 
-        p2.transferCDPOwnership(idx, p1,400000000);
+        p2.callTransferCDPOwnership(cdp,idx,p1,200000000);
         (,owner,,,,) = cdp.CDPRecords(idx);
-        assertEq(owner, p2);
-        bool tempBool = p1.callBuyCDP(cdp,idx,300000000,ASSET_PAI);
-        assertTrue(!tempBool);
-        tempBool = p1.callBuyCDP(cdp,idx,500000000,ASSET_PAI);
-        assertTrue(!tempBool);
-        admin.callMint(paiIssuer,400000000,admin);
-        assertEq(flow.balance(admin,ASSET_PAI),400000000);
-        tempBool = admin.callBuyCDP(cdp,idx,400000000,ASSET_PAI);
-        assertTrue(!tempBool);
-        tempBool = p1.callBuyCDP(cdp,idx,400000000,ASSET_PAI);
-        assertTrue(tempBool);
+        assertEq(owner, p2);//2
+        bool tempBool = p1.callBuyCDP(cdp,idx,200000000,ASSET_PAI);
+        assertTrue(tempBool);//3
         (,owner,,,,) = cdp.CDPRecords(idx);
-        assertEq(owner, p1);
-        assertEq(flow.balance(p2,ASSET_PAI),400000000);
-        assertEq(flow.balance(p1,ASSET_PAI),600000000);
+        assertEq(owner, p1);//4
+        assertEq(flow.balance(p2,ASSET_PAI),200000000);//5
+        assertEq(flow.balance(p1,ASSET_PAI),800000000);//6
     }
 
+    function testTransferCDPFail() public {
+        setup();
+        p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        uint idx = 1;
+        (,address owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p1);//0
+
+        admin.callGlobalShutDown(setting);
+        bool tempBool = p1.callTransferCDPOwnership(cdp,idx,p2,0);
+        assertTrue(!tempBool);//1
+        admin.callGlobalReopen(setting);
+        tempBool = p1.callTransferCDPOwnership(cdp,idx,p2,0);
+        assertTrue(tempBool);//2
+        (,owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p2);//3
+
+        admin.callSwitchAllCDPFunction(cdp,true);
+        tempBool = p2.callTransferCDPOwnership(cdp,idx,p1,0);
+        assertTrue(!tempBool);//4
+        admin.callSwitchAllCDPFunction(cdp,false);
+        tempBool = p2.callTransferCDPOwnership(cdp,idx,p1,0);
+        assertTrue(tempBool);//5
+        (,owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p1);//6
+
+        admin.callSwitchCDPTransfer(cdp,true);
+        tempBool = p1.callTransferCDPOwnership(cdp,idx,p2,0);
+        assertTrue(!tempBool);//7
+        admin.callSwitchCDPTransfer(cdp,false);
+        tempBool = p1.callTransferCDPOwnership(cdp,idx,p2,0);
+        assertTrue(tempBool);//8
+        (,owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p2);//9
+
+        tempBool = p1.callTransferCDPOwnership(cdp,idx,p2,0);
+        assertTrue(!tempBool);//10
+        tempBool = p2.callTransferCDPOwnership(cdp,idx,p1,0);
+        assertTrue(tempBool);//11
+        tempBool = p1.callTransferCDPOwnership(cdp,idx + 1,p2,0);
+        assertTrue(!tempBool);//12
+        tempBool = p1.callTransferCDPOwnership(cdp,idx,p1,0);
+        assertTrue(!tempBool);//13
+    }
+
+    function testBuyCDPFail() public {
+        setup();
+        p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        uint idx = 1;
+        (,address owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p1);//0
+        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callMint(paiIssuer,100000000,p2);
+
+        
+        p1.callTransferCDPOwnership(cdp,idx,p2,1000000);
+        admin.callGlobalShutDown(setting);
+        bool tempBool = p2.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
+        assertTrue(!tempBool);//1
+        admin.callGlobalReopen(setting);
+        tempBool = p2.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
+        assertTrue(tempBool);//2
+        (,owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p2);//3
+
+        p2.callTransferCDPOwnership(cdp,idx,p1,1000000);
+        admin.callSwitchAllCDPFunction(cdp,true);
+        tempBool = p1.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
+        assertTrue(!tempBool);//4
+        admin.callSwitchAllCDPFunction(cdp,false);
+        tempBool = p1.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
+        assertTrue(tempBool);//5
+        (,owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p1);//6
+
+        p1.callTransferCDPOwnership(cdp,idx,p2,1000000);
+        admin.callSwitchCDPTransfer(cdp,true);
+        tempBool = p2.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
+        assertTrue(!tempBool);//7
+        admin.callSwitchCDPTransfer(cdp,false);
+        tempBool = p2.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
+        assertTrue(tempBool);//8
+        (,owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p2);//9
+
+        p2.callTransferCDPOwnership(cdp,idx,p1,1000000);
+        tempBool = p1.callBuyCDP(cdp,idx,1000000,ASSET_BTC);
+        assertTrue(!tempBool);//10
+        tempBool = p1.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
+        assertTrue(tempBool);//11
+        (,owner,,,,) = cdp.CDPRecords(idx);
+        assertEq(owner, p1);//12
+
+        p1.callTransferCDPOwnership(cdp,idx,p2,100000000);
+        tempBool = p2.callBuyCDP(cdp,idx,50000000,ASSET_PAI);
+        assertTrue(!tempBool);//13
+        tempBool = p2.callBuyCDP(cdp,idx,150000000,ASSET_PAI);
+        assertTrue(!tempBool);//14
+        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callMint(paiIssuer,100000000,admin);
+        assertEq(flow.balance(admin,ASSET_PAI),100000000);//15
+        tempBool = admin.callBuyCDP(cdp,idx,100000000,ASSET_PAI);
+        assertTrue(!tempBool);//16
+        tempBool = p2.callBuyCDP(cdp,idx,100000000,ASSET_PAI);
+        assertTrue(tempBool);//17
+    }
 }
 
 // contract CDPTest is TestBase {
