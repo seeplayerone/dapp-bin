@@ -599,10 +599,24 @@ contract FunctionTest is TestBase {
     function testAboutCalculation() public {
         setup();
         p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callMint(paiIssuer,5000000000,p1);
         cdp.fly(1000000);
         (uint principal, uint interest) = cdp.debtOfCDP(1);
         assertEq(principal,1000000000);
-        assertEq(interest,5798114);//1000000005781378656804591713^(1000000)*1000000000 - 1000000000 = 5798114
+        assertEq(interest,5798123);//1.000000005781378656804591713**1000000*1000000000 - 1000000000 = 5798123
+        p1.callRepay(cdp,1,5000000,ASSET_PAI);
+        (principal, interest) = cdp.debtOfCDP(1);
+        assertEq(principal,1000000000);
+        assertEq(interest,798123);
+        cdp.fly(1000000);
+        (principal, interest) = cdp.debtOfCDP(1);
+        assertEq(principal,1000000000);
+        assertEq(interest,6600873);//1.000000005781378656804591713**1000000*1000798123 - 1000000000 = 6600873
+        p1.callRepay(cdp,1,1006579923,ASSET_PAI);//1006600873/(1.000000005781378656804591713**3600) = 1006579922
+        (principal, interest) = cdp.debtOfCDP(1);
+        assertEq(principal,0);
+        assertEq(interest,0);
 
     }
 
