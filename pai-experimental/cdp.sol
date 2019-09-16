@@ -273,8 +273,8 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     /// @dev CDP base operations
     /// create a CDP
     function createCDPInternal(CDPType _type) internal returns (uint record) {
-        require(!settlement);
-        require(enable[uint8(_type)]);
+        // require(!settlement);
+        // require(enable[uint8(_type)]);
         CDPIndex = add(CDPIndex, 1);
         record = CDPIndex;
         CDPRecords[record].owner = msg.sender;
@@ -290,9 +290,9 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     }
 
     function depositInternal(uint record) internal {
-        require(!settlement);
-        require(msg.assettype == ASSET_COLLATERAL);
-        require(CDPRecords[record].owner == msg.sender);
+        // require(!settlement);
+        // require(msg.assettype == ASSET_COLLATERAL);
+        // require(CDPRecords[record].owner == msg.sender);
 
         CDPRecords[record].collateral = add(CDPRecords[record].collateral, msg.value);
 
@@ -306,9 +306,9 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
 
     /// borrow PAI
     function borrowInternal(uint record, uint amount) internal {
-        require(!settlement);
-        require(CDPRecords[record].owner == msg.sender);
-        require(amount > 0);
+        // require(!settlement);
+        // require(CDPRecords[record].owner == msg.sender);
+        // require(amount > 0);
 
         CDPRecord storage data = CDPRecords[record];
         data.principal = add(data.principal, amount);
@@ -324,21 +324,21 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
             data.endTime = add(timeNow(), term[uint8(data.cdpType)]);
             emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount,data.endTime);
         }
-        require(safe(record));
+        // require(safe(record));
 
         issuer.mint(amount, msg.sender);
     }
 
     /// create CDP + deposit BTC + borrow PAI
     function createDepositBorrow(uint amount, CDPType _type) public payable note returns(uint) {
-        require(setting.globalOpen());
-        require(!disableALLCDPFunction);
-        require(!disableCDPCreation);
-        require(mul(msg.value, priceOracle.getPrice()) / amount >= sub(createCollateralRatio,createRatioTolerance));
-        require(amount >= lowerBorrowingLimit);
-        require(add(msg.value,totalCollateral()) <= debtCeiling);
-        (,,,,,uint totalPaiSupply) = issuer.getAssetInfo(0);
-        require(add(totalPrincipal,amount) <= rmul(totalPaiSupply, debtRateCeiling) || 0 == totalPaiSupply);
+        // require(setting.globalOpen());
+        // require(!disableALLCDPFunction);
+        // require(!disableCDPCreation);
+        // require(mul(msg.value, priceOracle.getPrice()) / amount >= sub(createCollateralRatio,createRatioTolerance));
+        // require(amount >= lowerBorrowingLimit);
+        // require(add(msg.value,totalCollateral()) <= debtCeiling);
+        // (,,,,,uint totalPaiSupply) = issuer.getAssetInfo(0);
+        // require(add(totalPrincipal,amount) <= rmul(totalPaiSupply, debtRateCeiling) || 0 == totalPaiSupply);
         uint id = createCDPInternal(_type);
         depositInternal(id);
         borrowInternal(id, amount);
