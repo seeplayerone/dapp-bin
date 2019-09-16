@@ -245,7 +245,18 @@ contract SettingTest is TestBase {
         assertTrue(tempBool);
         tempBool = admin.callUpdateCreateCollateralRatio(cdp, RAY * 154 / 100, RAY / 20);
         assertTrue(!tempBool);
+    }
 
+    function testUpdateLiquidationRatio() public {
+        setup();
+        assertEq(cdp.liquidationRatio(), RAY * 3 / 2);
+        bool tempBool = p1.callUpdateLiquidationRatio(cdp, RAY * 2);
+        assertTrue(!tempBool);
+        tempBool = admin.callUpdateLiquidationRatio(cdp, RAY * 2);
+        assertTrue(tempBool);
+        assertEq(cdp.liquidationRatio(), RAY * 2);
+        tempBool = admin.callUpdateLiquidationRatio(cdp, RAY * 19 / 20);
+        assertTrue(!tempBool);
     }
 }
 
@@ -330,15 +341,7 @@ contract FunctionTest is TestBase {
 //         assertEq(flow.balance(this,ASSET_PAI),emm + 100000000);
 //     }
     
-//     function testSetLiquidationRatio() public {
-//         setup();
-//         bool tempBool;
-//         tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationRatio.selector,1130000000000000000000000000));
-//         assertTrue(tempBool);
-//         assertEq(cdp.liquidationRatio(), 1130000000000000000000000000);
-//         tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationRatio.selector,990000000000000000000000000));
-//         assertTrue(!tempBool);
-//     }
+
 
 //     function testSetLiquidationPenalty() public {
 //         setup();
