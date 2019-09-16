@@ -229,9 +229,9 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callCreateDepositBorrow(address cdp, uint amount, uint8 type,uint assetAmount, uint96 id) public returns (bool) {
+    function callCreateDepositBorrow(address cdp, uint amount, uint8 _type,uint assetAmount, uint96 id) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("createDepositBorrow(uint256,uint8)"));
-        bool result = TimefliesCDP(cdp).call.value(assetAmount,id)(abi.encodeWithSelector(methodId,amount,type));
+        bool result = TimefliesCDP(cdp).call.value(assetAmount,id)(abi.encodeWithSelector(methodId,amount,_type));
         return result;
     }
 
