@@ -156,7 +156,8 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit SetParam(1,ASSET_COLLATERAL);
         priceOracle = PriceOracle(newPriceOracle);
         emit SetContract(0,priceOracle);
-        // todo ratiolimit
+        debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
+        emit SetParam(9,debtRateCeiling);
     }
 
     function timeNow() public view returns (uint) {
@@ -445,10 +446,13 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
 
     function setSetting(address _setting) public note auth("DIRECTORVOTE") {
         setting = Setting(_setting);
-        debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
-        annualizedInterestRate = setting.lendingInterestRate();
-        secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
         emit SetContract(3,setting);
+        debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
+        emit SetParam(9,debtRateCeiling);
+        annualizedInterestRate = setting.lendingInterestRate();
+        emit SetParam(2, annualizedInterestRate);
+        secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
+        emit SetParam(8, secondInterestRate);
     }
 
     function setFinance(address _finance) public note auth("DIRECTORVOTE") {
