@@ -61,11 +61,12 @@ contract TestBase is Template, DSTest, DSMath {
         finance = new Finance(paiIssuer); // todo
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
-        cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,ASSET_BTC,1000000000000);
+        cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,ASSET_BTC,10000000000);
         admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
         admin.callAddMember(paiDAO,cdp,"PAIMINTER");
 
-        btcIssuer.mint(1000000000000, this);
+        btcIssuer.mint(1000000000000, p1);
+        btcIssuer.mint(1000000000000, p2);
     }
 
     function setupTest() public {
@@ -273,12 +274,12 @@ contract SettingTest is TestBase {
 
     function testUpdateDebtCeiling() public {
         setup();
-        assertEq(cdp.debtCeiling(), 1000000000000);
-        bool tempBool = p1.callUpdateDebtCeiling(cdp, 2000000000000);
+        assertEq(cdp.debtCeiling(), 10000000000);
+        bool tempBool = p1.callUpdateDebtCeiling(cdp, 20000000000);
         assertTrue(!tempBool);
-        tempBool = admin.callUpdateDebtCeiling(cdp, 2000000000000);
+        tempBool = admin.callUpdateDebtCeiling(cdp, 20000000000);
         assertTrue(tempBool);
-        assertEq(cdp.debtCeiling(), 2000000000000);
+        assertEq(cdp.debtCeiling(), 20000000000);
     }
 
     function testUpdateDebtRateCeiling() public {
@@ -291,51 +292,16 @@ contract SettingTest is TestBase {
 }
 
 contract FunctionTest is TestBase {
+    function testTransferCDP() public {
+        setup();
+        bool tempBool = p1.callCreateDepositBorrow(cdp,100000000,0,200000000,ASSET_BTC);
+        assertTrue(tempBool);
+    }
 
 }
 
 // contract CDPTest is TestBase {
 
-//     function testBasic() public  {
-//         setup();
-//         uint emm = 1000000000000;
-
-//         assertEq(cdp.totalCollateral(), 0);
-//         assertEq(cdp.totalPrincipal(), 0);
-
-//         uint idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
-//         assertEq(idx,1);
-//         assertEq(cdp.totalCollateral(), 200000000);
-//         assertEq(cdp.totalPrincipal(), 100000000);
-//         assertEq(flow.balance(this, ASSET_PAI),emm + 100000000);
-//         assertEq(flow.balance(this, ASSET_BTC),emm - 200000000);
-//         (uint principal,uint interest) = cdp.debtOfCDP(idx);
-//         assertEq(principal, 100000000);
-//         assertEq(interest, 0);
-
-//         cdp.repay.value(50000000, ASSET_PAI)(idx);
-//         assertEq(cdp.totalCollateral(), 200000000);
-//         assertEq(cdp.totalPrincipal(), 50000000);
-//         assertEq(flow.balance(this, ASSET_PAI),emm + 50000000);
-//         assertEq(flow.balance(this, ASSET_BTC),emm - 200000000);
-//         (principal, interest) = cdp.debtOfCDP(idx);
-//         assertEq(principal, 50000000);
-//         assertEq(interest, 0);
-
-//         cdp.repay.value(50000000, ASSET_PAI)(idx);
-//         assertEq(cdp.totalCollateral(), 0);
-//         assertEq(cdp.totalPrincipal(), 0);
-//         assertEq(flow.balance(this, ASSET_PAI),emm);
-//         assertEq(flow.balance(this, ASSET_BTC),emm);
-//         (principal, interest) = cdp.debtOfCDP(idx);
-//         assertEq(principal, 0);
-//         assertEq(interest, 0);
-
-//         //test borrow limit
-//         bool tempBool;
-//         tempBool = cdp.call.value(20000000, ASSET_BTC)(abi.encodeWithSelector(cdp.createDepositBorrow.selector,9000000,CDP.CDPType._30DAYS));
-//         assertTrue(!tempBool);
-//     }
 
 //     function testTransferCDP() public {
 //         setup();
