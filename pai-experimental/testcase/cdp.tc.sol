@@ -439,12 +439,12 @@ contract FunctionTest is TestBase {
         p1.callCreateDepositBorrow(cdp,2000000000,1,4000000000,ASSET_BTC);
         (principal, interest) = cdp.debtOfCDP(2);
         assertEq(principal,2000000000);//10
-        //assertEq(interest,uint(2000000000 * 196 / 1000 * 30 / 365));
+        assertEq(interest,0);
         (_type,owner,collateral,principal,accumulatedDebt,endTime) = cdp.CDPRecords(2);
         assertEq(uint(_type),1);
         assertEq(owner,p1);
         assertEq(collateral,4000000000);
-        assertEq(cdpprincipal,2000000000);
+        assertEq(cdpprincipal,2000000000);//15
         assertEq(accumulatedDebt,2000000000);
         assertEq(endTime,cdp.timeNow()+30 * 86400);
         assertEq(cdp.totalCollateral(),6000000000);
