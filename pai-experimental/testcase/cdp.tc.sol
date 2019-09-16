@@ -295,14 +295,7 @@ contract SettingTest is TestBase {
 contract FunctionTest is TestBase {
     function testTransferCDP() public {
         setup();
-        // admin.callUpdatePrice(oracle, RAY);
-        // p1.callUpdatePrice(oracle, RAY);
-        // p2.callUpdatePrice(oracle, RAY);
-        // oracle.fly(50);
-        // admin.callUpdatePrice(oracle, RAY * 99/100);
-        // assertEq(oracle.getPrice(), RAY * 99/100);
-        //assertEq(flow.balance(p1,ASSET_BTC),0);
-        bool tempBool = p1.callCreateDepositBorrow(cdp,100000000,0,200000000,ASSET_BTC);
+        bool tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
         assertTrue(tempBool);
     }
 
