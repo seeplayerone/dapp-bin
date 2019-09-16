@@ -203,6 +203,30 @@ contract SettingTest is TestBase {
         admin.callSwitchCDPCreation(cdp,false);
         assertTrue(!cdp.disableCDPCreation());
     }
+
+    function testSwitchLiquidation() public {
+        setup();
+        assertTrue(!cdp.disableLiquidation());
+        bool tempBool = p1.callSwitchLiquidation(cdp,true);
+        assertTrue(!tempBool);
+        tempBool = admin.disableLiquidation(cdp,true);
+        assertTrue(tempBool);
+        assertTrue(cdp.disableLiquidation());
+        admin.callSwitchLiquidation(cdp,false);
+        assertTrue(!cdp.disableLiquidation());
+    }
+
+    function testSwitchAllCDPFunction() public {
+        setup();
+        assertTrue(!cdp.disableALLCDPFunction());
+        bool tempBool = p1.callSwitchAllCDPFunction(cdp,true);
+        assertTrue(!tempBool);
+        tempBool = admin.disableALLCDPFunction(cdp,true);
+        assertTrue(tempBool);
+        assertTrue(cdp.disableALLCDPFunction());
+        admin.callSwitchAllCDPFunction(cdp,false);
+        assertTrue(!cdp.disableALLCDPFunction());
+    }
 }
 
 contract FunctionTest is TestBase {
