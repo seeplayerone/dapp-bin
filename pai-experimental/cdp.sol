@@ -234,7 +234,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     }
 
     function updateDebtRateCeiling() public note {
-        debtRateCeiling = setting.mintPaiRatioLimit(ASSET_PAI);
+        debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
         emit SetParam(9,debtRateCeiling);
     }
 
@@ -336,7 +336,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         require(amount >= lowerBorrowingLimit);
         require(add(msg.value,totalCollateral()) <= debtCeiling);
         (,,,,,uint totalPaiSupply) = issuer.getAssetInfo(0);
-        require(add(totalPrincipal,amount) <= rmul(totalPaiSupply, debtRateCeiling));
+        require(add(totalPrincipal,amount) <= rmul(totalPaiSupply, debtRateCeiling) || 0 == totalPaiSupply);
         uint id = createCDPInternal(_type);
         depositInternal(id);
         borrowInternal(id, amount);

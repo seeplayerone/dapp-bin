@@ -283,9 +283,9 @@ contract SettingTest is TestBase {
 
     function testUpdateDebtRateCeiling() public {
         setup();
-        assertEq(cdp.debtCeiling(), RAY * 2);
-        admin.callUpdateRatioLimit(setting, ASSET_BTC,RAY * 0.8);
-        assertEq(cdp.debtCeiling(), RAY * 2);
+        assertEq(cdp.debtRateCeiling(), RAY * 2);
+        admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 4 / 5);
+        assertEq(cdp.debtRateCeiling(), RAY * 4 / 5);
     }
 }
 
