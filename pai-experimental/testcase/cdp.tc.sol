@@ -290,6 +290,16 @@ contract SettingTest is TestBase {
         cdp.updateDebtRateCeiling();
         assertEq(cdp.debtRateCeiling(), RAY * 4 / 5);
     }
+
+    function testSetLiquidator() public {
+        setup();
+        assertEq(cdp.liquidator(), liquidator);
+        bool tempBool = p1.callSetLiquidator(cdp, p2);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetLiquidator(cdp, p2);
+        assertTrue(tempBool);
+        assertEq(cdp.liquidator(), p2);
+    }
 }
 
 contract FunctionTest is TestBase {
@@ -596,7 +606,7 @@ contract FunctionTest is TestBase {
         assertTrue(!tempBool);
     }
 
-    function testAboutCalculation() public {
+    function testRepayCalculation() public {
         setup();
         p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
         admin.callAddMember(paiDAO,admin,"PAIMINTER");
@@ -614,13 +624,13 @@ contract FunctionTest is TestBase {
         (principal, interest) = cdp.debtOfCDP(1);
         assertEq(principal,1000000000);
         assertEq(interest,6600873);//1.000000005781378656804591713**1000000*1000798123 - 1000000000 = 6600873
-        assertEq(flow.balance(finance,ASSET_PAI),5000000 + 6600873);
         
         //test overpayed
         p1.callRepay(cdp,1,1500000000,ASSET_PAI);
         (principal, interest) = cdp.debtOfCDP(1);
         assertEq(principal,0);
         assertEq(interest,0);
+        assertEq(flow.balance(finance,ASSET_PAI),5000000 + 6600873);
 
         //test tolorance
         p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
@@ -640,9 +650,18 @@ contract FunctionTest is TestBase {
         (principal, interest) = cdp.debtOfCDP(3);
         assertEq(principal,20934);
         assertEq(interest,0);
-        assertEq(flow.balance(finance,ASSET_PAI),5000000 + 6600873 + 5777190  + 5798123);
+        assertEq(flow.balance(finance,ASSET_PAI),5000000 + 6600873 + 5777190 + 5798123);
 
-
+        //test tolorance won't work
+        p1.callCreateDepositBorrow(cdp,1000000000,1,2000000000,ASSET_BTC);
+        (principal, interest) = cdp.debtOfCDP(4);
+        assertEq(principal,1000000000);
+        assertEq(interest,16109589);
+        p1.callRepay(cdp,4,1016109588,ASSET_PAI);//16109589+1000000000 = 1016109588 + 1
+        (principal, interest) = cdp.debtOfCDP(4);
+        assertEq(principal,1);
+        assertEq(interest,0);
+        assertEq(flow.balance(finance,ASSET_PAI), 5000000 + 6600873 + 5777190 + 5798123 + 16109589);
     }
 
 }
@@ -664,38 +683,6 @@ contract FunctionTest is TestBase {
 //         assertEq(cdp.priceOracle(), 0x123);
 //     }
 
-//     function testRepay() public {
-//         setup();
-//         uint emm = 1000000000000;
-//         uint idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
-//         cdp.repay.value(50000000, ASSET_PAI)(idx);
-
-//         assertEq(cdp.totalCollateral(), 200000000);
-//         assertEq(cdp.totalPrincipal(), 50000000);
-//         assertEq(flow.balance(this, ASSET_PAI),emm + 50000000);
-//         assertEq(flow.balance(this, ASSET_BTC),emm - 200000000);
-//         (uint principal,uint interest) = cdp.debtOfCDP(idx);
-//         assertEq(principal, 50000000);
-//         assertEq(interest, 0);
-
-//         cdp.repay.value(50000000, ASSET_PAI)(idx);
-//         assertEq(cdp.totalCollateral(), 0);
-//         assertEq(cdp.totalPrincipal(), 0);
-//         assertEq(flow.balance(this, ASSET_PAI),emm);
-//         assertEq(flow.balance(this, ASSET_BTC),emm);
-//         (principal,interest) = cdp.debtOfCDP(idx);
-//         assertEq(principal, 0);
-//         assertEq(interest, 0);
-
-//         //overpayed
-//         idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
-//         cdp.repay.value(200000000, ASSET_PAI)(idx);
-//         assertEq(flow.balance(this, ASSET_PAI),emm);
-//         assertEq(flow.balance(this, ASSET_BTC),emm);
-//         (principal,interest) = cdp.debtOfCDP(idx);
-//         assertEq(principal, 0);
-//         assertEq(interest, 0);
-//     }
 
 //     function testUnsafe() public {
 //         setup();
