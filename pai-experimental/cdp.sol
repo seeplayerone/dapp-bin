@@ -361,10 +361,18 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         (uint principal,uint interest) = debtOfCDP(record);
         uint payForPrincipal;
         uint payForInterest;
-        if((CDPType.CURRENT == data.cdpType && msg.value >= principal &&
-            rmul(msg.value,rpow(secondInterestRate,closeCDPToleranceTime)) >= add(principal,interest)
-           ) ||
-            (msg.value >= add(principal,interest))) {
+        if (
+                (
+                    msg.value >= add(principal,interest)
+                )
+                ||
+                (
+                    CDPType.CURRENT == data.cdpType
+                    && msg.value >= principal
+                    && rmul(msg.value,rpow(secondInterestRate,closeCDPToleranceTime)) >= add(principal,interest)
+                )
+           )
+        {
             //Actually there are little difference between Current and Time lending, but considering the
             //huge improvement in logic predication, the difference is ignored.
             //This will cause a little loss in interest income of Time lending.
