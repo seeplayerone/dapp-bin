@@ -262,12 +262,12 @@ contract SettingTest is TestBase {
     function testUpdateLiquidationPenalty() public {
         setup();
         assertEq(cdp.liquidationPenalty(), RAY * 113 / 100);
-        bool tempBool = p1.callUpdateDebtCeiling(cdp, RAY * 12 / 10);
+        bool tempBool = p1.callUpdateLiquidationPenalty(cdp, RAY * 12 / 10);
         assertTrue(!tempBool);
-        tempBool = admin.callUpdateDebtCeiling(cdp, RAY * 12 / 10);
+        tempBool = admin.callUpdateLiquidationPenalty(cdp, RAY * 12 / 10);
         assertTrue(tempBool);
         assertEq(cdp.liquidationPenalty(), RAY * 12 / 10);
-        tempBool = admin.callUpdateDebtCeiling(cdp, RAY * 19 / 20);
+        tempBool = admin.callUpdateLiquidationPenalty(cdp, RAY * 19 / 20);
         assertTrue(!tempBool);
     }
 
@@ -279,6 +279,13 @@ contract SettingTest is TestBase {
         tempBool = admin.callUpdateDebtCeiling(cdp, 2000000000000);
         assertTrue(tempBool);
         assertEq(cdp.debtCeiling(), 2000000000000);
+    }
+
+    function testUpdateDebtRateCeiling() public {
+        setup();
+        assertEq(cdp.debtCeiling(), RAY * 2);
+        admin.callUpdateRatioLimit(setting, ASSET_BTC,RAY * 0.8);
+        assertEq(cdp.debtCeiling(), RAY * 2);
     }
 }
 
