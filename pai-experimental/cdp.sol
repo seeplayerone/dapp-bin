@@ -273,8 +273,8 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     /// @dev CDP base operations
     /// create a CDP
     function createCDPInternal(CDPType _type) internal returns (uint record) {
-        // require(!settlement);
-        // require(enable[uint8(_type)]);
+        require(!settlement);
+        require(enable[uint8(_type)]);
         CDPIndex = add(CDPIndex, 1);
         record = CDPIndex;
         CDPRecords[record].owner = msg.sender;
@@ -290,9 +290,9 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     }
 
     function depositInternal(uint record) internal {
-        // require(!settlement);
-        // require(msg.assettype == ASSET_COLLATERAL);
-        // require(CDPRecords[record].owner == msg.sender);
+        require(!settlement);
+        require(msg.assettype == ASSET_COLLATERAL);
+        require(CDPRecords[record].owner == msg.sender);
 
         CDPRecords[record].collateral = add(CDPRecords[record].collateral, msg.value);
 
@@ -306,9 +306,9 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
 
     /// borrow PAI
     function borrowInternal(uint record, uint amount) internal {
-        // require(!settlement);
-        // require(CDPRecords[record].owner == msg.sender);
-        // require(amount > 0);
+        require(!settlement);
+        require(CDPRecords[record].owner == msg.sender);
+        require(amount > 0);
 
         CDPRecord storage data = CDPRecords[record];
         data.principal = add(data.principal, amount);
