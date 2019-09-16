@@ -324,16 +324,16 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
             data.endTime = add(timeNow(), term[uint8(data.cdpType)]);
             emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount,data.endTime);
         }
-        // require(safe(record));
+        require(safe(record));
 
         issuer.mint(amount, msg.sender);
     }
 
     /// create CDP + deposit BTC + borrow PAI
     function createDepositBorrow(uint amount, CDPType _type) public payable note returns(uint) {
-        // require(setting.globalOpen());
-        // require(!disableALLCDPFunction);
-        // require(!disableCDPCreation);
+        require(setting.globalOpen());
+        require(!disableALLCDPFunction);
+        require(!disableCDPCreation);
         // require(mul(msg.value, priceOracle.getPrice()) / amount >= sub(createCollateralRatio,createRatioTolerance));
         // require(amount >= lowerBorrowingLimit);
         // require(add(msg.value,totalCollateral()) <= debtCeiling);
