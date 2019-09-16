@@ -407,75 +407,63 @@ contract FunctionTest is TestBase {
         (,owner,,,,) = cdp.CDPRecords(idx);
         assertEq(owner, p1);//12
 
-        p1.callTransferCDPOwnership(cdp,idx,p2,100000000);
-        tempBool = p2.callBuyCDP(cdp,idx,50000000,ASSET_PAI);
+        p1.callTransferCDPOwnership(cdp,idx,p2,1000000);
+        tempBool = p2.callBuyCDP(cdp,idx,500000,ASSET_PAI);
         assertTrue(!tempBool);//13
-        tempBool = p2.callBuyCDP(cdp,idx,150000000,ASSET_PAI);
+        tempBool = p2.callBuyCDP(cdp,idx,1500000,ASSET_PAI);
         assertTrue(!tempBool);//14
         admin.callAddMember(paiDAO,admin,"PAIMINTER");
-        admin.callMint(paiIssuer,100000000,admin);
-        assertEq(flow.balance(admin,ASSET_PAI),100000000);//15
-        tempBool = admin.callBuyCDP(cdp,idx,100000000,ASSET_PAI);
+        admin.callMint(paiIssuer,1000000,admin);
+        assertEq(flow.balance(admin,ASSET_PAI),1000000);//15
+        tempBool = admin.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
         assertTrue(!tempBool);//16
-        tempBool = p2.callBuyCDP(cdp,idx,100000000,ASSET_PAI);
+        tempBool = p2.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
         assertTrue(tempBool);//17
+    }
+
+    function testCreate() public {
+        setup();
+        p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        (uint principal, uint interest) = cdp.debtOfCDP(1);
+        assertEq(principal,1000000000);
+        assertEq(interest,0);
+        (CDP.CDPType _type,address owner,uint collateral,uint cdpprincipal,uint accumulatedDebt, uint endTime) = cdp.CDPRecords(1);
+        assertEq(uint(_type),0);
+        assertEq(owner,p1);
+        assertEq(collateral,2000000000);
+        assertEq(cdpprincipal,1000000000);
+        assertEq(accumulatedDebt,1000000000);
+        assertEq(endTime,0);
+        assertEq(cdp.totalCollateral(),2000000000);
+        assertEq(cdp.totalPrincipal(),1000000000);
+        p1.callCreateDepositBorrow(cdp,2000000000,1,4000000000,ASSET_BTC);
+        (principal, interest) = cdp.debtOfCDP(2);
+        assertEq(principal,2000000000);//10
+        //assertEq(interest,uint(2000000000 * 196 / 1000 * 30 / 365));
+        (_type,owner,collateral,principal,accumulatedDebt,endTime) = cdp.CDPRecords(2);
+        assertEq(uint(_type),1);
+        assertEq(owner,p1);
+        assertEq(collateral,4000000000);
+        assertEq(cdpprincipal,2000000000);
+        assertEq(accumulatedDebt,2000000000);
+        assertEq(endTime,cdp.timeNow()+30 * 86400);
+        assertEq(cdp.totalCollateral(),6000000000);
+        assertEq(cdp.totalPrincipal(),3000000000);
+        //p2.callCreateDepositBorrow(cdp,1000000000,2,2000000000,ASSET_BTC);
+
     }
 }
 
 // contract CDPTest is TestBase {
 
 
-//     function testTransferCDP() public {
-//         setup();
-//         uint idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
-//         (,address owner,,,,) = cdp.CDPRecords(idx);
-//         assertEq(owner, this);
 
-//         cdp.transferCDPOwnership(idx, 0x123,0);
-//         (,owner,,,,) = cdp.CDPRecords(idx);
-//         assertEq(owner, 0x123);
-//         bool tempBool;
-//         tempBool = cdp.call(abi.encodeWithSelector(cdp.transferCDPOwnership.selector,idx, 0x456));
-//         assertTrue(!tempBool);
-
-//         FakePerson p1 = new FakePerson();
-//         paiIssuer.mint(1000000000000, p1);
-
-//         idx = cdp.createDepositBorrow.value(200000000, ASSET_BTC)(100000000,CDP.CDPType.CURRENT);
-//         (,owner,,,,) = cdp.CDPRecords(idx);
-//         assertEq(owner, this);
-//         cdp.transferCDPOwnership(idx, p1,100000000);
-//         (,owner,,,,) = cdp.CDPRecords(idx);
-//         assertEq(owner, this);
-//         tempBool = p1.callBuyCDP(cdp,idx,50000000,uint96(ASSET_PAI));
-//         assertTrue(!tempBool);
-//         tempBool = p1.callBuyCDP(cdp,idx,110000000,uint96(ASSET_PAI));
-//         assertTrue(!tempBool);
-//         uint emm = flow.balance(this,ASSET_PAI);
-//         tempBool = p1.callBuyCDP(cdp,idx,100000000,uint96(ASSET_PAI));
-//         assertTrue(tempBool);
-//         (,owner,,,,) = cdp.CDPRecords(idx);
-//         assertEq(owner, p1);
-//         assertEq(flow.balance(this,ASSET_PAI),emm + 100000000);
-//     }
     
 
 
-//     function testSetLiquidationPenalty() public {
-//         setup();
-//         bool tempBool;
-//         tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationPenalty.selector,1500000000000000000000000000));
-//         assertTrue(tempBool);
-//         assertEq(cdp.liquidationPenalty(), 1500000000000000000000000000);
-//         tempBool = cdp.call(abi.encodeWithSelector(cdp.updateLiquidationPenalty.selector,990000000000000000000000000));
-//         assertTrue(!tempBool);
-//     }
 
-//     function testSetDebtCeiling() public {
-//         setup();
-//         cdp.updateDebtCeiling(1000000000000);
-//         assertEq(cdp.debtCeiling(), 1000000000000);
-//     }
+
+
 
 //     function testSetPriceOracle() public {
 //         setup();
