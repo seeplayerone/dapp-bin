@@ -1,15 +1,98 @@
-// contract SettlementTest is TestBase {
-//     Settlement settlement;
+pragma solidity 0.4.25;
 
-//     function settlementSetup() public {
-//         setup();
-//         oracle.updatePrice(ASSET_BTC, RAY);
-//         cdp.updateLiquidationRatio(RAY * 2);
-//         cdp.updateLiquidationPenalty(RAY * 3 / 2);
-//         liquidator.setDiscount(RAY);
+import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/evilcc2018/dapp-bin/library/template.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
 
-//         settlement = new Settlement(oracle, cdp, liquidator);
-//     }
+contract TestBase is Template, DSTest, DSMath {
+    TimefliesCDP internal cdp;
+    Liquidator internal liquidator;
+    TimefliesOracle internal oracle;
+    FakePAIIssuer internal paiIssuer;
+    FakeBTCIssuer internal btcIssuer;
+    FakePerson internal admin;
+    FakePerson internal p1;
+    FakePerson internal p2;
+    FakePaiDao internal paiDAO;
+    Setting internal setting;
+    Finance internal finance;
+    Settlement internal settlement;
+
+    uint96 internal ASSET_BTC;
+    uint96 internal ASSET_PAI;
+
+    function() public payable {
+
+    }
+
+    function setup() public {
+        admin = new FakePerson();
+        p1 = new FakePerson();
+        p2 = new FakePerson();
+        paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
+        paiDAO.init();
+
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3);
+        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
+        admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
+        admin.callCreateNewRole(paiDAO,"SettlementContract","ADMIN",0);
+        admin.callAddMember(paiDAO,admin,"BTCOracle");
+        admin.callAddMember(paiDAO,p1,"BTCOracle");
+        admin.callAddMember(paiDAO,p2,"BTCOracle");
+        admin.callAddMember(paiDAO,admin,"DIRECTORVOTE");
+        admin.callAddMember(paiDAO,admin,"PISVOTE");
+
+        paiIssuer = new FakePAIIssuer("PAIISSUER",paiDAO);
+        paiIssuer.init();
+        ASSET_PAI = paiIssuer.PAIGlobalId();
+
+        btcIssuer = new FakeBTCIssuer();
+        btcIssuer.init("BTC");
+        ASSET_BTC = uint96(btcIssuer.getAssetType());
+
+        liquidator = new Liquidator(oracle, paiIssuer);//todo
+        liquidator.setAssetBTC(ASSET_BTC);//todo
+        setting = new Setting(paiDAO);
+        finance = new Finance(paiIssuer); // todo
+        admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
+
+        cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,ASSET_BTC,100000000000);
+        admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
+        admin.callAddMember(paiDAO,cdp,"PAIMINTER");
+
+        settlement = new Settlement(paiDAO,oracle,cdp,liquidator);
+        admin.callAddMember(paiDAO,settlement,"SettlementContract");
+
+        btcIssuer.mint(1000000000000, p1);
+        btcIssuer.mint(1000000000000, p2);
+        btcIssuer.mint(1000000000000, this);
+    }
+
+    function setupTest() public {
+        setup();
+        assertEq(oracle.getPrice(), RAY);
+        admin.callUpdatePrice(oracle, RAY * 99/100);
+        p1.callUpdatePrice(oracle, RAY * 99/100);
+        p2.callUpdatePrice(oracle, RAY * 99/100);
+        oracle.fly(50);
+        admin.callUpdatePrice(oracle, RAY * 99/100);
+        assertEq(oracle.getPrice(), RAY * 99/100);
+
+    }
+}
+
+contract SettlementTest is TestBase {
+    function settlementSetup() public {
+        setup();
+        admin.callUpdateLiquidationRatio(cdp, RAY * 2);
+        admin.callUpdateLiquidationPenalty(cdp, RAY * 3 / 2);
+        liquidator.setDiscount(RAY);
+    }
 
 //     function testSettlementNormal() public {
 //         settlementSetup();
@@ -192,4 +275,4 @@
 //         assertTrue(!oracle.call(abi.encodeWithSelector(oracle.updatePrice.selector,ASSET_BTC, 1)));
 //     }
 
-// }
+}
