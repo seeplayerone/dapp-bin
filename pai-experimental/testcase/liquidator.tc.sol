@@ -110,11 +110,15 @@ contract LiquidatorTest is TestBase {
     }
 
 
-    // function testAddDebt() public {
-    //     setup();
-    //     liquidator.addDebt(100000000);
-    //     assertEq(100000000, liquidator.totalDebtPAI());
-    // }
+    function testAddDebt() public {
+        setup();
+        assertEq(0, liquidator.totalDebt());
+        bool tempBool = p1.callAddDebt(liquidator,100000000);
+        assertTrue(!tempBool);
+        tempBool = admin.callAddDebt(liquidator,100000000);
+        assertTrue(!tempBool);
+        assertEq(100000000, liquidator.totalDebt());
+    }
 
     // function testAddPAI() public {
     //     setup();

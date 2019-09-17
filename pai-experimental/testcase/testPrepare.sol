@@ -316,6 +316,11 @@ contract FakePerson is Template {
         return result;
     }
 
+    function callAddDebt(address liquidator,uint value) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("addDebt(uint256)"));
+        bool result = Liquidator(liquidator).call(abi.encodeWithSelector(methodId,value));
+        return result;
+    }
 }
 
 contract FakePAIIssuer is PAIIssuer {
