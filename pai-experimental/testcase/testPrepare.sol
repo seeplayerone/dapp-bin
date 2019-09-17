@@ -306,13 +306,13 @@ contract FakePerson is Template {
 
     function callSetDiscount1(address liquidator,uint value) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("setDiscount1(uint256)"));
-        bool result = Settlement(settlement).call(abi.encodeWithSelector(methodId,value));
+        bool result = Liquidator(liquidator).call(abi.encodeWithSelector(methodId,value));
         return result;
     }
 
     function callSetDiscount2(address liquidator,uint value) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("setDiscount2(uint256)"));
-        bool result = Settlement(settlement).call(abi.encodeWithSelector(methodId,value));
+        bool result = Liquidator(liquidator).call(abi.encodeWithSelector(methodId,value));
         return result;
     }
 
