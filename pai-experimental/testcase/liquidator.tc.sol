@@ -173,7 +173,7 @@ contract LiquidatorTest is TestBase {
         setup();
         assertEq(10 * RAY, liquidator.collateralPrice());
 
-        admin.callModifySensitivityRate(oracle, RAY * 5);
+        admin.callModifySensitivityRate(oracle, RAY);
         admin.callUpdatePrice(oracle, RAY * 5);
         p1.callUpdatePrice(oracle, RAY * 5);
         p2.callUpdatePrice(oracle, RAY * 5);
@@ -182,35 +182,37 @@ contract LiquidatorTest is TestBase {
         assertEq(oracle.getPrice(), RAY * 5);
         assertEq(5 * RAY, liquidator.collateralPrice());
 
-        admin.callTerminatePhaseOne(liquidaotr);
+        admin.callTerminatePhaseOne(liquidator);
+        admin.callAddDebt(liquidator,100000000);
+        liquidator.transfer(100000000, ASSET_BTC);
+        admin.callTerminatePhaseTwo(liquidator);
+        assertEq(RAY, liquidator.collateralPrice());
     }
 
-    // function testBuyCollateralNormal() public {
-    //     setup();
-    //     liquidator.addBTC.value(1000000000, ASSET_BTC)();
-    //     liquidator.addDebt(50000000000);
-    
-    //     assertEq(1000000000, liquidator.totalCollateralBTC());
-    //     assertEq(50000000000, liquidator.totalDebtPAI());
+    function testBuyCollateralNormal() public {
+        setup();
+        uint btcAmount = 10000;
+        uint debt = 50000;
+        uint value = 9700;
 
-    //     oracle.updatePrice(ASSET_BTC, 10*(10**27));
-    //     assertEq(10*(10**27), liquidator.collateralPrice());
+        liquidator.transfer(btcAmount, ASSET_BTC);
+        admin.callAddDebt(liquidator,debt);
+        assertEq(btcAmount, liquidator.totalCollateral());
+        assertEq(debt, liquidator.totalDebt());
+        assertEq(10 * RAY, liquidator.collateralPrice());
+        uint emm = flow.balance(this,ASSET_BTC);
 
-    //     uint value = 2000000000;
+        liquidator.buyCollateral.value(value, ASSET_PAI)();
+        assertEq(1000,flow.balance(this,ASSET_BTC) - emm);
+        assertEq(liquidator.totalDebt(),debt);
+        assertEq(liquidator.totalAssetPAI(),value);
 
-    //     uint originalBTC = liquidator.totalCollateralBTC();
+        liquidator.buyCollateral.value(value, ASSET_PAI)();
+        assertEq(2000,flow.balance(this,ASSET_BTC) - emm);
+        assertEq(liquidator.totalDebt(),debt - value);
+        assertEq(liquidator.totalAssetPAI(),value);
 
-    //     liquidator.buyCollateral.value(value, ASSET_PAI)();
-
-    //     uint amount = rdiv(value, rmul(liquidator.collateralPrice(), discount));
-    //     if(amount > originalBTC) {
-    //         assertEq(0, liquidator.totalCollateralBTC());
-    //         assertEq(rmul(originalBTC, rmul(liquidator.collateralPrice(), discount)), liquidator.totalAssetPAI());
-    //     } else {
-    //         assertEq(originalBTC - amount, liquidator.totalCollateralBTC());
-    //         assertEq(0, liquidator.totalAssetPAI());
-    //     }
-    // }  
+    }
 
     // function testBuyCollateralSettlement() public {
     //     setup();
