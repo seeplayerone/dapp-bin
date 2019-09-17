@@ -118,7 +118,7 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
         require(msg.assettype == ASSET_PAI);
         require(!settlementP1 || settlementP2);
         require(totalCollateral() > 0);
-        cancelDebt();
+        //cancelDebt();
         if(0 == totalDebt) {
             buyCollateralInternal(msg.value, rmul(collateralPrice(),discount2));
             return;
