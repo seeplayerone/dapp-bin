@@ -44,7 +44,7 @@ contract Election is Template {
     /// @dev auto incremental index to record all elections
     uint currentElectionIndex = 1;
 
-    mapping (uint=>ElectionRecord) electionRecords;
+    mapping (uint=>ElectionRecord) public electionRecords;
 
     uint constant public ONE_DAY_BLOCKS = 12 * 60 * 24;
 
