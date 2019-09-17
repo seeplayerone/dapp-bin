@@ -158,39 +158,32 @@ contract LiquidatorTest is TestBase {
         //more than enough pai in liquidator
         liquidator.transfer(value, ASSET_PAI);
         liquidator.cancelDebt();
-        assertEq(liquidator.totalAssetPAI(),0); //3
-        assertEq(liquidator.totalDebt(),0);
+        assertEq(0, liquidator.totalAssetPAI()); //3
+        assertEq(value/2,flow.balance(finance,ASSET_PAI));
 
         //not enough pai in liquidator but have some collateral
-        finance.transfer(value, ASSET_PAI);
         liquidator.transfer(1000, ASSET_BTC);
-        admin.callAddDebt(liquidator,value);
+        admin.callAddDebt(liquidator,value / 4);
         liquidator.cancelDebt();
-        assertEq(value, liquidator.totalDebt());
+        assertEq(value / 4, liquidator.totalDebt());
     }
 
-    // function testCancelDebtWithDebtRemaining() public {
-    //     setup();
-    //     uint value = 1000000000;
-    //     liquidator.addPAI.value(value, ASSET_PAI)();
-    //     liquidator.addDebt(value*2);
-    //     assertEq(value, liquidator.totalDebtPAI());
-    // }
 
-    // function testAddDebtAndBTC() public {
-    //     setup();
-    //     uint value = 1000000000;
-    //     liquidator.addBTC.value(value, ASSET_BTC)();
-    //     assertEq(value, liquidator.totalCollateralBTC());
-    //     liquidator.addDebt(100000000);
-    //     assertEq(100000000, liquidator.totalDebtPAI());
-    // }
+    function testCollateralPrice() public {
+        setup();
+        assertEq(10 * RAY, liquidator.collateralPrice());
 
-    // function testCollateralPrice() public {
-    //     setup();
-    //     oracle.updatePrice(ASSET_BTC, 10*(10**27));
-    //     assertEq(10*(10**27), liquidator.collateralPrice());
-    // }
+        admin.callModifySensitivityRate(oracle, RAY * 5);
+        admin.callUpdatePrice(oracle, RAY * 5);
+        p1.callUpdatePrice(oracle, RAY * 5);
+        p2.callUpdatePrice(oracle, RAY * 5);
+        oracle.fly(50);
+        admin.callUpdatePrice(oracle, RAY * 5);
+        assertEq(oracle.getPrice(), RAY * 5);
+        assertEq(5 * RAY, liquidator.collateralPrice());
+
+        admin.callTerminatePhaseOne(liquidaotr);
+    }
 
     // function testBuyCollateralNormal() public {
     //     setup();
