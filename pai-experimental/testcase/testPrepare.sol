@@ -122,6 +122,12 @@ contract FakePerson is Template {
         return result;
     }
 
+    function callUpdateCollateral(address oracle,uint96 newId) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("updateCollateral(uint96)"));
+        bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId,newId));
+        return result;
+    }
+
     function callUpdateLendingRate(address setting, uint newRate) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("updateLendingRate(uint256)"));
         bool result = Setting(setting).call(abi.encodeWithSelector(methodId, newRate));
@@ -364,8 +370,8 @@ contract TestTimeflies {
 }
 
 contract TimefliesOracle is PriceOracle, TestTimeflies {
-    constructor(string orcaleGroupName, address paiMainContract, uint _price)
-        PriceOracle(orcaleGroupName, paiMainContract, _price)
+    constructor(string orcaleGroupName, address paiMainContract, uint _price, uint96 CollateralId)
+        PriceOracle(orcaleGroupName, paiMainContract, _price, CollateralId)
         public
     {
 

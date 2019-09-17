@@ -11,7 +11,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     /// asset prices against PAI
     /// price should be set in RAY
     bool private settlement;
-
+    uint96 public ASSET_COLLATERAL;
     uint public lastUpdateBlock; // in blockheights
     uint public lastUpdatePrice; // in RAY
     uint public updateInterval;  // in blockheights
@@ -30,7 +30,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     }
     singlePirce[] pirces;
 
-    constructor(string orcaleGroupName, address paiMainContract, uint _price) public {
+    constructor(string orcaleGroupName, address paiMainContract, uint _price, uint96 CollateralId) public {
         ORACLE = orcaleGroupName;
         master = ACLMaster(paiMainContract);
         lastUpdateBlock = block.number;
@@ -41,6 +41,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         sensitivityTime = 60;
         sensitivityRate = RAY / 20;
         disableOracleLimit = 5;
+        ASSET_COLLATERAL = CollateralId;
     }
 
     function updatePrice(uint256 newPrice) public auth(ORACLE) {
@@ -177,6 +178,11 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         }
         return false;
     }
+
+    function updateCollateral(uint96 newId) public auth("DIRECTORVOTE") {
+        ASSET_COLLATERAL = newId;
+    }
+
 
     function getPrice() public view returns (uint256) {
         return lastUpdatePrice;

@@ -21,7 +21,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
         paiDAO.init();
         
-        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
 
         assertEq(oracle.getPrice(), RAY);//0
         bool tempBool = p1.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",0);
@@ -44,7 +44,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
         paiDAO.init();
         
-        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
         p1.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",7);
         tempBool = p1.callAddMember(paiDAO,p1,"BTCOracle");
         tempBool = p1.callAddMember(paiDAO,p2,"BTCOracle");
@@ -107,7 +107,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         FakePerson admin = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
-        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
         admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9);
 
         FakePerson[5] memory p;
@@ -140,7 +140,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         FakePerson admin = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
-        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
         admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9);
 
         FakePerson[5] memory p;
@@ -173,7 +173,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         FakePerson admin = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
-        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
         admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9);
 
         FakePerson[5] memory p;
@@ -203,7 +203,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         FakePerson admin = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
-        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
         admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9);
         admin.callCreateNewRole(paiDAO,"ORACLEMANAGER","ADMIN",0);
         admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
@@ -276,7 +276,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         FakePerson p2 = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
-        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
         admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
         admin.callAddMember(paiDAO,p1,"DIRECTORVOTE");
 
@@ -314,5 +314,23 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         assertEq(oracle.sensitivityRate(), RAY / 20);
         tempBool = p1.callModifySensitivityRate(oracle, RAY / 10000);
         assertTrue(!tempBool);
+    }
+
+    function testUpdateCollateral() public {
+        FakePaiDao paiDAO;
+        FakePerson admin = new FakePerson();
+        FakePerson p1 = new FakePerson();
+        paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
+        paiDAO.init();
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
+        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
+        admin.callAddMember(paiDAO,p1,"DIRECTORVOTE");
+
+        assertEq(uint(oracle.ASSET_COLLATERAL()),0);
+        bool tempBool = p2.callUpdateCollateral(oracle, uint96(123));
+        assertTrue(!tempBool);
+        tempBool = p1.callUpdateCollateral(oracle, uint96(123));
+        assertTrue(tempBool);
+        assertEq(uint(oracle.ASSET_COLLATERAL()),123);
     }
 }

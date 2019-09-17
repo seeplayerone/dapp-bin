@@ -1,11 +1,5 @@
 pragma solidity 0.4.25;
 
-// import "./3rd/math.sol";
-// import "./3rd/note.sol";
-// import "./price_oracle.sol";
-// import "./pai_issuer.sol";
-// import "../library/template.sol";
-
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
