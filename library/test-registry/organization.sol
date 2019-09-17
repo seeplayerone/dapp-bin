@@ -9,6 +9,7 @@ import "./asset.sol";
 interface Registry {
      function registerOrganization(string organizationName, string templateName) external returns(uint32);
      function renameOrganization(string organizationName) external;
+     function getAssetInfoByAssetId(uint64 assetId) external view returns(string, string, string);
 }
 
 /// @title basic organization which inherits Template, ACL and Asset, it has capabilities to:
@@ -130,6 +131,7 @@ contract Organization is Template, ACL, Asset {
         uint256 amountOrVoucherId) internal {
         flow.createAsset(assetType, assetIndex, amountOrVoucherId);
         newAsset(name, symbol, description, assetType, assetIndex, amountOrVoucherId);
+        registry.getAssetInfoByAssetId(name, symbol, description, assetType, assetIndex);
     }
 
     /// @dev mint an asset
