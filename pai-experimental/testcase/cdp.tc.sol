@@ -93,7 +93,7 @@ contract SettingTest is TestBase {
         tempBool = admin.callSetAssetCollateral(cdp,oracle2);
         assertTrue(tempBool);
         assertEq(uint(cdp.ASSET_COLLATERAL()),123);
-        assertEq(cdp.priceOracle(),p2);
+        assertEq(cdp.priceOracle(),oracle2);
     }
 
     function testUpdateBaseInterestRate() public {

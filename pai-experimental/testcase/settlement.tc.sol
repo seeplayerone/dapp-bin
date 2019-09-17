@@ -35,8 +35,11 @@ contract TestBase is Template, DSTest, DSMath {
         p2 = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
+        btcIssuer = new FakeBTCIssuer();
+        btcIssuer.init("BTC");
+        ASSET_BTC = uint96(btcIssuer.getAssetType());
 
-        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,ASSET_BTC);
         admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3);
         admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
         admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
@@ -46,14 +49,11 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callAddMember(paiDAO,p2,"BTCOracle");
         admin.callAddMember(paiDAO,admin,"DIRECTORVOTE");
         admin.callAddMember(paiDAO,admin,"PISVOTE");
+        admin.callAddMember(paiDAO,admin,"SettlementContract");
 
         paiIssuer = new FakePAIIssuer("PAIISSUER",paiDAO);
         paiIssuer.init();
         ASSET_PAI = paiIssuer.PAIGlobalId();
-
-        btcIssuer = new FakeBTCIssuer();
-        btcIssuer.init("BTC");
-        ASSET_BTC = uint96(btcIssuer.getAssetType());
 
         liquidator = new Liquidator(oracle, paiIssuer);//todo
         liquidator.setAssetBTC(ASSET_BTC);//todo
@@ -61,7 +61,7 @@ contract TestBase is Template, DSTest, DSMath {
         finance = new Finance(paiIssuer); // todo
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
-        cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,ASSET_BTC,100000000000);
+        cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,100000000000);
         admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
         admin.callAddMember(paiDAO,cdp,"PAIMINTER");
 
