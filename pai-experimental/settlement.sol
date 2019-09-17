@@ -13,7 +13,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
 import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
 
-contract Settlement is Template, DSNote {
+contract Settlement is Template, DSNote, ACLSlave {
 
     CDP private cdp;
     Liquidator private liquidator;
