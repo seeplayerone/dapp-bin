@@ -182,4 +182,9 @@ contract Election is Template {
             quicksort(values, addresses, i, right);
     }
 
+    /// @dev readonly functions
+    function getElectionRecord(uint index) returns (uint, uint, uint) {
+        return (electionRecords[index].assettype, electionRecords[index].totalSupply, electionRecords[index].nominateQualification);
+    }
+
 }
