@@ -46,7 +46,7 @@ contract Election is Template {
 
     mapping (uint=>ElectionRecord) electionRecords;
 
-    uint constant ONE_DAY_BLOCKS = 12 * 60 * 24;
+    uint constant public ONE_DAY_BLOCKS = 12 * 60 * 24;
 
     /// @dev before election
     function startElection(uint nominateLength, uint electionLength, address issuerAddress, uint qualification) public returns (uint) {
@@ -54,8 +54,8 @@ contract Election is Template {
         require(!election.created);
         election.nominateStartBlock = block.number;
 
-        require(nominateLength > ONE_DAY_BLOCKS);
-        require(electionLength > ONE_DAY_BLOCKS);
+        require(nominateLength >= ONE_DAY_BLOCKS);
+        require(electionLength >= ONE_DAY_BLOCKS);
         election.electionStartBlock = election.nominateStartBlock.add(nominateLength);
         election.executionStartBlock = election.electionStartBlock.add(electionLength);
 
