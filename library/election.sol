@@ -158,7 +158,7 @@ contract Election is Template {
     }
 
     /// @dev percent in 10**8
-    function percent(uint total, uint own) public pure returns (uint){
+    function percent(uint own, uint total) public pure returns (uint){
         return own.mul(10**8).div(total);
     } 
 
