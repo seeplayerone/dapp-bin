@@ -17,4 +17,14 @@ contract Finance is Template {
     function payForInterest(uint amount, address receiver) public {
         receiver.transfer(amount,ASSET_PAI);
     }
+
+    function payForDebt(uint amount) public {
+        if (0 == amount)
+            return;
+        if (flow.balance(this,ASSET_PAI) > amount) {
+            msg.sender.transfer(amount,ASSET_PAI);
+        } else {
+            msg.sender.transfer(flow.balance(this,ASSET_PAI),ASSET_PAI);
+        }
+    }
 }
