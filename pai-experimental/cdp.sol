@@ -126,7 +126,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         annualizedInterestRate = setting.lendingInterestRate();
         secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
         finance = _finance;
-        ASSET_COLLATERAL = oracle.ASSET_COLLATERAL();
+        ASSET_COLLATERAL = priceOracle.ASSET_COLLATERAL();
         debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
         debtCeiling = _debtCeiling;
 
@@ -153,7 +153,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     function setAssetCollateral(address newPriceOracle) public note auth("DIRECTORVOTE") {
         priceOracle = PriceOracle(newPriceOracle);
         emit SetContract(0,priceOracle);
-        ASSET_COLLATERAL = oracle.ASSET_COLLATERAL();
+        ASSET_COLLATERAL = priceOracle.ASSET_COLLATERAL();
         emit SetParam(1,ASSET_COLLATERAL);
         debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
         emit SetParam(9,debtRateCeiling);
