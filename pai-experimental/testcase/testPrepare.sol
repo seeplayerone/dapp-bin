@@ -7,6 +7,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_finance.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
 
 contract FakePerson is Template {
     function() public payable {}
@@ -283,6 +284,17 @@ contract FakePerson is Template {
         return result;
     }
 
+    function callTerminatePhaseOne(address settlement) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("terminatePhaseOne()"));
+        bool result = Settlement(settlement).call(abi.encodeWithSelector(methodId));
+        return result;
+    }
+
+    function callTerminatePhaseTwo(address settlement) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("terminatePhaseTwo()"));
+        bool result = Settlement(settlement).call(abi.encodeWithSelector(methodId));
+        return result;
+    }
 }
 
 contract FakePAIIssuer is PAIIssuer {

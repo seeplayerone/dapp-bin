@@ -94,26 +94,30 @@ contract SettlementTest is TestBase {
         liquidator.setDiscount(RAY);
     }
 
-//     function testSettlementNormal() public {
-//         settlementSetup();
+    function testSettlementNormal() public {
+        settlementSetup();
 
-//         uint idx = cdp.createDepositBorrow.value(2000000000, ASSET_BTC)(500000000,CDP.CDPType.CURRENT);
+        uint idx = cdp.createDepositBorrow.value(2000000000, ASSET_BTC)(500000000,CDP.CDPType.CURRENT);
 
-//         settlement.terminatePhaseOne();
+        bool tempBool = p1.callTerminatePhaseOne(settlement);
+        assertTrue(!tempBool);
+        tempBool = admin.callTerminatePhaseOne(settlement);
+        assertTrue(tempBool);
+        // settlement.terminatePhaseOne();
 
-//         assertTrue(!cdp.readyForPhaseTwo());
-//         cdp.liquidate(idx);
-//         assertEq(liquidator.totalCollateralBTC(), 500000000);
-//         assertEq(liquidator.totalDebtPAI(), 500000000);
-//         assertTrue(cdp.readyForPhaseTwo());
-//         assertEq(cdp.totalCollateral(), 0);
-//         assertEq(cdp.totalPrincipal(), 0);
+        // assertTrue(!cdp.readyForPhaseTwo());
+        // cdp.liquidate(idx);
+        // assertEq(liquidator.totalCollateralBTC(), 500000000);
+        // assertEq(liquidator.totalDebtPAI(), 500000000);
+        // assertTrue(cdp.readyForPhaseTwo());
+        // assertEq(cdp.totalCollateral(), 0);
+        // assertEq(cdp.totalPrincipal(), 0);
 
-//         settlement.terminatePhaseTwo();
-//         liquidator.buyCollateral.value(500000000, ASSET_PAI)();
-//         assertEq(liquidator.totalCollateralBTC(), 0);
-//         assertEq(liquidator.totalDebtPAI(), 0);
-//     }
+        // settlement.terminatePhaseTwo();
+        // liquidator.buyCollateral.value(500000000, ASSET_PAI)();
+        // assertEq(liquidator.totalCollateralBTC(), 0);
+        // assertEq(liquidator.totalDebtPAI(), 0);
+    }
 
 //     function testSettlementMultipleCDPOverCollateral() public {
 //         settlementSetup();
