@@ -75,7 +75,7 @@ contract Election is Template {
     function nominateCandidate(uint electionIndex, address candidate) public payable {
         ElectionRecord storage election = electionRecords[electionIndex];
         require(election.created);
-        require(percent(msg.value, election.totalSupply) > election.nominateQualification);
+        require(percent(msg.value, election.totalSupply) >= election.nominateQualification);
         require(msg.assettype == election.assettype);
 
         require(candidate != 0x0);
@@ -92,7 +92,7 @@ contract Election is Template {
         require(election.created);
         uint length = candidates.length;
         require(length > 0);
-        require(percent(msg.value, election.totalSupply) > election.nominateQualification.mul(length));
+        require(percent(msg.value, election.totalSupply) >= election.nominateQualification.mul(length));
         require(msg.assettype == election.assettype);
         
         for(uint i = 0; i < length; i ++) {
