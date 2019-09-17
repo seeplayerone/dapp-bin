@@ -120,10 +120,12 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
         require(totalCollateral() > 0);
         if(0 == totalDebt) {
             buyCollateralInternal(msg.value, rmul(collateralPrice(),discount2));
+            cancelDebt();
             return;
         }
         if(totalDebt > msg.value) {
             buyCollateralInternal(msg.value, rmul(collateralPrice(),discount1));
+            cancelDebt();
             return;
         }
         uint change;
