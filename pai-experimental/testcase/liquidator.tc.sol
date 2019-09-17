@@ -192,7 +192,7 @@ contract LiquidatorTest is TestBase {
     function testBuyCollateralNormal() public {
         setup();
         uint btcAmount = 10000;
-        uint debt = 50000;
+        uint debt = 48500;
         uint value = 9700;
 
         liquidator.transfer(btcAmount, ASSET_BTC);
@@ -204,13 +204,23 @@ contract LiquidatorTest is TestBase {
 
         liquidator.buyCollateral.value(value, ASSET_PAI)();
         assertEq(1000,flow.balance(this,ASSET_BTC) - emm);
-        assertEq(liquidator.totalDebt(),debt);
-        assertEq(liquidator.totalAssetPAI(),value);
+        assertEq(liquidator.totalDebt(),debt - value);
+        assertEq(liquidator.totalAssetPAI(),0);
 
         liquidator.buyCollateral.value(value, ASSET_PAI)();
         assertEq(2000,flow.balance(this,ASSET_BTC) - emm);
-        assertEq(liquidator.totalDebt(),debt - value);
-        assertEq(liquidator.totalAssetPAI(),value);
+        assertEq(liquidator.totalDebt(),debt - 2 * value);
+        assertEq(liquidator.totalAssetPAI(),0);
+
+        liquidator.buyCollateral.value(3 * value, ASSET_PAI)();
+        assertEq(5000,flow.balance(this,ASSET_BTC) - emm);
+        assertEq(liquidator.totalDebt(),0);
+        assertEq(liquidator.totalAssetPAI(),0);
+
+        liquidator.buyCollateral.value(9900, ASSET_PAI)();
+        assertEq(6000,flow.balance(this,ASSET_BTC) - emm);
+        assertEq(liquidator.totalDebt(),0);
+        assertEq(liquidator.totalAssetPAI(),0);
 
     }
 
