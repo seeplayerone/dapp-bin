@@ -10,7 +10,7 @@ import "github.com/seeplayerone/dapp-bin/library/SafeMath.sol";
 
 interface Issuer {
     function getAssetType() public view returns (uint);
-    function getAssetInfo() public view returns (bool, string, string, string, uint32, uint);
+    function getAssetInfo(uint32 index) public view returns (bool, string, string, string, uint32, uint);
 }
 
 contract Election is Template {
@@ -63,7 +63,7 @@ contract Election is Template {
 
         require(issuerAddress != 0x0);
         election.assettype = Issuer(issuerAddress).getAssetType();
-        (, , , , , election.totalSupply) = Issuer(issuerAddress).getAssetInfo();
+        (, , , , , election.totalSupply) = Issuer(issuerAddress).getAssetInfo(1);
 
         currentElectionIndex = currentElectionIndex.add(1);
         election.created = true;
@@ -76,6 +76,7 @@ contract Election is Template {
         ElectionRecord storage election = electionRecords[electionIndex];
         require(election.created);
         require(percent(msg.value, election.totalSupply) > election.nominateQualification);
+        require(msg.assettype == election.assettype);
 
         require(candidate != 0x0);
         require(!election.candidates.contains(candidate));
@@ -92,6 +93,7 @@ contract Election is Template {
         uint length = candidates.length;
         require(length > 0);
         require(percent(msg.value, election.totalSupply) > election.nominateQualification.mul(length));
+        require(msg.assettype == election.assettype);
         
         for(uint i = 0; i < length; i ++) {
             nominateCandidate(electionIndex, candidates[i]);
@@ -127,6 +129,8 @@ contract Election is Template {
 
         require(nowBlock() >= election.electionStartBlock);
         require(nowBlock() < election.executionStartBlock);
+
+        require(msg.assettype == election.assettype);
 
         (uint index,) = election.candidates.indexOf(candidate);
         election.candidateSupportRates[index] = election.candidateSupportRates[index].add(percent(msg.value, election.totalSupply));
