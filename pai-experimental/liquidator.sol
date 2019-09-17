@@ -87,12 +87,17 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
 
     /// the liquidator needs to continuous neutralize debt with earned PAI
     function cancelDebt() public note {
-        if (0 == totalDebt) {
-            if (totalAssetPAI() > 0)
+        if (totalAssetPAI() >= totalDebt) {
+            if (totalDebt > 0) {
+                issuer.burn.value(totalDebt, ASSET_PAI)();
+                totalDebt = 0;
+            }
+            if(totalAssetPAI() > 0) {
                 finance.transfer(totalAssetPAI(), ASSET_PAI);
+            }
             return;
         }
-        if (totalAssetPAI() < totalDebt && totalCollateral() == 0)
+        if (totalCollateral() == 0)
             finance.payForDebt(sub(totalDebt,totalAssetPAI()));
         uint256 amount = min(totalAssetPAI(), totalDebt);
         if(amount > 0) {

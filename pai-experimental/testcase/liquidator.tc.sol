@@ -62,7 +62,7 @@ contract TestBase is Template, DSTest, DSMath {
         btcIssuer.mint(100000000000, p1);
         btcIssuer.mint(100000000000, p2);
         btcIssuer.mint(100000000000, this);
-        admin.callMint(paiIssuer,100000000000,p2);
+        admin.callMint(paiIssuer,100000000000,this);
     }
 }
 
@@ -116,31 +116,58 @@ contract LiquidatorTest is TestBase {
         bool tempBool = p1.callAddDebt(liquidator,100000000);
         assertTrue(!tempBool);
         tempBool = admin.callAddDebt(liquidator,100000000);
-        assertTrue(!tempBool);
+        assertTrue(tempBool);
         assertEq(100000000, liquidator.totalDebt());
     }
 
-    // function testAddPAI() public {
-    //     setup();
-    //     uint value = 1000000000;
-    //     liquidator.addPAI.value(value, ASSET_PAI)();
-    //     assertEq(value, liquidator.totalAssetPAI());
-    // }
+    function testAddPAI() public {
+        setup();
+        uint value = 1000000000;
+        liquidator.transfer(value, ASSET_PAI);
+        assertEq(value, liquidator.totalAssetPAI());
+    }
 
-    // function testAddBTC() public {
-    //     setup();
-    //     uint value = 1000000000;
-    //     liquidator.addBTC.value(value, ASSET_BTC)();
-    //     assertEq(value, liquidator.totalCollateralBTC());
-    // }
+    function testAddBTC() public {
+        setup();
+        uint value = 1000000000;
+        liquidator.transfer(value, ASSET_BTC);
+        assertEq(value, liquidator.totalCollateral());
+    }
 
-    // function testCancelDebtWithPAIRemaining() public {
-    //     setup();
-    //     uint value = 1000000000;
-    //     liquidator.addPAI.value(value, ASSET_PAI)();
-    //     liquidator.addDebt(value/2);
-    //     assertEq(value/2, liquidator.totalAssetPAI());
-    // }
+    function testCancelDebt() public {
+        setup();
+        uint value = 1000000000;
+        //not enough pai
+        liquidator.transfer(value, ASSET_PAI);
+        admin.callAddDebt(liquidator,value * 2);
+        liquidator.cancelDebt();
+        assertEq(value, liquidator.totalDebt());
+
+        //not enough pai in liquidator but enough pai in finance
+        finance.transfer(value, ASSET_PAI);
+        liquidator.cancelDebt();
+        assertEq(0, liquidator.totalDebt());
+
+        //not enough pai in neither liquidator or finance
+        liquidator.transfer(value, ASSET_PAI);
+        admin.callAddDebt(liquidator,value * 2);
+        finance.transfer(value/2, ASSET_PAI);
+        liquidator.cancelDebt();
+        assertEq(value / 2, liquidator.totalDebt());
+
+        //more than enough pai in liquidator
+        liquidator.transfer(value, ASSET_PAI);
+        liquidator.cancelDebt();
+        assertEq(liquidator.totalAssetPAI(),0); //3
+        assertEq(liquidator.totalDebt(),0);
+
+        //not enough pai in liquidator but have some collateral
+        finance.transfer(value, ASSET_PAI);
+        liquidator.transfer(1000, ASSET_BTC);
+        admin.callAddDebt(liquidator,value);
+        liquidator.cancelDebt();
+        assertEq(value, liquidator.totalDebt());
+    }
 
     // function testCancelDebtWithDebtRemaining() public {
     //     setup();
