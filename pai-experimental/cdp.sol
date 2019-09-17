@@ -115,7 +115,6 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         address _liquidator,
         address _setting,
         address _finance,
-        uint96 collateralGlobalId,
         uint _debtCeiling
         ) public {
         master = ACLMaster(paiMainContract);
@@ -127,7 +126,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         annualizedInterestRate = setting.lendingInterestRate();
         secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
         finance = _finance;
-        ASSET_COLLATERAL = collateralGlobalId;
+        ASSET_COLLATERAL = oracle.ASSET_COLLATERAL();
         debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
         debtCeiling = _debtCeiling;
 
@@ -151,11 +150,11 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         lastTimestamp = block.timestamp;
     }
 
-    function setAssetCollateral(uint96 assetType, address newPriceOracle) public note auth("DIRECTORVOTE") {
-        ASSET_COLLATERAL = assetType;
-        emit SetParam(1,ASSET_COLLATERAL);
+    function setAssetCollateral(address newPriceOracle) public note auth("DIRECTORVOTE") {
         priceOracle = PriceOracle(newPriceOracle);
         emit SetContract(0,priceOracle);
+        ASSET_COLLATERAL = oracle.ASSET_COLLATERAL();
+        emit SetParam(1,ASSET_COLLATERAL);
         debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
         emit SetParam(9,debtRateCeiling);
     }

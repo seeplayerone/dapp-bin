@@ -320,6 +320,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         FakePaiDao paiDAO;
         FakePerson admin = new FakePerson();
         FakePerson p1 = new FakePerson();
+        FakePerson p2 = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);

@@ -158,9 +158,9 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callSetAssetCollateral(address cdp, uint96 assetType, address newPriceOracle) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("setAssetCollateral(uint96,address)"));
-        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,assetType,newPriceOracle));
+    function callSetAssetCollateral(address cdp, address newPriceOracle) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("setAssetCollateral(address)"));
+        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,newPriceOracle));
         return result;
     }
 
@@ -380,8 +380,8 @@ contract TimefliesOracle is PriceOracle, TestTimeflies {
 
 contract TimefliesCDP is CDP, TestTimeflies {
     constructor(address main, address _issuer, address _oracle, address _liquidator,
-        address _setting, address _finance, uint96 collateralGlobalId, uint _debtCeiling)
-        CDP(main, _issuer, _oracle, _liquidator, _setting, _finance, collateralGlobalId, _debtCeiling)
+        address _setting, address _finance, uint _debtCeiling)
+        CDP(main, _issuer, _oracle, _liquidator, _setting, _finance, _debtCeiling)
         public
     {
 

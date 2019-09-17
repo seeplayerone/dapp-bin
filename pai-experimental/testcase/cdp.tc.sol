@@ -34,8 +34,11 @@ contract TestBase is Template, DSTest, DSMath {
         p2 = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
+        btcIssuer = new FakeBTCIssuer();
+        btcIssuer.init("BTC");
+        ASSET_BTC = uint96(btcIssuer.getAssetType());
 
-        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY);
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,ASSET_BTC);
         admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3);
         admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
         admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
@@ -51,17 +54,13 @@ contract TestBase is Template, DSTest, DSMath {
         paiIssuer.init();
         ASSET_PAI = paiIssuer.PAIGlobalId();
 
-        btcIssuer = new FakeBTCIssuer();
-        btcIssuer.init("BTC");
-        ASSET_BTC = uint96(btcIssuer.getAssetType());
-
         liquidator = new Liquidator(oracle, paiIssuer);//todo
         liquidator.setAssetBTC(ASSET_BTC);//todo
         setting = new Setting(paiDAO);
         finance = new Finance(paiIssuer); // todo
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
-        cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,ASSET_BTC,100000000000);
+        cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,100000000000);
         admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
         admin.callAddMember(paiDAO,cdp,"PAIMINTER");
 
@@ -88,9 +87,10 @@ contract SettingTest is TestBase {
         setup();
         assertEq(uint(cdp.ASSET_COLLATERAL()),uint(ASSET_BTC));
         assertEq(cdp.priceOracle(),oracle);
-        bool tempBool = p1.callSetAssetCollateral(cdp,uint96(123),p2);
+        TimefliesOracle oracle2 = new TimefliesOracle("BTCOracle",paiDAO,RAY,uint96(123));
+        bool tempBool = p1.callSetAssetCollateral(cdp,oracle2);
         assertTrue(!tempBool);
-        tempBool = admin.callSetAssetCollateral(cdp,uint96(123),p2);
+        tempBool = admin.callSetAssetCollateral(cdp,oracle2);
         assertTrue(tempBool);
         assertEq(uint(cdp.ASSET_COLLATERAL()),123);
         assertEq(cdp.priceOracle(),p2);
