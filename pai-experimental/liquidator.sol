@@ -97,7 +97,7 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
             }
             return;
         }
-        if (totalCollateral() == 0)
+        if (!settlementP1 && totalCollateral() == 0)
             finance.payForDebt(sub(totalDebt,totalAssetPAI()));
         uint256 amount = min(totalAssetPAI(), totalDebt);
         if(amount > 0) {
@@ -149,7 +149,6 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
     function buyCollateralInternal(uint _money, uint _refPrice) internal {
         uint amount = rdiv(_money, _refPrice);
         require(amount > 0);
-
         if(amount > totalCollateral()) {
             uint change = rmul(sub(amount, totalCollateral()), _refPrice);
             msg.sender.transfer(change, ASSET_PAI);
@@ -166,6 +165,7 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
     function terminatePhaseOne() public note auth("SettlementContract"){
         require(!settlementP1);
         settlementP1 = true;
+        cancelDebt();
     }
 
     function terminatePhaseTwo() public note auth("SettlementContract"){
