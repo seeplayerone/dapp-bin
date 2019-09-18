@@ -61,8 +61,8 @@ contract TestBase is Template, DSTest, DSMath {
 
         btcIssuer.mint(100000000000, p1);
         btcIssuer.mint(100000000000, p2);
-        btcIssuer.mint(100000000000, this);
-        admin.callMint(paiIssuer,100000000000,this);
+        admin.callMint(paiIssuer,100000000000,p1);
+        admin.callMint(paiIssuer,100000000000,p2);
     }
 }
 
@@ -187,37 +187,65 @@ contract SettingTest is TestBase {
     function testSwitchGetInterest() public {
         setup();
         assertTrue(!tdc.disableGetInterest());
-        bool tempBool = p1.callGetInterest(tdc,true);
+        bool tempBool = p1.callSwitchGetInterest(tdc,true);
         assertTrue(!tempBool);
-        tempBool = admin.callGetInterest(tdc,true);
+        tempBool = admin.callSwitchGetInterest(tdc,true);
         assertTrue(tempBool);
         assertTrue(tdc.disableGetInterest());
-        admin.callGetInterest(tdc,false);
+        admin.callSwitchGetInterest(tdc,false);
         assertTrue(!tdc.disableGetInterest());
+    }
+
+    function testSetSetting() public {
+        setup();
+        assertEq(tdc.setting(), setting);
+        assertEq(tdc.baseInterestRate(), RAY / 5);
+        Setting setting2 = new Setting(paiDAO);
+        admin.callUpdateDepositRate(setting2, RAY / 10);
+
+        bool tempBool = p1.callSetSetting(tdc, setting2);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetSetting(tdc, setting2);
+        assertTrue(tempBool);
+        assertEq(tdc.setting(), setting2);
+        assertEq(tdc.baseInterestRate(), RAY / 10);
+    }
+
+    function testSetPAIIssuer() public {
+        setup();
+        assertEq(tdc.issuer(), paiIssuer);
+        FakePAIIssuer issuer2 = new FakePAIIssuer("PAIISSUER2",paiDAO);
+        issuer2.init();
+        bool tempBool = p1.callSetPAIIssuer(tdc, issuer2);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetPAIIssuer(tdc, issuer2);
+        assertTrue(tempBool);
+        assertEq(tdc.issuer(), issuer2);
+        assertEq(uint(tdc.ASSET_PAI()), uint(issuer2.PAIGlobalId()));
     }
 
 }
 
+contract functionTest is TestBase {
+    function testDeposit() public {
+        setup();
+        bool tempBool;
+        tempBool = p1.callTDCDeposit(tdc,0,1000,ASSET_BTC);
+        assertTrue(!tempBool);
+        uint emm = flow.balance(p1,ASSET_PAI);
+        tempBool = p1.callTDCDeposit(tdc,0,1000,ASSET_PAI);
+        assertTrue(tempBool);
 
-//     function testDeposit() public {
-//         setup();
-//         FakePerson p1 = new FakePerson();
-//         paiIssuer.mint(100000000, p1);
-//         paiIssuer2.mint(100000000, p1);
-//         bool tempBool;
-//         tempBool = p1.callDeposit(tdc,0,1000,uint96(FAKE_PAI));
-//         assertTrue(!tempBool);
-//         tempBool = p1.callDeposit(tdc,0,1000,uint96(ASSET_PAI));
-//         assertTrue(tempBool);
+        (TDC.TDCType tdcType,address owner, uint principal,uint interestRate,uint time) = tdc.TDCRecords(1);
+        assertEq(owner,p1);
+        assertEq(uint(tdcType),0);
+        assertEq(principal,1000);
+        assertEq(interestRate, RAY/5 + RAY * 4 / 1000);
+        assertEq(time,block.timestamp);
+        assertEq(flow.balance(p1,ASSET_PAI), emm - 1000);
+    }
+}
 
-//         (TDC.TDCType tdcType,address owner, uint principal,uint interestRate,uint time) = tdc.TDCRecords(1);
-//         assertEq(owner,p1);
-//         assertEq(uint(tdcType),0);
-//         assertEq(principal,1000);
-//         assertEq(interestRate, RAY/5 + RAY * 4 / 1000);
-//         assertEq(time,block.timestamp);
-//         assertEq(flow.balance(p1,ASSET_PAI), 100000000 - 1000);
-//     }
 
 //     function testWithdraw() public {
 //         setup();

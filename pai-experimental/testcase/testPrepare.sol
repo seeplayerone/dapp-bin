@@ -337,13 +337,13 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callDeposit(address tdc, uint8 tdcType, uint amount, uint96 id) public returns (bool) {
+    function callTDCDeposit(address tdc, uint8 tdcType, uint amount, uint96 id) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("deposit(uint8)"));
         bool result = TimefliesTDC(tdc).call.value(amount,id)(abi.encodeWithSelector(methodId,tdcType));
         return result;
     }
 
-    function callWithdraw(address tdc, uint record, uint amount) public returns (bool) {
+    function callTDCWithdraw(address tdc, uint record, uint amount) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("withdraw(uint256,uint256)"));
         bool result = TimefliesTDC(tdc).call(abi.encodeWithSelector(methodId,record,amount));
         return result;
