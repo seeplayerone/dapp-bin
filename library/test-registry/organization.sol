@@ -9,7 +9,7 @@ import "./asset.sol";
 interface Registry {
      function registerOrganization(string organizationName, string templateName) external returns(uint32);
      function renameOrganization(string organizationName) external;
-     function getAssetInfoByAssetId(uint64 assetId) external view returns(string, string, string);
+     function newAsset(string name, string symbol, string description, uint32 assetType, uint32 assetIndex) external;
 }
 
 /// @title basic organization which inherits Template, ACL and Asset, it has capabilities to:
