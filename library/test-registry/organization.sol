@@ -131,7 +131,7 @@ contract Organization is Template, ACL, Asset {
         uint256 amountOrVoucherId) internal {
         flow.createAsset(assetType, assetIndex, amountOrVoucherId);
         newAsset(name, symbol, description, assetType, assetIndex, amountOrVoucherId);
-        registry.getAssetInfoByAssetId(name, symbol, description, assetType, assetIndex);
+        registry.newAsset(name, symbol, description, assetType, assetIndex);
     }
 
     /// @dev mint an asset
