@@ -375,19 +375,20 @@ contract FunctionTest is TestBase {
         setup();
         uint idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
         bool tempBool = tdc.call(abi.encodeWithSelector(tdc.returnMoney.selector,idx));
-        assertTrue(!tempBool);
+        assertTrue(!tempBool); //0
         tdc.fly(30 days);
+        assertTrue(tdc.checkMaturity(idx)); //1
         tempBool = tdc.call(abi.encodeWithSelector(tdc.returnMoney.selector,idx));
-        assertTrue(!tempBool);
-        assertEq(flow.balance(finance,ASSET_PAI),1);
+        assertTrue(!tempBool); //2
+        assertEq(flow.balance(finance,ASSET_PAI),0); // 3
         finance.transfer(100000,ASSET_PAI);
-        assertEq(flow.balance(finance,ASSET_PAI),1);
+        assertEq(flow.balance(finance,ASSET_PAI),100000); //4
         uint emm = flow.balance(this,ASSET_PAI);
         tempBool = tdc.call(abi.encodeWithSelector(tdc.returnMoney.selector,idx));
-        assertTrue(tempBool);
-        assertEq(flow.balance(this,ASSET_PAI) - emm, 10167);
+        assertTrue(tempBool); //5
+        assertEq(flow.balance(this,ASSET_PAI) - emm, 10167);//6
         tempBool = tdc.call(abi.encodeWithSelector(tdc.returnMoney.selector,idx));
-        assertTrue(!tempBool);
+        assertTrue(!tempBool);//7
     }
 }
 
