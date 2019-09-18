@@ -202,6 +202,6 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         }
         finance.payForInterest(interest,TDCRecords[record].owner);
         emit ReturnMoney(record,TDCRecords[record].owner,principal,interest);
-        delete TDCRecords[record];
+        //delete TDCRecords[record];
     }
 }
