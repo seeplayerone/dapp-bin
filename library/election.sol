@@ -118,6 +118,7 @@ contract Election is Template {
             require(!election.candidates.contains(candidate));
 
             election.candidates.push(candidate);
+            election.candidateSupportRates.push(0);
         }
     }
 
