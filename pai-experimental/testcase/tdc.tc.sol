@@ -395,12 +395,19 @@ contract FunctionTest is TestBase {
         setup();
         uint idx = 1;
         p1.callTDCDeposit(tdc,0,10000,ASSET_PAI);
+        (TDC.TDCType tdcType,address owner, uint principal,uint interestRate,uint time,uint principalPayed) = tdc.TDCRecords(1);
+        assertEq(owner,p1);
+        assertEq(uint(tdcType),0);
+        assertEq(principal,1000);
+        assertEq(interestRate, RAY/5 + RAY * 4 / 1000);
+        assertEq(time,block.timestamp);
+        assertEq(principalPayed,0);
         bool tempBool = p2.callReturnMoney(tdc,idx);
         assertTrue(!tempBool); //0
         tdc.fly(30 days);
         assertTrue(tdc.checkMaturity(idx)); //1
-        tempBool = p2.callReturnMoney(tdc,idx);
-        assertTrue(!tempBool); //2
+        // tempBool = p2.callReturnMoney(tdc,idx);
+        // assertTrue(!tempBool); //2
         assertEq(flow.balance(finance,ASSET_PAI),0); // 3
         finance.transfer(100000,ASSET_PAI);
         assertEq(flow.balance(finance,ASSET_PAI),100000); //4
