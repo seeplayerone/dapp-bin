@@ -85,6 +85,7 @@ contract Election is Template {
         require(nowBlock() < election.electionStartBlock);
 
         election.candidates.push(candidate);
+        election.candidateSupportRates.push(0);
     } 
 
     function nominateCandidates(uint electionIndex, address[] candidates) public payable {
@@ -187,4 +188,11 @@ contract Election is Template {
         return (electionRecords[index].assettype, electionRecords[index].totalSupply, electionRecords[index].nominateQualification);
     }
 
+    function getElectionCandidates(uint index) returns (address[]) {
+        return electionRecords[index].candidates;
+    }
+
+    function getElectionCandidateSupportRates(uint index) returns (uint[]) {
+        return electionRecords[index].candidateSupportRates;
+    }
 }
