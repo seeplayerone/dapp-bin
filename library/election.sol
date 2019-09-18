@@ -149,6 +149,7 @@ contract Election is Template {
 
         if(election.candidates.length > 1) {
             // quicksort(election.candidateSupportRates, election.candidates, 0, election.candidates.length - 1);
+            bubblesort(election.candidateSupportRates, election.candidates);
         }
 
         election.sorted = true;
@@ -182,6 +183,25 @@ contract Election is Template {
             quicksort(values, addresses, left, j);
         if (i < right)
             quicksort(values, addresses, i, right);
+    }
+
+    function bubblesort(uint[] storage values, address[] storage addresses) internal {
+        uint length = values.length;
+        uint tempValue;
+        address tempAddress;
+        for (uint i = 0; i < length - 1; i ++) {
+            for (uint j = 0; j < length - i - 1; j ++) {
+                if(values[j] < values[j+1]) {
+                    tempValue = values[j];
+                    values[j] = values[j+1];
+                    values[j+1] = tempValue;
+
+                    tempAddress = addresses[j];
+                    addresses[j] = addresses[j+1];
+                    addresses[j+1] = tempAddress;
+                }
+            }
+        }
     }
 
     /// @dev readonly functions
