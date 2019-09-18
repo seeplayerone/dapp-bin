@@ -98,11 +98,11 @@ contract SettingTest is TestBase {
         assertEq(tdc.floatUp(7), 0);
         assertEq(tdc.floatUp(8), 0);
         assertEq(tdc.floatUp(9), 0);
-        assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY/10 + RAY * 4 / 1000);
-        assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY/10 + RAY * 6 / 1000);
-        assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY/10 + RAY * 8 / 1000);
-        assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY/10 + RAY * 10 / 1000);
-        assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY/10 + RAY * 12 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY / 5 + RAY * 4 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY / 5 + RAY * 6 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY / 5 + RAY * 8 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY / 5 + RAY * 10 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY / 5 + RAY * 12 / 1000);
         bool tempBool = p1.callUpdateFloatUp(tdc,0,RAY * 2 / 1000);
         assertTrue(!tempBool);
         for(uint8 i = 0 ; i < 10; i++) {
@@ -115,45 +115,89 @@ contract SettingTest is TestBase {
         admin.callUpdateFloatUp(tdc,3, RAY * 20 / 1000);
         admin.callUpdateFloatUp(tdc,4, RAY * 24 / 1000);
 
-        assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY/10 + RAY * 8 / 1000);
-        assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY/10 + RAY * 12 / 1000);
-        assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY/10 + RAY * 16 / 1000);
-        assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY/10 + RAY * 20 / 1000);
-        assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY/10 + RAY * 24 / 1000);
-        tempBool = admin.callUpdateFloatUp(cdp,10,RAY * 2 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY / 5 + RAY * 8 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY / 5 + RAY * 12 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY / 5 + RAY * 16 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY / 5 + RAY * 20 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY / 5 + RAY * 24 / 1000);
+        tempBool = admin.callUpdateFloatUp(tdc,10,RAY * 2 / 1000);
         assertTrue(!tempBool);
     }
 
+    function testUpdateTerm() public {
+        setup();
+        assertEq(tdc.term(0), 30 * 86400);
+        assertEq(tdc.term(1), 60 * 86400);
+        assertEq(tdc.term(2), 90 * 86400);
+        assertEq(tdc.term(3), 180 * 86400);
+        assertEq(tdc.term(4), 360 * 86400);
+        assertEq(tdc.term(5), 0);
+        assertEq(tdc.term(6), 0);
+        assertEq(tdc.term(7), 0);
+        assertEq(tdc.term(8), 0);
+        assertEq(tdc.term(9), 0);
+        bool tempBool = p1.callUpdateTerm(tdc,5,1 days);
+        assertTrue(!tempBool);
+        for(uint8 i = 5 ; i < 10; i++) {
+            admin.callUpdateTerm(tdc,i,2 days);
+            assertEq(tdc.term(i), 2 * 86400);
+        }
+        for(i = 0 ; i < 5; i++) {
+            tempBool = admin.callUpdateTerm(tdc,i,2 days);
+            assertTrue(!tempBool);
+        }
+    }
+
+    function testChangeState() public {
+        setup();
+        assertTrue(tdc.enable(0));
+        assertTrue(tdc.enable(1));
+        assertTrue(tdc.enable(2));
+        assertTrue(tdc.enable(3));
+        assertTrue(tdc.enable(4));
+        assertTrue(!tdc.enable(5));
+        assertTrue(!tdc.enable(6));
+        assertTrue(!tdc.enable(7));
+        assertTrue(!tdc.enable(8));
+        assertTrue(!tdc.enable(9));
+        bool tempBool = p1.callChangeState(tdc,5,true);
+        assertTrue(!tempBool);
+        for(uint8 i = 5 ; i < 10; i++) {
+            admin.callChangeState(tdc,i,true);
+            assertTrue(tdc.enable(i));
+        }
+        for(i = 0 ; i < 5; i++) {
+            admin.callChangeState(tdc,i,false);
+            assertTrue(!tdc.enable(i));
+        }
+    }
+
+    function testSwitchDeposit() public {
+        setup();
+        assertTrue(!tdc.disableDeposit());
+        bool tempBool = p1.callSwitchDeposit(tdc,true);
+        assertTrue(!tempBool);
+        tempBool = admin.callSwitchDeposit(tdc,true);
+        assertTrue(tempBool);
+        assertTrue(tdc.disableDeposit());
+        admin.callSwitchDeposit(tdc,false);
+        assertTrue(!tdc.disableDeposit());
+    }
+
+    function testSwitchGetInterest() public {
+        setup();
+        assertTrue(!tdc.disableGetInterest());
+        bool tempBool = p1.callGetInterest(tdc,true);
+        assertTrue(!tempBool);
+        tempBool = admin.callGetInterest(tdc,true);
+        assertTrue(tempBool);
+        assertTrue(tdc.disableGetInterest());
+        admin.callGetInterest(tdc,false);
+        assertTrue(!tdc.disableGetInterest());
+    }
+
 }
-//     function testSetRate() public {
-//         setup();
-//         assertEq(tdc.baseInterestRate(), RAY / 5);
-//         tdc.updateBaseInterestRate(RAY / 10);
-//         assertEq(tdc.baseInterestRate(), RAY / 10);
-//         assertEq(tdc.floatUp(0),RAY * 4 / 1000);
-//         assertEq(tdc.floatUp(1),RAY * 6 / 1000);
-//         assertEq(tdc.floatUp(2),RAY * 8 / 1000);
-//         assertEq(tdc.floatUp(3),RAY * 10 / 1000);
-//         assertEq(tdc.floatUp(4),RAY * 12 / 1000);
 
-//         assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY/10 + RAY * 4 / 1000);
-//         assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY/10 + RAY * 6 / 1000);
-//         assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY/10 + RAY * 8 / 1000);
-//         assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY/10 + RAY * 10 / 1000);
-//         assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY/10 + RAY * 12 / 1000);
-
-//         tdc.updateFloatUp(TDC.TDCType._30DAYS, RAY * 8 / 1000);
-//         tdc.updateFloatUp(TDC.TDCType._60DAYS, RAY * 12 / 1000);
-//         tdc.updateFloatUp(TDC.TDCType._90DAYS, RAY * 16 / 1000);
-//         tdc.updateFloatUp(TDC.TDCType._180DAYS, RAY * 20 / 1000);
-//         tdc.updateFloatUp(TDC.TDCType._360DAYS, RAY * 24 / 1000);
-
-//         assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY/10 + RAY * 8 / 1000);
-//         assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY/10 + RAY * 12 / 1000);
-//         assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY/10 + RAY * 16 / 1000);
-//         assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY/10 + RAY * 20 / 1000);
-//         assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY/10 + RAY * 24 / 1000);
-//     }
 
 //     function testDeposit() public {
 //         setup();
