@@ -169,7 +169,6 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
             emit Withdraw(record,msg.sender,amount,0);
         }
         msg.sender.transfer(amount,ASSET_PAI);
-        
     }
 
     function checkMaturity(uint record) public view returns (bool) {

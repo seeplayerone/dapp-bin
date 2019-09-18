@@ -331,45 +331,47 @@ contract functionTest is TestBase {
         tempBool = p1.callTDCWithdraw(tdc,1,100);
         assertTrue(tempBool);
     }
+
+    function testAboutTime() public {
+        setup();
+        p1.callTDCDeposit(tdc,0,10000,ASSET_PAI);
+        (,,,,uint startTime1,) = tdc.TDCRecords(1);
+        uint passedTime = tdc.passedTime(1);
+        assertEq(passedTime,0);
+        tdc.fly(100);
+        (,,,,uint startTime2,) = tdc.TDCRecords(1);
+        assertEq(startTime1,startTime2);
+        passedTime = tdc.passedTime(1);
+        assertEq(passedTime,100);
+
+        assertTrue(!tdc.checkMaturity(1000));
+        idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
+        assertTrue(!tdc.checkMaturity(idx));
+        tdc.fly(30 days);
+        assertTrue(tdc.checkMaturity(idx));
+        idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._60DAYS);
+        assertTrue(!tdc.checkMaturity(idx));
+        tdc.fly(30 days);
+        assertTrue(!tdc.checkMaturity(idx));
+        tdc.fly(30 days);
+        assertTrue(tdc.checkMaturity(idx));
+        idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._90DAYS);
+        assertTrue(!tdc.checkMaturity(idx));
+        tdc.fly(90 days);
+        assertTrue(tdc.checkMaturity(idx));
+        idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._180DAYS);
+        assertTrue(!tdc.checkMaturity(idx));
+        tdc.fly(180 days);
+        assertTrue(tdc.checkMaturity(idx));
+        idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._360DAYS);
+        assertTrue(!tdc.checkMaturity(idx));
+        tdc.fly(360 days);
+        assertTrue(tdc.checkMaturity(idx));
+    }
 }
 
 
-//     function testAboutTime() public {
-//         setup();
-//         uint idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
-//         (,,,,uint startTime1) = tdc.TDCRecords(idx);
-//         uint passedTime = tdc.passedTime(idx);
-//         assertEq(passedTime,0);
-//         tdc.fly(100);
-//         (,,,,uint startTime2) = tdc.TDCRecords(idx);
-//         assertEq(startTime1,startTime2);
-//         passedTime = tdc.passedTime(idx);
-//         assertEq(passedTime,100);
 
-//         assertTrue(!tdc.checkMaturity(1000));
-//         idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
-//         assertTrue(!tdc.checkMaturity(idx));
-//         tdc.fly(30 days);
-//         assertTrue(tdc.checkMaturity(idx));
-//         idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._60DAYS);
-//         assertTrue(!tdc.checkMaturity(idx));
-//         tdc.fly(30 days);
-//         assertTrue(!tdc.checkMaturity(idx));
-//         tdc.fly(30 days);
-//         assertTrue(tdc.checkMaturity(idx));
-//         idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._90DAYS);
-//         assertTrue(!tdc.checkMaturity(idx));
-//         tdc.fly(90 days);
-//         assertTrue(tdc.checkMaturity(idx));
-//         idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._180DAYS);
-//         assertTrue(!tdc.checkMaturity(idx));
-//         tdc.fly(180 days);
-//         assertTrue(tdc.checkMaturity(idx));
-//         idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._360DAYS);
-//         assertTrue(!tdc.checkMaturity(idx));
-//         tdc.fly(360 days);
-//         assertTrue(tdc.checkMaturity(idx));
-//     }
 
 //     function testReturnMoney() public {
 //         setup();
