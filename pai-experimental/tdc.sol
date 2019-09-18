@@ -161,11 +161,12 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
             TDCRecords[record].principalPayed = add(TDCRecords[record].principalPayed,amount);
             emit Withdraw(record,msg.sender,amount,1);
         } else {
-            TDCRecords[record].principal = sub(TDCRecords[record].principal,amount);
-            emit Withdraw(record,msg.sender,amount,0);
-            if (0 == TDCRecords[record].principal) {
+            if(sub(TDCRecords[record].principal,amount) == 0) {
                 delete TDCRecords[record];
+            } else {
+                TDCRecords[record].principal = sub(TDCRecords[record].principal,amount);
             }
+            emit Withdraw(record,msg.sender,amount,0);
         }
         msg.sender.transfer(amount,ASSET_PAI);
         
