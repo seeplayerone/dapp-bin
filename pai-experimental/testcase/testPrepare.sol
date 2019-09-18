@@ -437,7 +437,7 @@ contract TimefliesCDP is CDP, TestTimeflies {
 
 contract TimefliesTDC is TDC, TestTimeflies {
     constructor(address paiMainContract,address _setting,address _issuer,address _finance)
-        TDC(paiMainContract,_setting,_issuer, _financial)
+        TDC(paiMainContract,_setting,_issuer, _finance)
         public
     {
 
