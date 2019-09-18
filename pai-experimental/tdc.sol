@@ -199,7 +199,9 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
             TDCRecords[record].owner.transfer(principal,ASSET_PAI);
         }
         TDCRecords[record].principal = 0;
-        finance.payForInterest(167,TDCRecords[record].owner);
+        if (interest > 0) {
+            finance.payForInterest(interest,TDCRecords[record].owner);
+        }
         emit ReturnMoney(record,TDCRecords[record].owner,principal,interest);
     }
 }
