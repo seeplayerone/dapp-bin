@@ -786,13 +786,17 @@ contract FunctionTest is TestBase {
         assertEq(flow.balance(this, ASSET_BTC) - emm, 2000000000);//10000000000 - 8000000000 = 2000000000
     }
 
-    function testLiqudateFail() {
+    function testLiqudateFail() public {
         setup();
-        uint idx = cdp.createDepositBorrow.value(10000000000, ASSET_BTC)(4000000000,CDP.CDPType.CURRENT);
+        cdp.createDepositBorrow.value(10000000000, ASSET_BTC)(4000000000,CDP.CDPType.CURRENT);
+        cdp.createDepositBorrow.value(10000000000, ASSET_BTC)(4000000000,CDP.CDPType.CURRENT);
+        cdp.createDepositBorrow.value(10000000000, ASSET_BTC)(4000000000,CDP.CDPType.CURRENT);
+        cdp.createDepositBorrow.value(10000000000, ASSET_BTC)(4000000000,CDP.CDPType.CURRENT);
+        cdp.createDepositBorrow.value(10000000000, ASSET_BTC)(4000000000,CDP.CDPType.CURRENT);
         admin.callUpdateLiquidationRatio(cdp, RAY * 2);
         admin.callUpdateLiquidationPenalty(cdp, RAY);
 
-        assertTrue(cdp.safe(idx));
+        assertTrue(cdp.safe(1));
         admin.callModifySensitivityRate(oracle, RAY);
         admin.callUpdatePrice(oracle, RAY / 2);
         p1.callUpdatePrice(oracle, RAY / 2);
@@ -800,14 +804,37 @@ contract FunctionTest is TestBase {
         oracle.fly(50);
         admin.callUpdatePrice(oracle, RAY / 2);
         assertEq(oracle.getPrice(), RAY / 2);
-        assertTrue(!cdp.safe(idx));
+        assertTrue(!cdp.safe(1));
 
-        
-        bool tempBool = p1.callLiquidate(cdp.idx);
+        assertEq(cdp.totalPrincipal(), 20000000000);
+        bool tempBool = p1.callLiquidate(cdp,1);
         assertTrue(tempBool);
-        assertEq(cdp.totalPrincipal(), 0);
-    }
+        assertEq(cdp.totalPrincipal(), 16000000000);
 
+        admin.callSwitchAllCDPFunction(cdp,true);
+        tempBool = p1.callLiquidate(cdp,2);
+        assertTrue(!tempBool);
+        admin.callSwitchAllCDPFunction(cdp,false);
+        tempBool = p1.callLiquidate(cdp,2);
+        assertTrue(tempBool);
+        assertEq(cdp.totalPrincipal(), 12000000000);
+
+        admin.callSwitchLiquidation(cdp,true);
+        tempBool = p1.callLiquidate(cdp,3);
+        assertTrue(!tempBool);
+        admin.callSwitchLiquidation(cdp,false);
+        tempBool = p1.callLiquidate(cdp,3);
+        assertTrue(tempBool);
+        assertEq(cdp.totalPrincipal(), 8000000000);
+
+        admin.callRemoveMember(paiDAO,cdp,"BTCCDP");
+        tempBool = p1.callLiquidate(cdp,4);
+        assertTrue(!tempBool);
+        admin.callAddMember(paiDAO,cdp,"BTCCDP");
+        tempBool = p1.callLiquidate(cdp,4);
+        assertTrue(tempBool);
+        assertEq(cdp.totalPrincipal(), 4000000000);
+    }
 }
 
 
