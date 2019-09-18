@@ -371,115 +371,107 @@ contract FunctionTest is TestBase {
         assertTrue(tdc.checkMaturity(idx));
     }
 
-    // function testReturnMoney() public {
-    //     setup();
-    //     uint idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
-    //     bool tempBool = tdc.call(abi.encodeWithSelector(tdc.returnMoney.selector,idx));
-    //     assertTrue(!tempBool); //0
-    //     tdc.fly(30 days);
-    //     assertTrue(tdc.checkMaturity(idx)); //1
-    //     tempBool = tdc.call(abi.encodeWithSelector(tdc.returnMoney.selector,idx));
-    //     assertTrue(!tempBool); //2
-    //     assertEq(flow.balance(finance,ASSET_PAI),0); // 3
-    //     finance.transfer(100000,ASSET_PAI);
-    //     assertEq(flow.balance(finance,ASSET_PAI),100000); //4
-    //     uint emm = flow.balance(this,ASSET_PAI);
-    //     tempBool = tdc.call(abi.encodeWithSelector(tdc.returnMoney.selector,idx));
-    //     assertTrue(tempBool); //5
-    //     assertEq(flow.balance(this,ASSET_PAI) - emm, 10167);//6
-    //     tempBool = tdc.call(abi.encodeWithSelector(tdc.returnMoney.selector,idx));
-    //     assertTrue(!tempBool);//7
-    // }
-
     function testReturnMoney() public {
         setup();
         uint idx = 1;
         p1.callTDCDeposit(tdc,0,10000,ASSET_PAI);
-        (TDC.TDCType tdcType,address owner, uint principal,uint interestRate,uint time,uint principalPayed) = tdc.TDCRecords(1);
-        assertEq(owner,p1);
-        assertEq(uint(tdcType),0);
-        assertEq(principal,10000);
-        assertEq(interestRate, RAY/5 + RAY * 4 / 1000);
-        assertEq(time,block.timestamp);
-        assertEq(principalPayed,0);
-        tdc.fly(30 days); 
-
-        
-        assertTrue(tdc.checkMaturity(idx)); //6
-        // tempBool = p2.callReturnMoney(tdc,idx);
-        // assertTrue(!tempBool); //2
-        assertEq(flow.balance(finance,ASSET_PAI),0); // 7
+        tdc.fly(30 days);
+        bool tempBool;
+        assertTrue(tdc.checkMaturity(idx));
+        p1.callTDCDeposit(tdc,0,1000000000,ASSET_PAI);
+        tempBool = p2.callReturnMoney(tdc,idx);
+        assertTrue(!tempBool);
+        assertEq(flow.balance(finance,ASSET_PAI),0);
         finance.transfer(100000,ASSET_PAI);
-        assertEq(flow.balance(finance,ASSET_PAI),100000); //8
-        bool tempBool = p2.callReturnMoney(tdc,idx);
-        assertTrue(tempBool); //9
-        //uint emm = flow.balance(p1,ASSET_PAI);
-        // tempBool = p2.callReturnMoney(tdc,idx);
-        // assertTrue(tempBool); //5
-        // assertEq(flow.balance(p1,ASSET_PAI) - emm, 10167);//6
-        // tempBool = p2.callReturnMoney(tdc,idx);
-        // assertTrue(!tempBool);//7
+        assertEq(flow.balance(finance,ASSET_PAI),100000);
+
+        uint emm = flow.balance(p1,ASSET_PAI);
+        tempBool = p2.callReturnMoney(tdc,idx);
+        assertTrue(tempBool);
+        assertEq(flow.balance(p1,ASSET_PAI) - emm, 10167);
+        tempBool = p2.callReturnMoney(tdc,idx);
+        assertTrue(!tempBool);
+    }
+
+    function testReturnMoneyFail() public {
+        setup();
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
+        tdc.fly(30 days);
+
+        admin.callGlobalShutDown(setting);
+        tempBool = p2.callReturnMoney(tdc,1);
+        assertTrue(!tempBool);
+        admin.callGlobalReopen(setting);
+        tempBool = p2.callReturnMoney(tdc,1);
+        assertTrue(tempBool);
+
+        admin.callSwitchGetInterest(tdc,true);
+        tempBool = p2.callReturnMoney(tdc,1);
+        assertTrue(!tempBool);
+        admin.callSwitchGetInterest(tdc,false);
+        tempBool = p2.callReturnMoney(tdc,1);
+        assertTrue(tempBool);
+
+    }
+
+    function testInterestCalculate() public {
+        setup();
+        finance.transfer(10000000000,ASSET_PAI);
+        assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY * 204 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY * 206 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY * 208 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY * 210 / 1000);
+        assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY * 212 / 1000);
+
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._60DAYS);
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._90DAYS);
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._180DAYS);
+        tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._360DAYS);
+        tdc.fly(360 days);
+        uint emm1 = flow.balance(this,ASSET_PAI);
+        uint emm2 = flow.balance(tdc,ASSET_PAI);
+        uint emm3 = flow.balance(finance,ASSET_PAI);
+        tdc.returnMoney(1);
+        assertEq(flow.balance(this,ASSET_PAI) - emm1, 10167);
+        assertEq(emm2 - flow.balance(tdc,ASSET_PAI), 10000);
+        assertEq(emm3 - flow.balance(finance,ASSET_PAI),167);
+
+
+        emm1 = flow.balance(this,ASSET_PAI);
+        emm2 = flow.balance(tdc,ASSET_PAI);
+        emm3 = flow.balance(finance,ASSET_PAI);
+        tdc.returnMoney(2);
+        assertEq(flow.balance(this,ASSET_PAI) - emm1,10338);
+        assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
+        assertEq(emm3 - flow.balance(finance,ASSET_PAI),338);
+
+        emm1 = flow.balance(this,ASSET_PAI);
+        emm2 = flow.balance(tdc,ASSET_PAI);
+        emm3 = flow.balance(finance,ASSET_PAI);
+        tdc.returnMoney(3);
+        assertEq(flow.balance(this,ASSET_PAI) - emm1,10512);
+        assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
+        assertEq(emm3 - flow.balance(finance,ASSET_PAI),512);
+
+        emm1 = flow.balance(this,ASSET_PAI);
+        emm2 = flow.balance(tdc,ASSET_PAI);
+        emm3 = flow.balance(finance,ASSET_PAI);
+        tdc.returnMoney(4);
+        assertEq(flow.balance(this,ASSET_PAI) - emm1,11035);
+        assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
+        assertEq(emm3 - flow.balance(finance,ASSET_PAI),1035);
+
+        emm1 = flow.balance(this,ASSET_PAI);
+        emm2 = flow.balance(tdc,ASSET_PAI);
+        emm3 = flow.balance(finance,ASSET_PAI);
+        tdc.returnMoney(5);
+        assertEq(flow.balance(this,ASSET_PAI) - emm1,12090);
+        assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
+        assertEq(emm3 - flow.balance(finance,ASSET_PAI),2090);
     }
 }
-
-
-
-
-
-
-//     function testInterestCalculate() public {
-//         setup();
-//         assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY * 204 / 1000);
-//         assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY * 206 / 1000);
-//         assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY * 208 / 1000);
-//         assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY * 210 / 1000);
-//         assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY * 212 / 1000);
-
-//         tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
-//         tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._60DAYS);
-//         tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._90DAYS);
-//         tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._180DAYS);
-//         tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._360DAYS);
-//         tdc.fly(360 days);
-//         uint emm1 = flow.balance(this,ASSET_PAI);
-//         uint emm2 = flow.balance(tdc,ASSET_PAI);
-//         uint emm3 = flow.balance(finance,ASSET_PAI);
-//         tdc.returnMoney(1);
-//         assertEq(flow.balance(this,ASSET_PAI) - emm1, 10167);
-//         assertEq(emm2 - flow.balance(tdc,ASSET_PAI), 10000);
-//         assertEq(emm3 - flow.balance(finance,ASSET_PAI),167);
-
-
-//         emm1 = flow.balance(this,ASSET_PAI);
-//         emm2 = flow.balance(tdc,ASSET_PAI);
-//         emm3 = flow.balance(finance,ASSET_PAI);
-//         tdc.returnMoney(2);
-//         assertEq(flow.balance(this,ASSET_PAI) - emm1,10338);
-//         assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
-//         assertEq(emm3 - flow.balance(finance,ASSET_PAI),338);
-
-//         emm1 = flow.balance(this,ASSET_PAI);
-//         emm2 = flow.balance(tdc,ASSET_PAI);
-//         emm3 = flow.balance(finance,ASSET_PAI);
-//         tdc.returnMoney(3);
-//         assertEq(flow.balance(this,ASSET_PAI) - emm1,10512);
-//         assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
-//         assertEq(emm3 - flow.balance(finance,ASSET_PAI),512);
-
-//         emm1 = flow.balance(this,ASSET_PAI);
-//         emm2 = flow.balance(tdc,ASSET_PAI);
-//         emm3 = flow.balance(finance,ASSET_PAI);
-//         tdc.returnMoney(4);
-//         assertEq(flow.balance(this,ASSET_PAI) - emm1,11035);
-//         assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
-//         assertEq(emm3 - flow.balance(finance,ASSET_PAI),1035);
-
-//         emm1 = flow.balance(this,ASSET_PAI);
-//         emm2 = flow.balance(tdc,ASSET_PAI);
-//         emm3 = flow.balance(finance,ASSET_PAI);
-//         tdc.returnMoney(5);
-//         assertEq(flow.balance(this,ASSET_PAI) - emm1,12090);
-//         assertEq(emm2 - flow.balance(tdc,ASSET_PAI),10000);
-//         assertEq(emm3 - flow.balance(finance,ASSET_PAI),2090);
-//     }
-// }
