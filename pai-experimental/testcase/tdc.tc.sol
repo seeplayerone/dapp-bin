@@ -19,9 +19,7 @@ contract TestTDC is Template, DSTest, DSMath {
     uint96 internal ASSET_BTC;
     uint96 internal ASSET_PAI;
 
-    function() public payable {
-
-    }
+    function() public payable {}
 
     function setup() public {
         admin = new FakePerson();
