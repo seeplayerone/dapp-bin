@@ -184,15 +184,15 @@ contract Election is Template {
     }
 
     /// @dev readonly functions
-    function getElectionRecord(uint index) returns (uint, uint, uint) {
+    function getElectionRecord(uint index) public view returns (uint, uint, uint) {
         return (electionRecords[index].assettype, electionRecords[index].totalSupply, electionRecords[index].nominateQualification);
     }
 
-    function getElectionCandidates(uint index) returns (address[]) {
+    function getElectionCandidates(uint index) public view returns (address[]) {
         return electionRecords[index].candidates;
     }
 
-    function getElectionCandidateSupportRates(uint index) returns (uint[]) {
+    function getElectionCandidateSupportRates(uint index) public view returns (uint[]) {
         return electionRecords[index].candidateSupportRates;
     }
 }
