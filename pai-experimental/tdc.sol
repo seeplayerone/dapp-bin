@@ -15,6 +15,8 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
     event SetFloatUp(TDCType _type, uint _newFloatUp);
     event SetTerm(TDCType _type, uint _newTerm);
     event SetState(TDCType _type, bool newState);
+    event SetContract(uint contractType, address contractAddress);
+    //please check specific meaning of type in each method
     event FunctionSwitch(uint switchType, bool newState);
     //please check specific meaning of type in each method
     event CreateTDC(uint record, TDCType _type,address owner,uint principal, uint interestRate);
@@ -87,23 +89,23 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         return block.timestamp;
     }
 
-    function updateBaseInterestRate() public note {
-        baseInterestRate = setting.lendingInterestRate();
+    function updateBaseInterestRate() public note auth("DIRECTORVOTE") {
+        baseInterestRate = setting.depositInterestRate();
         emit SetParam(0,baseInterestRate);
     }
 
-    function updateFloatUp(TDCType _type, uint _newFloatUp) public note {
+    function updateFloatUp(TDCType _type, uint _newFloatUp) public note auth("DIRECTORVOTE") {
         floatUp[uint8(_type)] = _newFloatUp;
         emit SetFloatUp(_type,_newFloatUp);
     }
 
-    function updateTerm(TDCType _type, uint _newTerm) public note {
+    function updateTerm(TDCType _type, uint _newTerm) public note auth("DIRECTORVOTE") {
         require(_type > TDCType._360DAYS);
         term[uint8(_type)] = _newTerm;
         emit SetTerm(_type,_newTerm);
     }
 
-    function changeState(TDCType _type, bool newState) public note {
+    function changeState(TDCType _type, bool newState) public note auth("DIRECTORVOTE") {
         enable[uint8(_type)] = newState;
         emit SetState(_type,newState);
     }
@@ -116,6 +118,20 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
     function switchGetInterest(bool newState) public note auth("DIRECTORVOTE") {
         disableGetInterest = newState;
         emit FunctionSwitch(1,newState);
+    }
+
+    function setSetting(address _setting) public note auth("DIRECTORVOTE") {
+        setting = Setting(_setting);
+        emit SetContract(0,setting);
+        baseInterestRate = setting.depositInterestRate();
+        emit SetParam(0,baseInterestRate);
+    }
+
+    function setPAIIssuer(PAIIssuer newIssuer) public note auth("DIRECTORVOTE") {
+        issuer = newIssuer;
+        emit SetContract(1,issuer);
+        ASSET_PAI = issuer.PAIGlobalId();
+        emit SetParam(1,ASSET_PAI);
     }
 
     /// @dev TDC base operations
@@ -184,10 +200,5 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         }
         finance.payForInterest(interest,TDCRecords[record].owner);
         emit ReturnMoney(record,TDCRecords[record].owner,principal,interest);
-    }
-
-    function setPAIIssuer(PAIIssuer newIssuer) public {
-        issuer = newIssuer;
-        ASSET_PAI = issuer.PAIGlobalId();
     }
 }

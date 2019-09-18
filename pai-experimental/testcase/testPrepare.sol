@@ -335,6 +335,18 @@ contract FakePerson is Template {
         bool result = Liquidator(liquidator).call.value(amount,id)(abi.encodeWithSelector(methodId));
         return result;
     }
+
+    function callDeposit(address tdc, uint8 tdcType, uint amount, uint96 id) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("deposit(uint8)"));
+        bool result = TimefliesTDC(tdc).call.value(amount,id)(abi.encodeWithSelector(methodId,tdcType));
+        return result;
+    }
+
+    function callWithdraw(address tdc, uint record, uint amount) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("withdraw(uint256,uint256)"));
+        bool result = TimefliesTDC(tdc).call(abi.encodeWithSelector(methodId,record,amount));
+        return result;
+    }
 }
 
 contract FakePAIIssuer is PAIIssuer {
@@ -416,6 +428,15 @@ contract TimefliesCDP is CDP, TestTimeflies {
     constructor(address main, address _issuer, address _oracle, address _liquidator,
         address _setting, address _finance, uint _debtCeiling)
         CDP(main, _issuer, _oracle, _liquidator, _setting, _finance, _debtCeiling)
+        public
+    {
+
+    }
+}
+
+contract TimefliesTDC is TDC, TestTimeflies {
+    constructor(address paiMainContract,address _setting,address _issuer,address _finance)
+        TDC(paiMainContract,_setting,_issuer, _financial)
         public
     {
 
