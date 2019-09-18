@@ -188,11 +188,11 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
     }
 
     function returnMoney(uint record) public note {
-        // require(setting.globalOpen());
-        // require(!disableGetInterest);
-        // require(TDCRecords[record].owner != 0x0);
-        // require(TDCRecords[record].principal != 0);
-        // require(checkMaturity(record));
+        require(setting.globalOpen());
+        require(!disableGetInterest);
+        require(TDCRecords[record].owner != 0x0);
+        require(TDCRecords[record].principal != 0);
+        require(checkMaturity(record));
         uint interest = mul(TDCRecords[record].principal,rmul(TDCRecords[record].interestRate, term[uint8(TDCRecords[record].tdcType)])) / 1 years;
         uint principal = sub(TDCRecords[record].principal,TDCRecords[record].principalPayed);
         if (principal > 0) {

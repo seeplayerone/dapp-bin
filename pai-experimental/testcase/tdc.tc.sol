@@ -398,22 +398,24 @@ contract FunctionTest is TestBase {
         (TDC.TDCType tdcType,address owner, uint principal,uint interestRate,uint time,uint principalPayed) = tdc.TDCRecords(1);
         assertEq(owner,p1);
         assertEq(uint(tdcType),0);
-        assertEq(principal,1000);
+        assertEq(principal,10000);
         assertEq(interestRate, RAY/5 + RAY * 4 / 1000);
         assertEq(time,block.timestamp);
         assertEq(principalPayed,0);
-        bool tempBool = p2.callReturnMoney(tdc,idx);
-        assertTrue(!tempBool); //0
-        tdc.fly(30 days);
-        assertTrue(tdc.checkMaturity(idx)); //1
+        tdc.fly(30 days); 
+
+        
+        assertTrue(tdc.checkMaturity(idx)); //6
         // tempBool = p2.callReturnMoney(tdc,idx);
         // assertTrue(!tempBool); //2
-        assertEq(flow.balance(finance,ASSET_PAI),0); // 3
+        assertEq(flow.balance(finance,ASSET_PAI),0); // 7
         finance.transfer(100000,ASSET_PAI);
-        assertEq(flow.balance(finance,ASSET_PAI),100000); //4
+        assertEq(flow.balance(finance,ASSET_PAI),100000); //8
+        bool tempBool = p2.callReturnMoney(tdc,idx);
+        assertTrue(tempBool); //9
         //uint emm = flow.balance(p1,ASSET_PAI);
-        tempBool = p2.callReturnMoney(tdc,idx);
-        assertTrue(tempBool); //5
+        // tempBool = p2.callReturnMoney(tdc,idx);
+        // assertTrue(tempBool); //5
         // assertEq(flow.balance(p1,ASSET_PAI) - emm, 10167);//6
         // tempBool = p2.callReturnMoney(tdc,idx);
         // assertTrue(!tempBool);//7
