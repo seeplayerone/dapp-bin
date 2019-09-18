@@ -228,7 +228,7 @@ contract SettingTest is TestBase {
 
 }
 
-contract functionTest is TestBase {
+contract FunctionTest is TestBase {
     function testDeposit() public {
         setup();
         bool tempBool;
