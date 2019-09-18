@@ -148,7 +148,7 @@ contract Election is Template {
         require(election.candidates.length == election.candidateSupportRates.length);
 
         if(election.candidates.length > 1) {
-            quicksort(election.candidateSupportRates, election.candidates, 0, election.candidates.length - 1);
+            // quicksort(election.candidateSupportRates, election.candidates, 0, election.candidates.length - 1);
         }
 
         election.sorted = true;
