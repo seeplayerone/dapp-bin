@@ -354,6 +354,12 @@ contract FakePerson is Template {
         bool result = TimefliesTDC(tdc).call(abi.encodeWithSelector(methodId));
         return result;
     }
+
+    function callUpdateFloatUp(address tdc, uint8 TDCType, uint newRate) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("updateFloatUp(uint8,uint256)"));
+        bool result = TimefliesTDC(tdc).call(abi.encodeWithSelector(methodId,TDCType,newRate));
+        return result;
+    }
 }
 
 contract FakePAIIssuer is PAIIssuer {
