@@ -268,6 +268,12 @@ contract FakePerson is Template {
         return result;
     }
 
+    function callLiquidate(address cdp, uint record) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("liquidate(uint256)"));
+        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,record));
+        return result;
+    }
+
     function callSetLiquidator(address cdp, address addr) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("setLiquidator(address)"));
         bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,addr));
@@ -291,6 +297,8 @@ contract FakePerson is Template {
         bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,addr));
         return result;
     }
+
+
 
     function callTerminatePhaseOne(address settlement) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("terminatePhaseOne()"));

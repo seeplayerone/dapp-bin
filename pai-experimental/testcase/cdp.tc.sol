@@ -43,6 +43,7 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
         admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
         admin.callCreateNewRole(paiDAO,"SettlementContract","ADMIN",0);
+        admin.callCreateNewRole(paiDAO,"BTCCDP","ADMIN",0);
         admin.callAddMember(paiDAO,admin,"BTCOracle");
         admin.callAddMember(paiDAO,p1,"BTCOracle");
         admin.callAddMember(paiDAO,p2,"BTCOracle");
@@ -54,8 +55,7 @@ contract TestBase is Template, DSTest, DSMath {
         paiIssuer.init();
         ASSET_PAI = paiIssuer.PAIGlobalId();
 
-        liquidator = new Liquidator(oracle, paiIssuer);//todo
-        liquidator.setAssetBTC(ASSET_BTC);//todo
+        liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
         setting = new Setting(paiDAO);
         finance = new Finance(paiIssuer); // todo
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
@@ -63,6 +63,7 @@ contract TestBase is Template, DSTest, DSMath {
         cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,100000000000);
         admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
         admin.callAddMember(paiDAO,cdp,"PAIMINTER");
+        admin.callAddMember(paiDAO,cdp,"BTCCDP");
 
         btcIssuer.mint(1000000000000, p1);
         btcIssuer.mint(1000000000000, p2);
@@ -748,9 +749,9 @@ contract FunctionTest is TestBase {
         oracle.fly(50);
         admin.callUpdatePrice(oracle, RAY / 4);
         assertEq(oracle.getPrice(), RAY / 4);
-        assertEq(liquidator.totalCollateralBTC(), 0);
+        assertEq(liquidator.totalCollateral(), 0);
         cdp.liquidate(idx);
-        assertEq(liquidator.totalCollateralBTC(), 1000000000);
+        assertEq(liquidator.totalCollateral(), 1000000000);
     }
 
     function testLiquidationCase2() public {
@@ -772,17 +773,39 @@ contract FunctionTest is TestBase {
         assertEq(cdp.totalPrincipal(), 4000000000);
         (uint principal,uint interest) = cdp.debtOfCDP(idx);
         assertEq(add(principal,interest), 4000000000);
-        assertEq(liquidator.totalCollateralBTC(), 0);
-        assertEq(liquidator.totalDebtPAI(), 0);
+        assertEq(liquidator.totalCollateral(), 0);
+        assertEq(liquidator.totalDebt(), 0);
 
         uint emm = flow.balance(this, ASSET_BTC);
         cdp.liquidate(idx);
         assertEq(cdp.totalPrincipal(), 0);
         (principal, interest) = cdp.debtOfCDP(idx);
         assertEq(add(principal,interest), 0);
-        assertEq(liquidator.totalCollateralBTC(), 8000000000);
-        assertEq(liquidator.totalDebtPAI(), 4000000000);
+        assertEq(liquidator.totalCollateral(), 8000000000);
+        assertEq(liquidator.totalDebt(), 4000000000);
         assertEq(flow.balance(this, ASSET_BTC) - emm, 2000000000);//10000000000 - 8000000000 = 2000000000
+    }
+
+    function testLiqudateFail() {
+        setup();
+        uint idx = cdp.createDepositBorrow.value(10000000000, ASSET_BTC)(4000000000,CDP.CDPType.CURRENT);
+        admin.callUpdateLiquidationRatio(cdp, RAY * 2);
+        admin.callUpdateLiquidationPenalty(cdp, RAY);
+
+        assertTrue(cdp.safe(idx));
+        admin.callModifySensitivityRate(oracle, RAY);
+        admin.callUpdatePrice(oracle, RAY / 2);
+        p1.callUpdatePrice(oracle, RAY / 2);
+        p2.callUpdatePrice(oracle, RAY / 2);
+        oracle.fly(50);
+        admin.callUpdatePrice(oracle, RAY / 2);
+        assertEq(oracle.getPrice(), RAY / 2);
+        assertTrue(!cdp.safe(idx));
+
+        
+        bool tempBool = p1.callLiquidate(cdp.idx);
+        assertTrue(tempBool);
+        assertEq(cdp.totalPrincipal(), 0);
     }
 
 }
