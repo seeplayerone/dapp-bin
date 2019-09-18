@@ -148,14 +148,13 @@ contract Election is Template {
         require(election.candidates.length == election.candidateSupportRates.length);
 
         if(election.candidates.length > 1) {
-            // quicksort(election.candidateSupportRates, election.candidates, 0, election.candidates.length - 1);
             bubblesort(election.candidateSupportRates, election.candidates);
         }
 
         election.sorted = true;
     }
 
-    /// @dev readonly and helper functions
+    /// @dev helper functions
     function nowBlock() public view returns(uint) {
         return block.number;
     }
@@ -165,26 +164,7 @@ contract Election is Template {
         return own.mul(10**8).div(total);
     } 
 
-    function quicksort(uint[] storage values, address[] storage addresses, uint left, uint right) internal {
-        uint i = left;
-        uint j = right;
-        uint pivot = values[left + (right - left) / 2];
-        while (i <= j) {
-            while (values[i] < pivot) i++;
-            while (pivot < values[j]) j--;
-            if (i <= j) {
-                (values[i], values[j]) = (values[j], values[i]);
-                (addresses[i], addresses[j]) = (addresses[j], addresses[i]);
-                i++;
-                j--;
-            }
-        }
-        if (left < j)
-            quicksort(values, addresses, left, j);
-        if (i < right)
-            quicksort(values, addresses, i, right);
-    }
-
+    /// @dev should test gas comsumptions
     function bubblesort(uint[] storage values, address[] storage addresses) internal {
         uint length = values.length;
         uint tempValue;
