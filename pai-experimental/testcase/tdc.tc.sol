@@ -57,7 +57,7 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
         admin.callAddMember(paiDAO,admin,"PAIMINTER");
 
-        tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance)
+        tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance);
 
         btcIssuer.mint(100000000000, p1);
         btcIssuer.mint(100000000000, p2);
@@ -69,6 +69,11 @@ contract TestBase is Template, DSTest, DSMath {
 contract SettingTest is TestBase {
     function testUpdateBaseInterestRate() public {
         setup();
+        assertEq(tdc.baseInterestRate(), RAY / 5);
+        admin.callUpdateDepositRate(setting, RAY / 10);
+        assertEq(tdc.baseInterestRate(), RAY / 5);
+        assertTrue(p1.callUpdateBaseInterestRate(tdc));
+        assertEq(tdc.baseInterestRate(), RAY / 10);
     }
 }
 //     function testSetRate() public {
