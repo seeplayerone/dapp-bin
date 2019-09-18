@@ -161,11 +161,7 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
             TDCRecords[record].principalPayed = add(TDCRecords[record].principalPayed,amount);
             emit Withdraw(record,msg.sender,amount,1);
         } else {
-            if(sub(TDCRecords[record].principal,amount) == 0) {
-                delete TDCRecords[record];
-            } else {
-                TDCRecords[record].principal = sub(TDCRecords[record].principal,amount);
-            }
+            TDCRecords[record].principal = sub(TDCRecords[record].principal,amount);
             emit Withdraw(record,msg.sender,amount,0);
         }
         msg.sender.transfer(amount,ASSET_PAI);
@@ -200,8 +196,8 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         if (principal > 0) {
             TDCRecords[record].owner.transfer(principal,ASSET_PAI);
         }
+        TDCRecords[record].principal = 0;
         finance.payForInterest(interest,TDCRecords[record].owner);
         emit ReturnMoney(record,TDCRecords[record].owner,principal,interest);
-        //delete TDCRecords[record];
     }
 }
