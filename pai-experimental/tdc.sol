@@ -188,7 +188,7 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
     }
 
     function returnMoney(uint record) public note {
-        // require(setting.globalOpen());
+        require(setting.globalOpen());
         // require(!disableGetInterest);
         // require(TDCRecords[record].owner != 0x0);
         // require(TDCRecords[record].principal != 0);
