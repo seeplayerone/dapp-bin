@@ -286,8 +286,8 @@ contract functionTest is TestBase {
         (,,principal,,,) = tdc.TDCRecords(1);
         assertEq(principal, 5000);
 
-        tempBool = p1.callDeposit(tdc,0,10000,ASSET_PAI);
-        assertTrue(tempBool);
+        tempBool = p1.callTDCDeposit(tdc,0,10000,ASSET_PAI);
+        assertTrue(tempBool);//3
         tempBool = p2.callTDCWithdraw(tdc,2,5000);
         assertTrue(!tempBool);
         uint emm = flow.balance(p1,ASSET_PAI);
@@ -304,48 +304,35 @@ contract functionTest is TestBase {
         assertEq(principal, 0);
         assertEq(flow.balance(p1,ASSET_PAI),emm + 10000);
 
-        tempBool = p1.callDeposit(tdc,0,10000,ASSET_PAI);
+        tempBool = p1.callTDCDeposit(tdc,0,10000,ASSET_PAI);
         assertTrue(tempBool);
         tdc.fly(30 days);
-        tempBool = p1.callTDCWithdraw(tdc,3,10000);
+        tempBool = p1.callTDCWithdraw(tdc,3,5000);
         assertTrue(tempBool);
+        uint principalPayed;
+        (,,principal,,,principalPayed) = tdc.TDCRecords(3);
+        assertEq(principal,10000);
+        assertEq(principalPayed,5000);
+        tempBool = p1.callTDCWithdraw(tdc,3,6000);
+        assertTrue(!tempBool);
+    }
 
+    function testWithdrawFail() public {
+        setup();
+        p1.callTDCDeposit(tdc,0,1000000,ASSET_PAI);
 
+        bool tempBool;
+        tempBool = p1.callTDCWithdraw(tdc,1,100);
+        assertTrue(tempBool);
+        admin.callGlobalShutDown(setting);
+        tempBool = p1.callTDCWithdraw(tdc,1,100);
+        assertTrue(!tempBool);
+        admin.callGlobalReopen(setting);
+        tempBool = p1.callTDCWithdraw(tdc,1,100);
+        assertTrue(tempBool);
     }
 }
 
-
-//     function testWithdraw() public {
-//         setup();
-//         uint idx = tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
-//         (,,uint principal,,) = tdc.TDCRecords(idx);
-//         assertEq(principal, 10000);
-//         tdc.withdraw(idx,5000);
-//         (,,principal,,) = tdc.TDCRecords(idx);
-//         assertEq(principal, 5000);
-
-//         FakePerson p1 = new FakePerson();
-//         paiIssuer.mint(10000, p1);
-//         bool tempBool;
-//         tempBool = p1.callDeposit(tdc,0,10000,uint96(ASSET_PAI));
-//         assertTrue(tempBool);
-//         assertEq(flow.balance(p1,ASSET_PAI),0);
-//         FakePerson p2 = new FakePerson();
-//         tempBool = p2.callWithdraw(tdc,2,5000);
-//         assertTrue(!tempBool);
-//         tempBool = p1.callWithdraw(tdc,2,5000);
-//         assertTrue(tempBool);
-//         (,,principal,,) = tdc.TDCRecords(2);
-//         assertEq(principal, 5000);
-//         assertEq(flow.balance(p1,ASSET_PAI),5000);
-//         tempBool = p1.callWithdraw(tdc,2,5001);
-//         assertTrue(!tempBool);
-//         tempBool = p1.callWithdraw(tdc,2,5000);
-//         assertTrue(tempBool);
-//         (,,principal,,) = tdc.TDCRecords(2);
-//         assertEq(principal, 0);
-//         assertEq(flow.balance(p1,ASSET_PAI),10000);
-//     }
 
 //     function testAboutTime() public {
 //         setup();
