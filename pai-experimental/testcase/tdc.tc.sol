@@ -395,6 +395,7 @@ contract FunctionTest is TestBase {
 
     function testReturnMoneyFail() public {
         setup();
+        finance.transfer(10000000000,ASSET_PAI);
         tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
         tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
         tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
@@ -402,6 +403,7 @@ contract FunctionTest is TestBase {
         tdc.deposit.value(10000,ASSET_PAI)(TDC.TDCType._30DAYS);
         tdc.fly(30 days);
 
+        bool tempBool;
         admin.callGlobalShutDown(setting);
         tempBool = p2.callReturnMoney(tdc,1);
         assertTrue(!tempBool);
@@ -410,10 +412,10 @@ contract FunctionTest is TestBase {
         assertTrue(tempBool);
 
         admin.callSwitchGetInterest(tdc,true);
-        tempBool = p2.callReturnMoney(tdc,1);
+        tempBool = p2.callReturnMoney(tdc,2);
         assertTrue(!tempBool);
         admin.callSwitchGetInterest(tdc,false);
-        tempBool = p2.callReturnMoney(tdc,1);
+        tempBool = p2.callReturnMoney(tdc,2);
         assertTrue(tempBool);
 
     }
