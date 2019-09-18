@@ -3,7 +3,7 @@ pragma solidity 0.4.25;
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
 
 
-contract TestTDC is Template, DSTest, DSMath {
+contract TestBase is Template, DSTest, DSMath {
     TimefliesTDC internal tdc;
     Liquidator internal liquidator;
     TimefliesOracle internal oracle;
@@ -57,6 +57,8 @@ contract TestTDC is Template, DSTest, DSMath {
         admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
         admin.callAddMember(paiDAO,admin,"PAIMINTER");
 
+        tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance)
+
         btcIssuer.mint(100000000000, p1);
         btcIssuer.mint(100000000000, p2);
         btcIssuer.mint(100000000000, this);
@@ -64,6 +66,11 @@ contract TestTDC is Template, DSTest, DSMath {
     }
 }
 
+contract SettingTest is TestBase {
+    function testUpdateBaseInterestRate() public {
+        setup();
+    }
+}
 //     function testSetRate() public {
 //         setup();
 //         assertEq(tdc.baseInterestRate(), RAY / 5);

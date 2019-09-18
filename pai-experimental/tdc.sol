@@ -89,7 +89,7 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         return block.timestamp;
     }
 
-    function updateBaseInterestRate() public note auth("DIRECTORVOTE") {
+    function updateBaseInterestRate() public note {
         baseInterestRate = setting.depositInterestRate();
         emit SetParam(0,baseInterestRate);
     }
