@@ -154,7 +154,6 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
 
     function withdraw(uint record, uint amount) public note {
         require(setting.globalOpen());
-        require(!disableGetInterest);
         require(TDCRecords[record].owner != 0x0);
         require(msg.sender == TDCRecords[record].owner);
         require(sub(TDCRecords[record].principal, TDCRecords[record].principalPayed) >= amount);
@@ -189,16 +188,17 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
 
     function returnMoney(uint record) public note {
         require(setting.globalOpen());
+        require(!disableGetInterest);
         require(TDCRecords[record].owner != 0x0);
         require(TDCRecords[record].principal != 0);
         require(checkMaturity(record));
         uint interest = mul(TDCRecords[record].principal,rmul(TDCRecords[record].interestRate, term[uint8(TDCRecords[record].tdcType)])) / 1 years;
         uint principal = sub(TDCRecords[record].principal,TDCRecords[record].principalPayed);
-        TDCRecords[record].principal = 0;
         if (principal > 0) {
             TDCRecords[record].owner.transfer(principal,ASSET_PAI);
         }
         finance.payForInterest(interest,TDCRecords[record].owner);
         emit ReturnMoney(record,TDCRecords[record].owner,principal,interest);
+        delete TDCRecords[record];
     }
 }

@@ -236,13 +236,73 @@ contract functionTest is TestBase {
         tempBool = p1.callTDCDeposit(tdc,0,1000,ASSET_PAI);
         assertTrue(tempBool);
 
-        (TDC.TDCType tdcType,address owner, uint principal,uint interestRate,uint time) = tdc.TDCRecords(1);
+        (TDC.TDCType tdcType,address owner, uint principal,uint interestRate,uint time,uint principalPayed) = tdc.TDCRecords(1);
         assertEq(owner,p1);
         assertEq(uint(tdcType),0);
         assertEq(principal,1000);
         assertEq(interestRate, RAY/5 + RAY * 4 / 1000);
         assertEq(time,block.timestamp);
+        assertEq(principalPayed,0);
         assertEq(flow.balance(p1,ASSET_PAI), emm - 1000);
+    }
+
+    function testDepositFail() public {
+        setup();
+        bool tempBool;
+        tempBool = p1.callTDCDeposit(tdc,0,1000,ASSET_PAI);
+        assertTrue(tempBool);
+        admin.callGlobalShutDown(setting);
+        tempBool = p1.callTDCDeposit(tdc,0,1000,ASSET_PAI);
+        assertTrue(!tempBool);
+        admin.callGlobalReopen(setting);
+        tempBool = p1.callTDCDeposit(tdc,0,1000,ASSET_PAI);
+        assertTrue(tempBool);
+
+        admin.callSwitchDeposit(tdc,true);
+        tempBool = p1.callTDCDeposit(tdc,0,1000,ASSET_PAI);
+        assertTrue(!tempBool);
+        admin.callSwitchDeposit(tdc,false);
+        tempBool = p1.callTDCDeposit(tdc,0,1000,ASSET_PAI);
+        assertTrue(tempBool);
+
+        admin.callChangeState(tdc,0,false);
+        tempBool = p1.callTDCDeposit(tdc,0,1000,ASSET_PAI);
+        assertTrue(!tempBool);
+        tempBool = p1.callTDCDeposit(tdc,6,1000,ASSET_PAI);
+        assertTrue(!tempBool);
+        admin.callChangeState(tdc,6,true);
+        tempBool = p1.callTDCDeposit(tdc,6,1000,ASSET_PAI);
+        assertTrue(tempBool);
+    }
+
+    function testWithdraw() public {
+        setup();
+        bool tempBool;
+        tempBool = p1.callTDCDeposit(tdc,0,10000,ASSET_PAI);
+        assertTrue(tempBool);
+        (,,uint principal,,,) = tdc.TDCRecords(1);
+        assertEq(principal, 10000);
+        tempBool = p1.callTDCWithdraw(tdc,1,5000);
+        (,,principal,,,) = tdc.TDCRecords(1);
+        assertEq(principal, 5000);
+
+        tempBool = p1.callDeposit(tdc,0,10000,ASSET_PAI);
+        assertTrue(tempBool);
+        tempBool = p2.callWithdraw(tdc,2,5000);
+        assertTrue(!tempBool);
+        uint emm = flow.balance(p1,ASSET_PAI);
+        tempBool = p1.callWithdraw(tdc,2,5000);
+        assertTrue(tempBool);
+        (,,principal,,,) = tdc.TDCRecords(2);
+        assertEq(principal, 5000);
+        assertEq(flow.balance(p1,ASSET_PAI),emm + 5000);
+        tempBool = p1.callWithdraw(tdc,2,5001);
+        assertTrue(!tempBool);
+        tempBool = p1.callWithdraw(tdc,2,5000);
+        assertTrue(tempBool);
+        (,,principal,,,) = tdc.TDCRecords(2);
+        assertEq(principal, 0);
+        assertEq(flow.balance(p1,ASSET_PAI),emm + 10000);
     }
 }
 
