@@ -5,6 +5,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol
 
 contract TestBase is Template, DSTest, DSMath {
     TimefliesTDC internal tdc;
+    TimefliesCDP internal cdp;
     Liquidator internal liquidator;
     TimefliesOracle internal oracle;
     FakePAIIssuer internal paiIssuer;
@@ -50,21 +51,51 @@ contract TestBase is Template, DSTest, DSMath {
         ASSET_PAI = paiIssuer.PAIGlobalId();
 
         setting = new Setting(paiDAO);
-    //     finance = new TimefliesFinance(paiDAO,paiIssuer,setting);
-    //     liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
-    //     admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
+        finance = new TimefliesFinance(paiDAO,paiIssuer,setting);
+        liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
+        admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
-    //     admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
-    //     admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
+        admin.callAddMember(paiDAO,admin,"PAIMINTER");
 
-    //     tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance);
-    //     //finance.init(tdc);
+        tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance);
+        finance.init(tdc);
 
-    //     btcIssuer.mint(100000000000, p1);
-    //     btcIssuer.mint(100000000000, p2);
-    //     btcIssuer.mint(100000000000, this);
-    //     admin.callMint(paiIssuer,100000000000,p1);
-    //     admin.callMint(paiIssuer,100000000000,p2);
-    //     admin.callMint(paiIssuer,100000000000,this);
+        cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,100000000000);
+        admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
+        admin.callAddMember(paiDAO,cdp,"PAIMINTER");
+        admin.callAddMember(paiDAO,cdp,"BTCCDP");
+
+        btcIssuer.mint(200000000000, p1);
+        bool tempBool = p1.callCreateDepositBorrow(cdp,10000000000,0,20000000000,ASSET_BTC);
+        assertTrue(tempBool);
+        cdp.fly(2 years);
+        tempBool = p1.callRepay(cdp,1,10000000000,ASSET_PAI);
+        assertTrue(tempBool);
+        btcIssuer.mint(200000000000, p2);
+
+        assertEq(flow.balance(finance,ASSET_PAI),4400000000);
     }
+}
+
+contract SettingTest is TestBase {
+    function testSetPAIIssuer() public {
+        setup();
+        assertEq(finance.issuer(), paiIssuer);
+        FakePAIIssuer issuer2 = new FakePAIIssuer("PAIISSUER2",paiDAO);
+        issuer2.init();
+        bool tempBool = p1.callSetPAIIssuer(finance, issuer2);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetPAIIssuer(finance, issuer2);
+        assertTrue(!tempBool);
+        admin.callCashOut(finance,4400000000,p2);
+        assertEq(flow.balance(finance,ASSET_PAI),0);
+        tempBool = p1.callSetPAIIssuer(finance, issuer2);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetPAIIssuer(finance, issuer2);
+        assertTrue(tempBool);
+        assertEq(finance.issuer(), issuer2);
+        assertEq(uint(finance.ASSET_PAI()), uint(issuer2.PAIGlobalId()));
+    }
+
 }
