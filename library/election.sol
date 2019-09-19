@@ -148,7 +148,8 @@ contract Election is Template {
         require(election.candidates.length == election.candidateSupportRates.length);
 
         if(election.candidates.length > 1) {
-            bubblesort(election.candidateSupportRates, election.candidates);
+            //bubbleSort(election.candidateSupportRates, election.candidates);
+            quickSort(election.candidateSupportRates, election.candidates, int(0), int(election.candidates.length - 1));
         }
 
         election.sorted = true;
@@ -165,7 +166,7 @@ contract Election is Template {
     } 
 
     /// @dev should test gas comsumptions
-    function bubblesort(uint[] storage values, address[] storage addresses) internal {
+    function bubbleSort(uint[] storage values, address[] storage addresses) internal {
         uint length = values.length;
         uint tempValue;
         address tempAddress;
@@ -177,6 +178,28 @@ contract Election is Template {
                 }
             }
         }
+    }
+
+    /// @dev https://gist.github.com/subhodi/b3b86cc13ad2636420963e692a4d896f
+    function quickSort(uint[] storage arr, address[] storage addresses, int left, int right) internal{
+        int i = left;
+        int j = right;
+        if(i==j) return;
+        uint pivot = arr[uint(left + (right - left) / 2)];
+        while (i <= j) {
+            while (arr[uint(i)] < pivot) i++;
+            while (pivot < arr[uint(j)]) j--;
+            if (i <= j) {
+                (arr[uint(i)], arr[uint(j)]) = (arr[uint(j)], arr[uint(i)]);
+                (addresses[uint(i)], addresses[uint(j)]) = (addresses[uint(j)], addresses[uint(i)]);                
+                i++;
+                j--;
+            }
+        }
+        if (left < j)
+            quickSort(arr, addresses, left, j);
+        if (i < right)
+            quickSort(arr, addresses, i, right);
     }
 
     /// @dev readonly functions
