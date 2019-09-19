@@ -479,3 +479,12 @@ contract TimefliesTDC is TDC, TestTimeflies {
 
     }
 }
+
+contract TimefliesFinance is Finance, TestTimeflies {
+    constructor(address paiMainContract,address _setting,address _issuer)
+        Finance(paiMainContract,_issuer,_setting)
+        public
+    {
+
+    }
+}
