@@ -33,7 +33,7 @@ contract ACLMaster is DSMath {
     }
 
     function changeTopAdmin(string newAdmin) public auth(TOPADMIN) {
-        require(groups[newAdmin].exist);
+        require(groups[bytes(newAdmin)].exist);
         TOPADMIN = newAdmin;
     }
 

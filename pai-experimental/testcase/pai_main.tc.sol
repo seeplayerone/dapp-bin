@@ -11,6 +11,7 @@ contract TestPaiMain is Template, DSTest, DSMath {
 
     uint96 ASSET_PIS;
     string ADMIN = "ADMIN";
+    string TESTLIMITATION = "TESTLIMITATION";
 
     function testInit() public {
         FakePaiDaoNoGovernance paiDAO;
