@@ -33,7 +33,7 @@ contract Finance is Template,ACLSlave,DSMath {
     }
 
     function() public payable {
-        requrie(msg.assettype == ASSET_PAI);
+        require(msg.assettype == ASSET_PAI);
     }
 
     function timeNow() public view returns (uint) {
@@ -89,7 +89,7 @@ contract Finance is Template,ACLSlave,DSMath {
         } else {
             applyAmount = CashOutLimit;
         }
-        applyNonce = add(applyNounce,1);
+        applyNonce = add(applyNonce,1);
         applyAddr = msg.sender;
     }
 
