@@ -3,49 +3,6 @@ pragma solidity 0.4.25;
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
 
 
-contract DividendsSample is Template {
-    address p1;
-    address p2;
-    address p3;
-    uint p1money;
-    uint p2money;
-    uint p3money;
-    bool p1Payed;
-    bool p2Payed;
-    bool p3Payed;
-    Finance internal finance;
-
-    constructor(address _p1,address _p2,address _p3,address _finance) {
-        p1 = _p1;
-        p2 = _p2;
-        p3 = _p3;
-        p1money = 1000000;
-        p2money = 2000000;
-        p3money = 3000000;
-        finance = Finance(_finance);
-    }
-
-    function getMoney() public {
-        if(msg.sender == p1) {
-            require(!p1Payed);
-            finance.payForDividends(p1,p1money);
-            p1Payed = true;
-            return;
-        }
-        if(msg.sender == p2) {
-            require(!p2Payed);
-            finance.payForDividends(p2,p2money);
-            p2Payed = true;
-            return;
-        }
-        if(msg.sender == p3) {
-            require(!p3Payed);
-            finance.payForDividends(p3,p3money);
-            p3Payed = true;
-            return;
-        }
-    }
-}
 
 
 contract TestBase is Template, DSTest, DSMath {
@@ -170,6 +127,7 @@ contract SettingTest is TestBase {
 
 contract FunctionTest is TestBase {
     function testPayForInterest() public {
+        setup();
         bool tempBool = p1.callPayForInterest(finance, 100, p2);
         assertTrue(!tempBool);
         tempBool = admin.callPayForInterest(finance, 100, p2);
@@ -178,21 +136,41 @@ contract FunctionTest is TestBase {
         admin.callAddMember(paiDAO,admin,"TDCContract");
         tempBool = admin.callPayForInterest(finance, 100, p2);
         assertTrue(tempBool);
-        assertEq(flow.blance(p2,ASSET_PAI), 100);
+        assertEq(flow.balance(p2,ASSET_PAI), 100);
     }
 
     function testPayForDebt() public {
+        setup();
         bool tempBool = p1.callPayForDebt(finance, 400000000);
         assertTrue(!tempBool);
-        tempBool = admin.callPayForInterest(finance, 400000000);
+        tempBool = admin.callPayForDebt(finance, 400000000);
         assertTrue(!tempBool);
         admin.callCreateNewRole(paiDAO,"LiqudatorContract","ADMIN",0);
         admin.callAddMember(paiDAO,admin,"LiqudatorContract");
-        tempBool = admin.callPayForInterest(finance, 400000000);
+        tempBool = admin.callPayForDebt(finance, 400000000);
         assertTrue(tempBool);
-        assertEq(flow.blance(admin,ASSET_PAI), 400000000);
-        tempBool = admin.callPayForInterest(finance, 5000000000);
+        assertEq(flow.balance(admin,ASSET_PAI), 400000000);
+        tempBool = admin.callPayForDebt(finance, 5000000000);
         assertTrue(tempBool);
-        assertEq(flow.blance(admin,ASSET_PAI), 4400000000);
+        assertEq(flow.balance(admin,ASSET_PAI), 4400000000);
+    }
+
+    function callPayForDividends() public {
+        setup();
+        FakePerson p3 = new FakePerson();
+        DividendsSample dd = new DividendsSample(p1,p2,p3,finance);
+        bool tempBool = p1.callGetMoney(dd);
+        assertTrue(!tempBool);
+        admin.callCreateNewRole(paiDAO,"DividendsContract","ADMIN",0);
+        admin.callAddMember(paiDAO,dd,"DividendsContract");
+        tempBool = p1.callGetMoney(dd);
+        assertTrue(tempBool);
+        tempBool = p2.callGetMoney(dd);
+        assertTrue(tempBool);
+        tempBool = p3.callGetMoney(dd);
+        assertTrue(tempBool);
+        assertEq(flow.balance(p1,ASSET_PAI), 10000);
+        assertEq(flow.balance(p2,ASSET_PAI), 20000);
+        assertEq(flow.balance(p3,ASSET_PAI), 30000);
     }
 }
