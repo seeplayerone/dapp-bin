@@ -194,13 +194,13 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         require(checkMaturity(record));
         uint interest = mul(TDCRecords[record].principal,rmul(TDCRecords[record].interestRate, term[uint8(TDCRecords[record].tdcType)])) / 1 years;
         uint principal = sub(TDCRecords[record].principal,TDCRecords[record].principalPayed);
-        if (interest > 0) {
-            finance.payForInterest(interest,TDCRecords[record].owner);
-        }
         if (principal > 0) {
             TDCRecords[record].owner.transfer(principal,ASSET_PAI);
         }
         TDCRecords[record].principal = 0;
+        if (interest > 0) {
+            finance.payForInterest(interest,TDCRecords[record].owner);
+        }
         emit ReturnMoney(record,TDCRecords[record].owner,principal,interest);
     }
 }

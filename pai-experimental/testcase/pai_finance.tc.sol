@@ -177,6 +177,8 @@ contract FunctionTest is TestBase {
         assertEq(finance.applyAmount(),0);
         bool tempBool = p1.callApplyForAirDropCashOut(finance,1000);
         assertTrue(!tempBool);
+        assertEq(flow.balance(p2,ASSET_BTC),200000000000);
+        assertEq(flow.balance(cdp,ASSET_BTC),200000000000);
         tempBool = p2.callCreateDepositBorrow(cdp,10000000000,0,20000000000,ASSET_BTC);
         assertTrue(tempBool);
         admin.callCreateNewRole(paiDAO,"AirDropAddr","ADMIN",0);
