@@ -148,8 +148,8 @@ contract Election is Template {
         require(election.candidates.length == election.candidateSupportRates.length);
 
         if(election.candidates.length > 1) {
-            //bubbleSort(election.candidateSupportRates, election.candidates);
-            quickSort(election.candidateSupportRates, election.candidates, int(0), int(election.candidates.length - 1));
+            (election.candidateSupportRates, election.candidates) = bubbleSort(election.candidateSupportRates, election.candidates);
+            // quickSort(election.candidateSupportRates, election.candidates, int(0), int(election.candidates.length - 1));
         }
 
         election.sorted = true;
@@ -166,7 +166,7 @@ contract Election is Template {
     } 
 
     /// @dev should test gas comsumptions
-    function bubbleSort(uint[] storage values, address[] storage addresses) internal {
+    function bubbleSort(uint[] memory values, address[] memory addresses) internal returns (uint[], address[]){
         uint length = values.length;
         uint tempValue;
         address tempAddress;
@@ -178,6 +178,7 @@ contract Election is Template {
                 }
             }
         }
+        return (values, addresses);
     }
 
     /// @dev https://gist.github.com/subhodi/b3b86cc13ad2636420963e692a4d896f
