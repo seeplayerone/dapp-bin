@@ -380,7 +380,6 @@ contract FunctionTest is TestBase {
         tdc.fly(30 days);
         bool tempBool;
         assertTrue(tdc.checkMaturity(idx));
-        //p1.callTDCDeposit(tdc,0,1000000000,ASSET_PAI);
         tempBool = p2.callReturnMoney(tdc,idx);
         assertTrue(!tempBool);
         assertEq(flow.balance(finance,ASSET_PAI),0);

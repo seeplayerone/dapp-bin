@@ -57,7 +57,7 @@ contract TestBase is Template, DSTest, DSMath {
 
         liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
         setting = new Setting(paiDAO);
-        finance = new Finance(paiIssuer); // todo
+        finance = new Finance(paiDAO,paiIssuer,setting);
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
         cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,100000000000);
@@ -344,7 +344,7 @@ contract SettingTest is TestBase {
     }
 }
 
-contract FunctionTest is TestBase {
+contract FunctionTest1 is TestBase {
     function testTransferCDP() public {
         setup();
         p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
@@ -586,7 +586,9 @@ contract FunctionTest is TestBase {
         tempBool = p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
         assertTrue(!tempBool);
     }
+}
 
+contract FunctionTest2 is TestBase {
     function testDeposit() public {
         setup();
         p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);

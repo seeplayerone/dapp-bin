@@ -65,7 +65,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     uint private closeCDPToleranceTime = 1 hours;
 
     uint private lastTimestamp;
-    uint private accumulatedRates = RAY; /// accumulated rates of current lending fees
+    uint public accumulatedRates = RAY; /// accumulated rates of current lending fees
 
     uint public totalPrincipal; /// total principal of all CDPs
 
