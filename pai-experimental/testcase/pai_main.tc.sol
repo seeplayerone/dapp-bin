@@ -195,4 +195,6 @@ contract TestPaiMain is Template, DSTest, DSMath {
         assertTrue(tempBool);//51
 
     }
+
+    function testChange
 }
