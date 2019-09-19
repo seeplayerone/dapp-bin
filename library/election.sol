@@ -172,13 +172,8 @@ contract Election is Template {
         for (uint i = 0; i < length - 1; i ++) {
             for (uint j = 0; j < length - i - 1; j ++) {
                 if(values[j] < values[j+1]) {
-                    tempValue = values[j];
-                    values[j] = values[j+1];
-                    values[j+1] = tempValue;
-
-                    tempAddress = addresses[j];
-                    addresses[j] = addresses[j+1];
-                    addresses[j+1] = tempAddress;
+                    (values[j], values[j+1]) = (values[j+1], values[j]);
+                    (addresses[j], addresses[j+1]) = (addresses[j+1], addresses[j]);
                 }
             }
         }
