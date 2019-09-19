@@ -40,17 +40,17 @@ contract Finance is Template,ACLSlave,DSMath {
         return block.timestamp;
     }
 
-    function setPAIIssuer(address newIssuer) public note auth("DIRECTORVOTE") {
+    function setPAIIssuer(address newIssuer) public auth("DIRECTORVOTE") {
         require(flow.balance(this,ASSET_PAI) == 0);
         issuer = PAIIssuer(newIssuer);
         ASSET_PAI = issuer.PAIGlobalId();
     }
 
-    function setSetting(address _setting) public note auth("DIRECTORVOTE") {
+    function setSetting(address _setting) public auth("DIRECTORVOTE") {
         setting = Setting(_setting);
     }
 
-    function setTDC(address _tdc) public note auth("DIRECTORVOTE") {
+    function setTDC(address _tdc) public auth("DIRECTORVOTE") {
         tdc = _tdc;
     }
 
