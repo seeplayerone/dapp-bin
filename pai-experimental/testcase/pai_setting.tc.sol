@@ -10,6 +10,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
 
 
+
 contract GlobalSettingTest is Template, DSTest, DSMath {
     
     function testAll() public {

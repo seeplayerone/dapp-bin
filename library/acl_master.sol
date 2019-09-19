@@ -12,7 +12,7 @@ contract ACLMaster is DSMath {
         address[] members;
     }
     uint public indexOfACL;
-    string constant ADMIN = "ADMIN";
+    string public TOPADMIN = "ADMIN";
 
     constructor() public {
         indexOfACL = 1;
@@ -22,7 +22,7 @@ contract ACLMaster is DSMath {
         groups[bytes(ADMIN)].members.push(msg.sender);
     }
     
-    function createNewRole(bytes newRole, bytes superior, uint32 limit) public auth(ADMIN) {
+    function createNewRole(bytes newRole, bytes superior, uint32 limit) public auth(TOPADMIN) {
         require(!groups[newRole].exist);
         require(groups[superior].exist);
         indexOfACL = add(indexOfACL,1);
@@ -30,6 +30,11 @@ contract ACLMaster is DSMath {
         groups[newRole].exist = true;
         groups[newRole].superior = superior;
         groups[newRole].memberLimit = limit;
+    }
+
+    function changeTopAdmin(string newAdmin) public auth(TOPADMIN) {
+        require(!groups[newRole].exist);
+        TOPADMIN = newAdmin;
     }
 
     function addMember(address _addr, bytes role) public {
