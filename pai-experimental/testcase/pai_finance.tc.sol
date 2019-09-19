@@ -3,6 +3,51 @@ pragma solidity 0.4.25;
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
 
 
+contract DividendsSample is Template {
+    address p1;
+    address p2;
+    address p3;
+    uint p1money;
+    uint p2money;
+    uint p3money;
+    bool p1Payed;
+    bool p2Payed;
+    bool p3Payed;
+    Finance internal finance;
+
+    constructor(address _p1,address _p2,address _p3,address _finance) {
+        p1 = _p1;
+        p2 = _p2;
+        p3 = _p3;
+        p1money = 1000000;
+        p2money = 2000000;
+        p3money = 3000000;
+        finance = Finance(_finance);
+    }
+
+    function getMoney() public {
+        if(msg.sender == p1) {
+            require(!p1Payed);
+            finance.payForDividends(p1,p1money);
+            p1Payed = true;
+            return;
+        }
+        if(msg.sender == p2) {
+            require(!p2Payed);
+            finance.payForDividends(p2,p2money);
+            p2Payed = true;
+            return;
+        }
+        if(msg.sender == p3) {
+            require(!p3Payed);
+            finance.payForDividends(p3,p3money);
+            p3Payed = true;
+            return;
+        }
+    }
+}
+
+
 contract TestBase is Template, DSTest, DSMath {
     TimefliesTDC internal tdc;
     TimefliesCDP internal cdp;
@@ -98,4 +143,56 @@ contract SettingTest is TestBase {
         assertEq(uint(finance.ASSET_PAI()), uint(issuer2.PAIGlobalId()));
     }
 
+    function testSetSetting() public {
+        setup();
+        assertEq(finance.setting(), setting);
+        Setting setting2 = new Setting(paiDAO);
+
+        bool tempBool = p1.callSetSetting(finance, setting2);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetSetting(finance, setting2);
+        assertTrue(tempBool);
+        assertEq(finance.setting(), setting2);
+    }
+
+
+    function testSetTDC() public {
+        setup();
+        assertEq(finance.tdc(), tdc);
+
+        bool tempBool = p1.callSetTDC(finance, p2);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetTDC(finance, p2);
+        assertTrue(tempBool);
+        assertEq(finance.setting(), p2);
+    }
+}
+
+contract FunctionTest is TestBase {
+    function testPayForInterest() public {
+        bool tempBool = p1.callPayForInterest(finance, 100, p2);
+        assertTrue(!tempBool);
+        tempBool = admin.callPayForInterest(finance, 100, p2);
+        assertTrue(!tempBool);
+        admin.callCreateNewRole(paiDAO,"TDCContract","ADMIN",0);
+        admin.callAddMember(paiDAO,admin,"TDCContract");
+        tempBool = admin.callPayForInterest(finance, 100, p2);
+        assertTrue(tempBool);
+        assertEq(flow.blance(p2,ASSET_PAI), 100);
+    }
+
+    function testPayForDebt() public {
+        bool tempBool = p1.callPayForDebt(finance, 400000000);
+        assertTrue(!tempBool);
+        tempBool = admin.callPayForInterest(finance, 400000000);
+        assertTrue(!tempBool);
+        admin.callCreateNewRole(paiDAO,"LiqudatorContract","ADMIN",0);
+        admin.callAddMember(paiDAO,admin,"LiqudatorContract");
+        tempBool = admin.callPayForInterest(finance, 400000000);
+        assertTrue(tempBool);
+        assertEq(flow.blance(admin,ASSET_PAI), 400000000);
+        tempBool = admin.callPayForInterest(finance, 5000000000);
+        assertTrue(tempBool);
+        assertEq(flow.blance(admin,ASSET_PAI), 4400000000);
+    }
 }

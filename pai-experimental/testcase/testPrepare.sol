@@ -390,6 +390,30 @@ contract FakePerson is Template {
         bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,amount,dest));
         return result;
     }
+
+    function callSetTDC(address finance, address _tdc) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("setTDC(address)"));
+        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,_tdc));
+        return result;
+    }
+
+    function callPayForInterest(address finance, uint amount, address receiver) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("payForInterest(uint256,address)"));
+        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,amount,receiver));
+        return result;
+    }
+
+    function callPayForDebt(address finance, uint amount) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("payForDebt(uint256)"));
+        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,amount));
+        return result;
+    }
+
+    function callPayForDividends(address finance, uint amount) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("payForDividends(uint256)"));
+        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,amount));
+        return result;
+    }
 }
 
 contract FakePAIIssuer is PAIIssuer {

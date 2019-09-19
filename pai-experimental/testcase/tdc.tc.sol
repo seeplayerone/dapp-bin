@@ -50,7 +50,7 @@ contract TestBase is Template, DSTest, DSMath {
         ASSET_PAI = paiIssuer.PAIGlobalId();
 
         setting = new Setting(paiDAO);
-        finance = new Finance(paiIssuer); // todo
+        finance = new Finance(paiDAO,paiIssuer,setting);
         liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
