@@ -50,21 +50,21 @@ contract TestBase is Template, DSTest, DSMath {
         ASSET_PAI = paiIssuer.PAIGlobalId();
 
         setting = new Setting(paiDAO);
-        finance = new TimefliesFinance(paiDAO,paiIssuer,setting);
-        liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
-        admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
+    //     finance = new TimefliesFinance(paiDAO,paiIssuer,setting);
+    //     liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
+    //     admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
-        admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
-        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+    //     admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
+    //     admin.callAddMember(paiDAO,admin,"PAIMINTER");
 
-        tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance);
-        finance.init(tdc);
+    //     tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance);
+    //     //finance.init(tdc);
 
-        btcIssuer.mint(100000000000, p1);
-        btcIssuer.mint(100000000000, p2);
-        btcIssuer.mint(100000000000, this);
-        admin.callMint(paiIssuer,100000000000,p1);
-        admin.callMint(paiIssuer,100000000000,p2);
-        admin.callMint(paiIssuer,100000000000,this);
+    //     btcIssuer.mint(100000000000, p1);
+    //     btcIssuer.mint(100000000000, p2);
+    //     btcIssuer.mint(100000000000, this);
+    //     admin.callMint(paiIssuer,100000000000,p1);
+    //     admin.callMint(paiIssuer,100000000000,p2);
+    //     admin.callMint(paiIssuer,100000000000,this);
     }
 }
