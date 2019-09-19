@@ -385,7 +385,7 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callCashOut(address finance, uint amount, address dest) public public returns (bool) {
+    function callCashOut(address finance, uint amount, address dest) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("cashOut(bool)"));
         bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,amount,dest));
         return result;
