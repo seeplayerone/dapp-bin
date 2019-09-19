@@ -13,9 +13,10 @@ contract Finance is Template,ACLSlave,DSMath {
     bool private initTdc;
     uint96 public ASSET_PAI;
     uint public operationCashLimit;
-    uint private lastAirDropCashOut;
-    uint private applyAmount;
-    uint applyNonce;
+    uint public lastAirDropCashOut;
+    uint public applyAmount;
+    uint public applyNonce;
+    uint public applyTime;
     address applyAddr;
 
 
@@ -92,13 +93,14 @@ contract Finance is Template,ACLSlave,DSMath {
         }
         applyNonce = add(applyNonce,1);
         applyAddr = msg.sender;
+        applyTime = timeNow();
     }
 
     function approvalAirDropCashOut(uint nonce, bool result) public auth("CFO") {
         require(nonce == applyNonce);
         require(applyAmount > 0);
         if(result) {
-            lastAirDropCashOut = timeNow();
+            lastAirDropCashOut = applyTime;
             applyAddr.transfer(applyAmount,ASSET_PAI);
             applyAmount = 0;
             return;

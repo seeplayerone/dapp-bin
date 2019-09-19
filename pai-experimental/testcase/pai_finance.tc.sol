@@ -121,7 +121,7 @@ contract SettingTest is TestBase {
         assertTrue(!tempBool);
         tempBool = admin.callSetTDC(finance, p2);
         assertTrue(tempBool);
-        assertEq(finance.setting(), p2);
+        assertEq(finance.tdc(), p2);
     }
 }
 
@@ -155,7 +155,7 @@ contract FunctionTest is TestBase {
         assertEq(flow.balance(admin,ASSET_PAI), 4400000000);
     }
 
-    function callPayForDividends() public {
+    function testPayForDividends() public {
         setup();
         FakePerson p3 = new FakePerson();
         DividendsSample dd = new DividendsSample(p1,p2,p3,finance);
