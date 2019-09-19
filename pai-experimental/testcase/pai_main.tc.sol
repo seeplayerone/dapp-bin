@@ -196,5 +196,29 @@ contract TestPaiMain is Template, DSTest, DSMath {
 
     }
 
-    function testChange
+    function testChangeTopAdmin() public {
+        //callChangeTopAdmin
+        FakePaiDao paiDAO;
+        FakePerson p1 = new FakePerson();
+        FakePerson p2 = new FakePerson();
+        FakePerson p3 = new FakePerson();
+        FakePerson p4 = new FakePerson();
+        FakePerson p5 = new FakePerson();
+
+        paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
+        paiDAO.init();
+        bool tempBool = p2.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
+        assertTrue(!tempBool);
+        tempBool = p1.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
+        assertTrue(tempBool);
+        tempBool = p1.callAddMember(paiDAO,p3,"PISVOTE");
+        assertTrue(tempBool);
+        tempBool = p3.callCreateNewRole(paiDAO,"CHANGETEST","ADMIN",0);
+        assertTrue(!tempBool);
+        tempBool = p1.callChangeTopAdmin(paiDAO,"PISVOTE");
+        assertTrue(tempBool);
+        tempBool = p3.callCreateNewRole(paiDAO,"CHANGETEST","ADMIN",0);
+        assertTrue(tempBool);
+
+    }
 }

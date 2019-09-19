@@ -35,6 +35,12 @@ contract FakePerson is Template {
         return result;
     }
 
+    function callChangeTopAdmin(address paidao, string newAdmin) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("changeTopAdmin(string)"));
+        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,newAdmin));
+        return result;
+    }
+
     function callAddMember(address paidao, address _address, string role) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("addMember(address,bytes)"));
         bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,_address,bytes(role)));
