@@ -17,7 +17,7 @@ contract Finance is Template,ACLSlave,DSMath {
     uint public applyAmount;
     uint public applyNonce;
     uint public applyTime;
-    address applyAddr;
+    address public applyAddr;
 
 
     constructor(address paiMainContract, address _issuer, address _setting) public {

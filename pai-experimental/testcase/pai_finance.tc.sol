@@ -177,13 +177,13 @@ contract FunctionTest is TestBase {
     function testAirDrop() public {
         setup();
         assertEq(finance.applyAmount(),0);
-        bool tempBool = p1.callApplyForAirDropCashOut(1000);
+        bool tempBool = p1.callApplyForAirDropCashOut(finance,1000);
         assertTrue(!tempBool);
         tempBool = p2.callCreateDepositBorrow(cdp,10000000000,0,20000000000,ASSET_BTC);
         assertTrue(tempBool);
         admin.callCreateNewRole(paiDAO,"AirDropAddr","ADMIN",0);
         admin.callAddMember(paiDAO,p1,"AirDropAddr");
-        tempBool = p1.callApplyForAirDropCashOut(1000);
+        tempBool = p1.callApplyForAirDropCashOut(finance,1000);
         assertTrue(tempBool);
         assertEq(finance.applyAmount(),0);
         assertEq(finance.applyNonce(),1);
