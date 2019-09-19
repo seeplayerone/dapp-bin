@@ -58,6 +58,8 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callAddMember(paiDAO,admin,"PAIMINTER");
 
         tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance);
+        admin.callCreateNewRole(paiDAO,"TDCContract","ADMIN",0);
+        admin.callAddMember(paiDAO,tdc,"TDCContract");
 
         btcIssuer.mint(100000000000, p1);
         btcIssuer.mint(100000000000, p2);
@@ -378,7 +380,7 @@ contract FunctionTest is TestBase {
         tdc.fly(30 days);
         bool tempBool;
         assertTrue(tdc.checkMaturity(idx));
-        p1.callTDCDeposit(tdc,0,1000000000,ASSET_PAI);
+        //p1.callTDCDeposit(tdc,0,1000000000,ASSET_PAI);
         tempBool = p2.callReturnMoney(tdc,idx);
         assertTrue(!tempBool);
         assertEq(flow.balance(finance,ASSET_PAI),0);
