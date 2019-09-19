@@ -16,10 +16,10 @@ contract ACLMaster is DSMath {
 
     constructor() public {
         indexOfACL = 1;
-        roles[indexOfACL] = bytes(ADMIN);
-        groups[bytes(ADMIN)].exist = true;
-        groups[bytes(ADMIN)].superior = bytes(ADMIN);
-        groups[bytes(ADMIN)].members.push(msg.sender);
+        roles[indexOfACL] = bytes(TOPADMIN);
+        groups[bytes(TOPADMIN)].exist = true;
+        groups[bytes(TOPADMIN)].superior = bytes(TOPADMIN);
+        groups[bytes(TOPADMIN)].members.push(msg.sender);
     }
     
     function createNewRole(bytes newRole, bytes superior, uint32 limit) public auth(TOPADMIN) {
