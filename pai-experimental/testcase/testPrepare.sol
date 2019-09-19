@@ -528,11 +528,11 @@ contract TestTimeflies {
     }
 
     function fly(uint age) public {
-        if (0 == age) {
-            testTime = originalTime;
-            testHeight = originalHeight;
-            return;
-        }
+        // if (0 == age) {
+        //     testTime = originalTime;
+        //     testHeight = originalHeight;
+        //     return;
+        // }
         testTime = testTime + age;
         testHeight = testHeight + uint(age / 5);
     }
