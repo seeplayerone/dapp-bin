@@ -453,6 +453,18 @@ contract FakePerson is Template {
         return result;
     }
 
+    function callApplyForAirDropCashOut(address finance, uint amount) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("applyForAirDropCashOut(uint256)"));
+        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,amount));
+        return result;
+    }
+
+    function callApprovalAirDropCashOut(address finance, uint nonce, bool _result) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("approvalAirDropCashOut(uint256,bool)"));
+        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,nonce,_result));
+        return result;
+    }
+
     function callGetMoney(address Dividends) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("getMoney()"));
         bool result = DividendsSample(Dividends).call(abi.encodeWithSelector(methodId));

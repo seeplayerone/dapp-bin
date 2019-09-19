@@ -85,7 +85,7 @@ contract Finance is Template,ACLSlave,DSMath {
         } else {
             delta = sub(timeNow(),lastAirDropCashOut);
         }
-        uint CashOutLimit = rmul(sub(totalSupply,depositNumber),mul(delta,setting.depositInterestRate())) / 1 years;
+        uint CashOutLimit = rmul(sub(sub(totalSupply,depositNumber),flow.balance(this,ASSET_PAI)),mul(delta,setting.depositInterestRate())) / 1 years;
         if (CashOutLimit > amount) {
             applyAmount = amount;
         } else {

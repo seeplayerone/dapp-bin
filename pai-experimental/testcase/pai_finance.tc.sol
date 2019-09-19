@@ -173,4 +173,23 @@ contract FunctionTest is TestBase {
         assertEq(flow.balance(p2,ASSET_PAI), 20000);
         assertEq(flow.balance(p3,ASSET_PAI), 30000);
     }
+
+    function testAirDrop() public {
+        setup();
+        assertEq(finance.applyAmount(),0);
+        bool tempBool = p1.callApplyForAirDropCashOut(1000);
+        assertTrue(!tempBool);
+        tempBool = p2.callCreateDepositBorrow(cdp,10000000000,0,20000000000,ASSET_BTC);
+        assertTrue(tempBool);
+        admin.callCreateNewRole(paiDAO,"AirDropAddr","ADMIN",0);
+        admin.callAddMember(paiDAO,p1,"AirDropAddr");
+        tempBool = p1.callApplyForAirDropCashOut(1000);
+        assertTrue(tempBool);
+        assertEq(finance.applyAmount(),0);
+        assertEq(finance.applyNonce(),1);
+        assertEq(finance.applyAddr(),p1);
+        assertEq(finance.applyTime(),block.timestamp);
+
+
+    }
 }
