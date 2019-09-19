@@ -55,6 +55,7 @@ contract Finance is Template,ACLSlave,DSMath {
     }
 
     function payForInterest(uint amount, address receiver) public auth("TDCContract") {
+        require(amount > 0);
         receiver.transfer(amount,ASSET_PAI);
     }
 
@@ -68,9 +69,9 @@ contract Finance is Template,ACLSlave,DSMath {
         }
     }
 
-    function payForDividends(uint amount) public auth("DividendsContract") {
+    function payForDividends(uint amount, address receiver) public auth("DividendsContract") {
         require(amount > 0);
-        msg.sender.transfer(amount,ASSET_PAI);
+        receiver.transfer(amount,ASSET_PAI);
     }
 
     function applyForAirDropCashOut(uint amount) public auth("AirDropAddr") {
