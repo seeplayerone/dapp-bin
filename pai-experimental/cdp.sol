@@ -428,8 +428,9 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         } else {
             debt = data.accumulatedDebt;
         }
-        uint interest = sub(debt,data.principal);
-        return (data.principal,interest);
+        //uint interest = sub(debt,data.principal);
+        //return (data.principal,interest);
+        return (data.principal,debt);
     }
 
     function totalCollateral() public view returns (uint256) {
