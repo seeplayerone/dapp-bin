@@ -134,6 +134,19 @@ contract SettingTest is TestBase {
         assertEq(finance.priceOracle(),oracle2);
     }
 
+    function testIncreaseOperationCashLimit() public {
+        setup();
+        assertEq(finance.operationCashLimit(),0);
+        bool tempBool = p1.callIncreaseOperationCashLimit(finance,1000);
+        assertTrue(!tempBool);
+        tempBool = admin.callIncreaseOperationCashLimit(finance,1000);
+        assertTrue(tempBool);
+        assertEq(finance.operationCashLimit(),1000);
+        tempBool = admin.callIncreaseOperationCashLimit(finance,1000);
+        assertTrue(tempBool);
+        assertEq(finance.operationCashLimit(),2000);
+    }
+
 
 }
 
