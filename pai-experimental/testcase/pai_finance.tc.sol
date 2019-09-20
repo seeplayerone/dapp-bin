@@ -133,6 +133,8 @@ contract SettingTest is TestBase {
         assertEq(uint(finance.ASSET_PIS()),123);
         assertEq(finance.priceOracle(),oracle2);
     }
+
+
 }
 
 contract FunctionTest is TestBase {
@@ -243,6 +245,7 @@ contract FunctionTest is TestBase {
         assertEq(finance.applyAddr(),p1);
         assertEq(finance.applyTime(),block.timestamp + 1 days);
         tempBool = p2.callApprovalAirDropCashOut(finance,5,false);
+        assertTrue(tempBool);
         assertEq(finance.applyAmount(),0);
 
         //not reach limit
@@ -253,10 +256,22 @@ contract FunctionTest is TestBase {
         assertEq(finance.applyAddr(),p1);
         assertEq(finance.applyTime(),block.timestamp + 1 days);
         tempBool = p2.callApprovalAirDropCashOut(finance,6,true);
+        assertTrue(tempBool);
         assertEq(finance.applyAmount(),0);
         assertEq(flow.balance(p1,ASSET_PAI),5479452 + 100);
         tempBool = p1.callApplyForAirDropCashOut(finance,100);
         assertTrue(tempBool);
         assertEq(finance.applyAmount(),0);
+
+        //wrong index
+        finance.fly(1 days);
+        tempBool = p1.callApplyForAirDropCashOut(finance,1000);
+        assertTrue(tempBool);
+        assertEq(finance.applyAmount(),100);
+        assertEq(finance.applyNonce(),8);
+        assertEq(finance.applyAddr(),p1);
+        assertEq(finance.applyTime(),block.timestamp + 2 days);
+        tempBool = p2.callApprovalAirDropCashOut(finance,7,true);
+        assertTrue(!tempBool);
     }
 }
