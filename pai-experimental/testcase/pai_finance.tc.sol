@@ -306,11 +306,21 @@ contract FunctionTest is TestBase {
         finance.fly(1 days);
         tempBool = p1.callApplyForAirDropCashOut(finance,1000);
         assertTrue(tempBool);
-        assertEq(finance.applyAmount(),100);
+        assertEq(finance.applyAmount(),1000);
         assertEq(finance.applyNonce(),8);
         assertEq(finance.applyAddr(),p1);
         assertEq(finance.applyTime(),block.timestamp + 2 days);
         tempBool = p2.callApprovalAirDropCashOut(finance,7,true);
         assertTrue(!tempBool);
+    }
+
+    function testCashOut() public {
+        setup();
+        assertEq(flow.balance(finance,ASSET_PAI),4400000000);
+        bool tempBool = p1.callCashOut(finance,400000000,p2);
+        assertTrue(!tempBool);
+        tempBool = admin.callCashOut(finance,400000000,p2);
+        assertTrue(tempBool);
+        assertEq(flow.balance(finance,ASSET_PAI),4000000000);
     }
 }
