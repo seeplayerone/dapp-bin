@@ -147,6 +147,32 @@ contract SettingTest is TestBase {
         assertEq(finance.operationCashLimit(),2000);
     }
 
+    function testSetSafePad() public {
+        setup();
+        assertEq(finance.safePad(),0);
+        bool tempBool = p1.callSetSafePad(finance,1000);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetSafePad(finance,1000);
+        assertTrue(tempBool);
+        assertEq(finance.safePad(),1000);
+        tempBool = admin.callSetSafePad(finance,1500);
+        assertTrue(tempBool);
+        assertEq(finance.safePad(),1500);
+    }
+
+    function testSetPISmintValue() public {
+        setup();
+        assertEq(finance.PISmintValue(),0);
+        bool tempBool = p1.callSetPISmintValue(finance,1000);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetPISmintValue(finance,1000);
+        assertTrue(tempBool);
+        assertEq(finance.PISmintValue(),1000);
+        tempBool = admin.callSetPISmintValue(finance,1500);
+        assertTrue(tempBool);
+        assertEq(finance.PISmintValue(),1500);
+    }
+
 
 }
 

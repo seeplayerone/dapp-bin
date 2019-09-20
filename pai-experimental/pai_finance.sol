@@ -18,7 +18,7 @@ contract Finance is Template,ACLSlave,DSMath {
     uint96 public ASSET_PIS;
     uint public operationCashLimit;
     uint public safePad;
-    uint public PISmintNumber;
+    uint public PISmintValue;  // in PAI
     uint public lastAirDropCashOut;
     uint public applyAmount;
     uint public applyNonce;
@@ -53,9 +53,9 @@ contract Finance is Template,ACLSlave,DSMath {
     function mintPIS() public {
         require(flow.balance(PISseller,ASSET_PIS) == 0);
         require(flow.balance(this,ASSET_PAI) < safePad);
-        require(0 != PISmintNumber);
+        require(0 != PISmintValue);
         require(0x0 != PISseller);
-        uint amount = rdiv(PISmintNumber,priceOracle.getPrice());
+        uint amount = rdiv(PISmintValue,priceOracle.getPrice());
         PAIDAO(master).autoMint(amount,PISseller);
     }
 
@@ -150,8 +150,8 @@ contract Finance is Template,ACLSlave,DSMath {
         safePad = amount;
     }
 
-    function setPISmintNumber(uint amount) public auth("PISVOTE") {
-        PISmintNumber = amount;
+    function setPISmintValue(uint amount) public auth("PISVOTE") {
+        PISmintValue = amount;
     }
 
     function cashOut(uint amount, address dest) public auth("PISVOTE") {
