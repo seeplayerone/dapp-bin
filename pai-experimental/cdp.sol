@@ -319,10 +319,10 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
             data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
             emit BorrowPAI(data.collateral, data.principal,rmul(data.accumulatedDebt, accumulatedRates), record, amount,0);
         } else {
-            newDebt = add(amount,rmul(amount, mul(getInterestRate(data.cdpType), term[uint8(data.cdpType)])) / 1 years);
-            data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
-            data.endTime = add(timeNow(), term[uint8(data.cdpType)]);
-            emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount,data.endTime);
+            // newDebt = add(amount,rmul(amount, mul(getInterestRate(data.cdpType), term[uint8(data.cdpType)])) / 1 years);
+            // data.accumulatedDebt = add(data.accumulatedDebt, newDebt);
+            // data.endTime = add(timeNow(), term[uint8(data.cdpType)]);
+            // emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount,data.endTime);
         }
         require(safe(record));
 
@@ -341,7 +341,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         require(add(totalPrincipal,amount) <= rmul(add(totalPaiSupply,amount), debtRateCeiling) || 0 == totalPaiSupply);
         uint id = createCDPInternal(_type);
         depositInternal(id);
-        //borrowInternal(id, amount);
+        borrowInternal(id, amount);
         return id;
     }
 
