@@ -51,10 +51,10 @@ contract Finance is Template,ACLSlave,DSMath {
     }
 
     function mintPIS() public {
+        require(0x0 != PISseller);
         require(flow.balance(PISseller,ASSET_PIS) == 0);
         require(flow.balance(this,ASSET_PAI) < safePad);
         require(0 != PISmintValue);
-        require(0x0 != PISseller);
         uint amount = rdiv(PISmintValue,priceOracle.getPrice());
         PAIDAO(master).autoMint(amount,PISseller);
     }

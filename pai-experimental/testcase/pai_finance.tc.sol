@@ -353,6 +353,18 @@ contract FunctionTest is TestBase {
     }
 
     function testAutoMintPIS() public {
-
+        setup();
+        bool tempBool = p1.callMintPIS(finance);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetPISseller(finance,p2);
+        assertTrue(tempBool);
+        tempBool = admin.callSetPISmintValue(finance,1000);
+        assertTrue(tempBool);
+        tempBool = p1.callMintPIS(finance);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetSafePad(finance,4400000001);
+        tempBool = p1.callMintPIS(finance);
+        assertTrue(tempBool);
+        assertEq(flow.balance(p2,ASSET_PIS),100);
     }
 }
