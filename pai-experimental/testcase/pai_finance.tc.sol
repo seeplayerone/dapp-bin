@@ -34,8 +34,8 @@ contract TestBase is Template, DSTest, DSMath {
         btcIssuer.init("BTC");
         ASSET_BTC = uint96(btcIssuer.getAssetType());
 
-        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY * 10,ASSET_BTC);
-        PISOracle = new TimefliesOracle("PISOracle",paiDAO,RAY * 10,ASSET_PIS);
+        oracle = new TimefliesOracle("BTCOracle", paiDAO, RAY * 10, ASSET_BTC);
+        PISOracle = new TimefliesOracle("PISOracle", paiDAO, RAY * 10, ASSET_PIS);
         admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3);
         admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
         admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
@@ -73,7 +73,6 @@ contract TestBase is Template, DSTest, DSMath {
         p1.callCreateDepositBorrow(cdp,10000000000,0,20000000000,ASSET_BTC);
         cdp.fly(2 years);
         p1.callRepay(cdp,1,10000000000,ASSET_PAI);
-        p1.callCreateDepositBorrow(cdp,10000000000,0,20000000000,ASSET_BTC);
         //assertEq(flow.balance(finance,ASSET_PAI),4400000000);
         btcIssuer.mint(200000000000, p2);
     }
@@ -111,7 +110,6 @@ contract SettingTest is TestBase {
         assertEq(finance.setting(), setting2);
     }
 
-
     function testSetTDC() public {
         setup();
         assertEq(finance.tdc(), tdc);
@@ -121,6 +119,19 @@ contract SettingTest is TestBase {
         tempBool = admin.callSetTDC(finance, p2);
         assertTrue(tempBool);
         assertEq(finance.tdc(), p2);
+    }
+
+    function testSetAssetPIS() public {
+        setup();
+        assertEq(uint(finance.ASSET_PIS()),uint(ASSET_PIS));
+        assertEq(finance.priceOracle(),PISOracle);
+        TimefliesOracle oracle2 = new TimefliesOracle("BTCOracle",paiDAO,RAY,uint96(123));
+        bool tempBool = p1.callSetAssetPIS(finance,oracle2);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetAssetPIS(finance,oracle2);
+        assertTrue(tempBool);
+        assertEq(uint(finance.ASSET_PIS()),123);
+        assertEq(finance.priceOracle(),oracle2);
     }
 }
 
@@ -178,19 +189,74 @@ contract FunctionTest is TestBase {
         assertEq(finance.applyAmount(),0);
         bool tempBool = p1.callApplyForAirDropCashOut(finance,1000);
         assertTrue(!tempBool);
-        assertEq(flow.balance(p2,ASSET_BTC),200000000000);
-        assertEq(flow.balance(cdp,ASSET_BTC),20000000000);
-        tempBool = p2.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        tempBool = p2.callCreateDepositBorrow(cdp,10000000000,0,20000000000,ASSET_BTC);
         assertTrue(tempBool);
         admin.callCreateNewRole(paiDAO,"AirDropAddr","ADMIN",0);
         admin.callAddMember(paiDAO,p1,"AirDropAddr");
         tempBool = p1.callApplyForAirDropCashOut(finance,1000);
         assertTrue(tempBool);
-        assertEq(finance.applyAmount(),0);
+        assertEq(finance.applyAmount(),1000);
         assertEq(finance.applyNonce(),1);
         assertEq(finance.applyAddr(),p1);
         assertEq(finance.applyTime(),block.timestamp);
 
+        //10000000000 * 0.2 * 1 days / 365 days = 5479452
+        tempBool = p1.callApplyForAirDropCashOut(finance,5479452);
+        assertTrue(tempBool);
+        assertEq(finance.applyAmount(),5479452);
+        assertEq(finance.applyNonce(),2);
+        assertEq(finance.applyAddr(),p1);
+        assertEq(finance.applyTime(),block.timestamp);
 
+        //overAsk
+        tempBool = p1.callApplyForAirDropCashOut(finance,10000000);
+        assertTrue(tempBool);
+        assertEq(finance.applyAmount(),5479452);
+        assertEq(finance.applyNonce(),3);
+        assertEq(finance.applyAddr(),p1);
+        assertEq(finance.applyTime(),block.timestamp);
+
+        //approval
+        assertEq(finance.lastAirDropCashOut(),0);
+        tempBool = p2.callApprovalAirDropCashOut(finance,3,true);
+        admin.callCreateNewRole(paiDAO,"CFO","ADMIN",0);
+        admin.callAddMember(paiDAO,p2,"CFO");
+        tempBool = p2.callApprovalAirDropCashOut(finance,3,true);
+        assertEq(finance.applyAmount(),0);
+        assertEq(finance.lastAirDropCashOut(),block.timestamp);
+        assertEq(flow.balance(p1,ASSET_PAI),5479452);
+
+        //ask again
+        tempBool = p1.callApplyForAirDropCashOut(finance,100);
+        assertTrue(tempBool);
+        assertEq(finance.applyAmount(),0);
+        assertEq(finance.applyNonce(),4);
+        assertEq(finance.applyAddr(),p1);
+        assertEq(finance.applyTime(),block.timestamp);
+
+        //reject
+        finance.fly(1 days);
+        tempBool = p1.callApplyForAirDropCashOut(finance,100);
+        assertTrue(tempBool);
+        assertEq(finance.applyAmount(),100);
+        assertEq(finance.applyNonce(),5);
+        assertEq(finance.applyAddr(),p1);
+        assertEq(finance.applyTime(),block.timestamp + 1 days);
+        tempBool = p2.callApprovalAirDropCashOut(finance,5,false);
+        assertEq(finance.applyAmount(),0);
+
+        //not reach limit
+        tempBool = p1.callApplyForAirDropCashOut(finance,100);
+        assertTrue(tempBool);
+        assertEq(finance.applyAmount(),100);
+        assertEq(finance.applyNonce(),6);
+        assertEq(finance.applyAddr(),p1);
+        assertEq(finance.applyTime(),block.timestamp + 1 days);
+        tempBool = p2.callApprovalAirDropCashOut(finance,6,true);
+        assertEq(finance.applyAmount(),0);
+        assertEq(flow.balance(p1,ASSET_PAI),5479452 + 100);
+        tempBool = p1.callApplyForAirDropCashOut(finance,100);
+        assertTrue(tempBool);
+        assertEq(finance.applyAmount(),0);
     }
 }

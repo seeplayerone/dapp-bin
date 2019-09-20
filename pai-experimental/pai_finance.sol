@@ -50,7 +50,7 @@ contract Finance is Template,ACLSlave,DSMath {
         return block.timestamp;
     }
 
-    function mintPIS() public auth("PISVOTE") {
+    function mintPIS() public {
         require(flow.balance(PISseller,ASSET_PIS) == 0);
         require(flow.balance(this,ASSET_PAI) < safePad);
         require(0 != PISmintNumber);
