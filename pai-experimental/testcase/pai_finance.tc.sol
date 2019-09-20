@@ -2,15 +2,12 @@ pragma solidity 0.4.25;
 
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
 
-
-
-
 contract TestBase is Template, DSTest, DSMath {
     TimefliesTDC internal tdc;
     TimefliesCDP internal cdp;
     Liquidator internal liquidator;
     TimefliesOracle internal oracle;
-    TimefliesOracle internal PISoracle;
+    TimefliesOracle internal PISOracle;
     FakePAIIssuer internal paiIssuer;
     FakeBTCIssuer internal btcIssuer;
     FakePerson internal admin;
@@ -32,13 +29,13 @@ contract TestBase is Template, DSTest, DSMath {
         p2 = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
-        ASSET_PIS = paiDAO.PISGlobalId()
+        ASSET_PIS = paiDAO.PISGlobalId();
         btcIssuer = new FakeBTCIssuer();
         btcIssuer.init("BTC");
         ASSET_BTC = uint96(btcIssuer.getAssetType());
 
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY * 10,ASSET_BTC);
-        PISoracle = new TimefliesOracle("BTCOracle",paiDAO,RAY * 10,ASSET_PIS);
+        PISOracle = new TimefliesOracle("PISOracle",paiDAO,RAY * 10,ASSET_PIS);
         admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3);
         admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
         admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
@@ -57,7 +54,7 @@ contract TestBase is Template, DSTest, DSMath {
         ASSET_PAI = paiIssuer.PAIGlobalId();
 
         setting = new Setting(paiDAO);
-        finance = new TimefliesFinance(paiDAO,paiIssuer,setting);
+        finance = new TimefliesFinance(paiDAO,paiIssuer,setting,PISOracle);
         liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
