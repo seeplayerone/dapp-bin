@@ -495,6 +495,12 @@ contract FakePerson is Template {
         return result;
     }
 
+    function callSetPISseller(address finance, address newSeller) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("setPISseller(address)"));
+        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,newSeller));
+        return result;
+    }
+
     function callGetMoney(address Dividends) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("getMoney()"));
         bool result = DividendsSample(Dividends).call(abi.encodeWithSelector(methodId));

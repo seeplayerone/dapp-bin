@@ -134,6 +134,15 @@ contract SettingTest is TestBase {
         assertEq(finance.priceOracle(),oracle2);
     }
 
+    function testSetPISseller() public {
+        setup();
+        assertEq(finance.PISseller(),0x0);
+        bool tempBool = p1.callSetPISseller(finance,p2);
+        assertTrue(!tempBool);
+        tempBool = admin.callSetPISseller(finance,p2);
+        assertEq(finance.PISseller(),p2);
+    }
+
     function testIncreaseOperationCashLimit() public {
         setup();
         assertEq(finance.operationCashLimit(),0);
@@ -322,5 +331,28 @@ contract FunctionTest is TestBase {
         tempBool = admin.callCashOut(finance,400000000,p2);
         assertTrue(tempBool);
         assertEq(flow.balance(finance,ASSET_PAI),4000000000);
+    }
+
+    function testOperationCashOut() public {
+        setup();
+        assertEq(flow.balance(finance,ASSET_PAI),4400000000);
+        bool tempBool = p1.callOperationCashOut(finance,400000000,p2);
+        assertTrue(!tempBool);
+        tempBool = p2.callOperationCashOut(finance,400000000,p2);
+        assertTrue(!tempBool);
+
+        admin.callCreateNewRole(paiDAO,"CFO","ADMIN",0);
+        admin.callAddMember(paiDAO,p2,"CFO");
+        assertEq(finance.operationCashLimit(),0);
+        admin.callIncreaseOperationCashLimit(finance,400000000);
+        assertEq(finance.operationCashLimit(),400000000);
+        tempBool = p2.callOperationCashOut(finance,400000000,p2);
+        assertTrue(tempBool);
+        assertEq(flow.balance(finance,ASSET_PAI),4000000000);
+        assertEq(finance.operationCashLimit(),0);
+    }
+
+    function testAutoMintPIS() public {
+
     }
 }
