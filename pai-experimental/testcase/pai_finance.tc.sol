@@ -10,6 +10,7 @@ contract TestBase is Template, DSTest, DSMath {
     TimefliesCDP internal cdp;
     Liquidator internal liquidator;
     TimefliesOracle internal oracle;
+    TimefliesOracle internal PISoracle;
     FakePAIIssuer internal paiIssuer;
     FakeBTCIssuer internal btcIssuer;
     FakePerson internal admin;
@@ -21,6 +22,7 @@ contract TestBase is Template, DSTest, DSMath {
 
     uint96 internal ASSET_BTC;
     uint96 internal ASSET_PAI;
+    uint96 internal ASSET_PIS;
 
     function() public payable {}
 
@@ -30,11 +32,13 @@ contract TestBase is Template, DSTest, DSMath {
         p2 = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
+        ASSET_PIS = paiDAO.PISGlobalId()
         btcIssuer = new FakeBTCIssuer();
         btcIssuer.init("BTC");
         ASSET_BTC = uint96(btcIssuer.getAssetType());
 
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY * 10,ASSET_BTC);
+        PISoracle = new TimefliesOracle("BTCOracle",paiDAO,RAY * 10,ASSET_PIS);
         admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3);
         admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
         admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
