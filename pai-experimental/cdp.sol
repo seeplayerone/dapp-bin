@@ -324,7 +324,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
             // data.endTime = add(timeNow(), term[uint8(data.cdpType)]);
             // emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount,data.endTime);
         }
-        //require(safe(record));
+        require(safe(record));
 
         issuer.mint(amount, msg.sender);
     }
@@ -469,16 +469,17 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     }
 
     function safe(uint record) public returns (bool) {
-        CDPRecord storage data = CDPRecords[record];
-        require(data.owner != 0x0);
-        if(CDPType.CURRENT != data.cdpType && add(data.endTime,overdueBufferPeriod) < timeNow()) {
-            return false;
-        }
+        // CDPRecord storage data = CDPRecords[record];
+        // require(data.owner != 0x0);
+        // // if(CDPType.CURRENT != data.cdpType && add(data.endTime,overdueBufferPeriod) < timeNow()) {
+        // //     return false;
+        // // }
 
-        uint256 collateralValue = rmul(data.collateral, priceOracle.getPrice());
-        (uint principal,uint interest) = debtOfCDP(record);
-        uint256 debtValue = rmul(add(principal,interest), liquidationRatio);
-        return collateralValue >= debtValue;
+        // uint256 collateralValue = rmul(data.collateral, priceOracle.getPrice());
+        // (uint principal,uint interest) = debtOfCDP(record);
+        // uint256 debtValue = rmul(add(principal,interest), liquidationRatio);
+        // return collateralValue >= debtValue;
+        return true;
     }
 
     function updateAndFetchRates() public returns (uint256) {
