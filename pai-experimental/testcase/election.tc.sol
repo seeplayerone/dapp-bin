@@ -69,6 +69,10 @@ contract ElectionTest is DSTest {
         return elections.startElection(ONE_DAY_BLOCKS * 2, ONE_DAY_BLOCKS * 2, address(issuer), 5 * 10**6);
     }
 
+    function testSetup() {
+        setup();
+    }
+
     function testElectionCreated() {
         uint index = setup();
         (uint a, uint b, uint c) = elections.getElectionRecord(index);
