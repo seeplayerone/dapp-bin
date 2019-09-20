@@ -567,8 +567,8 @@ contract TimefliesTDC is TDC, TestTimeflies {
 }
 
 contract TimefliesFinance is Finance, TestTimeflies {
-    constructor(address paiMainContract,address _issuer,address _setting)
-        Finance(paiMainContract,_issuer,_setting)
+    constructor(address paiMainContract,address _issuer,address _setting,address _oracle)
+        Finance(paiMainContract,_issuer,_setting,_oracle)
         public
     {
 
