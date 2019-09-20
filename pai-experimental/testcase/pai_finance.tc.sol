@@ -70,20 +70,12 @@ contract TestBase is Template, DSTest, DSMath {
 
         bool tempBool;
         btcIssuer.mint(200000000000, p1);
-        p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
+        p1.callCreateDepositBorrow(cdp,10000000000,0,20000000000,ASSET_BTC);
         cdp.fly(2 years);
-        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
-        assertTrue(tempBool);//3
-        (uint principal,uint interest) = cdp.debtOfCDP(1);
-        assertEq(principal,0);
-        assertEq(interest,0);
-        (principal,interest) = cdp.debtOfCDP(2);
-        assertEq(principal,0);
-        assertEq(interest,0);
-
-
-        assertEq(cdp.accumulatedRates(),0);
-        assertEq(cdp.updateAndFetchRates(),0);
+        p1.callRepay(cdp,1,10000000000,ASSET_PAI);
+        tempBool = p2.callCreateDepositBorrow(cdp,10000000000,0,20000000000,ASSET_BTC);
+        assertTrue(tempBool);
+        assertEq(flow.balance(finance,ASSET_PAI,0));
         btcIssuer.mint(200000000000, p2);
 
     }
