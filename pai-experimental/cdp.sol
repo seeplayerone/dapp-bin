@@ -324,7 +324,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
             data.endTime = add(timeNow(), term[uint8(data.cdpType)]);
             emit BorrowPAI(data.collateral, data.principal, data.accumulatedDebt, record, amount,data.endTime);
         }
-        //require(safe(record));
+        require(safe(record));
 
         issuer.mint(amount, msg.sender);
     }
@@ -428,9 +428,10 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         } else {
             debt = data.accumulatedDebt;
         }
-        //uint interest = sub(debt,data.principal);
-        //return (data.principal,interest);
-        return (data.principal,debt);
+        if (debt < data.principal) {
+            return (data.principal,0);
+        }
+        return (data.principal,sub(debt,data.principal));
     }
 
     function totalCollateral() public view returns (uint256) {

@@ -71,23 +71,16 @@ contract TestBase is Template, DSTest, DSMath {
         bool tempBool;
         btcIssuer.mint(200000000000, p1);
         p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
-        cdp.fly(365 days);
-        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
-        assertTrue(tempBool); //0
-        cdp.fly(1 days);
-        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
-        assertTrue(tempBool); //1
-        cdp.fly(1 days);
-        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
-        assertTrue(tempBool); //2
-        cdp.fly(1 years);
-
-        //cdp.fly(0);
-        // cdp.updateRates();
-        // tempBool = p1.callRepay(cdp,1,500000000,ASSET_PAI);
-        // assertTrue(tempBool);
+        cdp.fly(2 years);
         tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
         assertTrue(tempBool);//3
+        (uint principal,uint interest) = cdp.debtOfCDP(1);
+        assertEq(principal,0);
+        assertEq(interest,0);
+        (principal,interest) = cdp.debtOfCDP(2);
+        assertEq(principal,0);
+        assertEq(interest,0);
+
 
         assertEq(cdp.accumulatedRates(),0);
         assertEq(cdp.updateAndFetchRates(),0);
