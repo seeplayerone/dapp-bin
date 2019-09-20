@@ -24,7 +24,7 @@ contract Finance is Template,ACLSlave,DSMath {
     uint public applyNonce;
     uint public applyTime;
     address public applyAddr;
-    address public PISseller;
+    address public PISSeller;
 
 
     constructor(address paiMainContract, address _issuer, address _setting, address _oracle) public {
@@ -54,8 +54,9 @@ contract Finance is Template,ACLSlave,DSMath {
         require(flow.balance(PISseller,ASSET_PIS) == 0);
         require(flow.balance(this,ASSET_PAI) < safePad);
         require(0 != PISmintNumber);
+        require(0x0 != PISSeller);
         uint amount = rdiv(PISmintNumber,priceOracle.getPrice());
-        PAIDAO(master).autoMint(amount,PISseller);
+        PAIDAO(master).autoMint(amount,PISSeller);
     }
 
     function setAssetPIS(address newPriceOracle) public auth("PISVOTE") {
@@ -75,6 +76,10 @@ contract Finance is Template,ACLSlave,DSMath {
 
     function setTDC(address _tdc) public auth("DIRECTORVOTE") {
         tdc = _tdc;
+    }
+
+    function setPISSeller(address newSeller) public auth("PISVOTE") {
+        PISSeller = newSeller;
     }
 
     function payForInterest(uint amount, address receiver) public auth("TDCContract") {
