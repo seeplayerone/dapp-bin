@@ -341,7 +341,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         require(add(totalPrincipal,amount) <= rmul(add(totalPaiSupply,amount), debtRateCeiling) || 0 == totalPaiSupply);
         uint id = createCDPInternal(_type);
         depositInternal(id);
-        borrowInternal(id, amount);
+        //borrowInternal(id, amount);
         return id;
     }
 
