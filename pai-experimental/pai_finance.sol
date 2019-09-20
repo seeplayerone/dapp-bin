@@ -5,26 +5,35 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
 
 contract Finance is Template,ACLSlave,DSMath {
     PAIIssuer public issuer;
     Setting public setting;
+    PriceOracle public priceOracle;
     address public tdc;
     bool private initTdc;
     uint96 public ASSET_PAI;
+    uint96 public ASSET_PIS;
     uint public operationCashLimit;
+    uint public safePad;
+    uint public PISmintNumber;
     uint public lastAirDropCashOut;
     uint public applyAmount;
     uint public applyNonce;
     uint public applyTime;
     address public applyAddr;
+    address public PISseller;
 
 
-    constructor(address paiMainContract, address _issuer, address _setting) public {
+    constructor(address paiMainContract, address _issuer, address _setting, address _oracle) public {
         master = ACLMaster(paiMainContract);
         issuer = PAIIssuer(_issuer);
         setting = Setting(_setting);
         ASSET_PAI = issuer.PAIGlobalId();
+        priceOracle = PriceOracle(_oracle);
+        ASSET_PIS = priceOracle.ASSET_COLLATERAL();
     }
 
     function init(address _tdc) public {
@@ -39,6 +48,19 @@ contract Finance is Template,ACLSlave,DSMath {
 
     function timeNow() public view returns (uint) {
         return block.timestamp;
+    }
+
+    function mintPIS() public auth("PISVOTE") {
+        require(flow.balance(PISseller,ASSET_PIS) == 0);
+        require(flow.balance(this,ASSET_PAI) < safePad);
+        require(0 != PISmintNumber);
+        uint amount = rdiv(PISmintNumber,priceOracle.getPrice());
+        PAIDAO(master).autoMint(amount,PISseller);
+    }
+
+    function setAssetPIS(address newPriceOracle) public auth("PISVOTE") {
+        priceOracle = PriceOracle(newPriceOracle);
+        ASSET_PIS = priceOracle.ASSET_COLLATERAL();
     }
 
     function setPAIIssuer(address newIssuer) public auth("DIRECTORVOTE") {
@@ -117,6 +139,14 @@ contract Finance is Template,ACLSlave,DSMath {
 
     function increaseOperationCashLimit(uint amount) public auth("PISVOTE") {
         operationCashLimit = add(operationCashLimit,amount);
+    }
+
+    function setSafePad(uint amount) public auth("PISVOTE") {
+        safePad = amount;
+    }
+
+    function setPISmintNumber(uint amount) public auth("PISVOTE") {
+        PISmintNumber = amount;
     }
 
     function cashOut(uint amount, address dest) public auth("PISVOTE") {

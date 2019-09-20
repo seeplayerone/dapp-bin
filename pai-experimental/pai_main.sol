@@ -35,7 +35,15 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
         registed = true;
     }
 
-    function mint(uint amount, address dest) public auth("ADMIN") {
+    function mint(uint amount, address dest) public auth("PISVOTE") {
+        mintInternal(amount, dest);
+    }
+
+    function autoMint(uint amount, address dest) public auth("FinanceContract") {
+        mintInternal(amount, dest);
+    }
+
+    function mintInternal(uint amount, address dest) internal {
         if(issuedAssets[assetIndex].existed) {
             flow.mintAsset(assetIndex, amount);
             updateAsset(assetIndex, amount);
