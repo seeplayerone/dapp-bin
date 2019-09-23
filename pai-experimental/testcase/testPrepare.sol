@@ -641,7 +641,7 @@ contract TimefliesVoteDir is DirectorVote,TestTimeflies {
     }
 }
 
-/ contract FakePerson is Template {
+// contract FakePerson is Template {
 //     function() public payable {}
 
 //     function createPAIDAO(string _str) public returns (address) {
