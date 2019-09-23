@@ -510,37 +510,36 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         CDPRecord storage data = CDPRecords[record];
         require(data.owner != 0x0);
         require(!safe(record) || settlement);
-
         (uint principal, uint interest) = debtOfCDP(record);
         liquidator.addDebt(principal);
-        // totalPrincipal = sub(totalPrincipal, principal);
-        // uint price = priceOracle.getPrice();
-        // uint principalOfCollateral = rdiv(principal,price);
-        // uint interestOfCollateral = rdiv(interest,price);
-        // uint penaltyOfCollateral = rdiv(sub(rmul(principal, liquidationPenalty),principal),price);
-        // uint collateralToLiquidator;
-        // uint collateralLeft;
-        // if (data.collateral <= principalOfCollateral) {
-        //     principalOfCollateral = data.collateral;
-        //     collateralToLiquidator = data.collateral;
-        //     interestOfCollateral = 0;
-        //     penaltyOfCollateral = 0;
-        // } else if (data.collateral <= add(principalOfCollateral,interestOfCollateral)) {
-        //     collateralToLiquidator = data.collateral;
-        //     interestOfCollateral = sub(data.collateral, principalOfCollateral);
-        //     penaltyOfCollateral = 0;
-        // } else if (data.collateral <= add(add(principalOfCollateral,interestOfCollateral),penaltyOfCollateral)) {
-        //     collateralToLiquidator = data.collateral;
-        //     penaltyOfCollateral = sub(sub(data.collateral, principalOfCollateral),interestOfCollateral);
-        // } else {
-        //     collateralToLiquidator = add(add(principalOfCollateral,interestOfCollateral),penaltyOfCollateral);
-        //     collateralLeft = sub(data.collateral, collateralToLiquidator);
-        //     data.owner.transfer(collateralLeft, ASSET_COLLATERAL);
-        // }
-        // delete CDPRecords[record];
-        // emit CloseCDP(record);
-        // liquidator.transfer(collateralToLiquidator, ASSET_COLLATERAL);
-        // emit Liquidate(record, principalOfCollateral, interestOfCollateral, penaltyOfCollateral, collateralLeft);
+        totalPrincipal = sub(totalPrincipal, principal);
+        uint price = priceOracle.getPrice();
+        uint principalOfCollateral = rdiv(principal,price);
+        uint interestOfCollateral = rdiv(interest,price);
+        uint penaltyOfCollateral = rdiv(sub(rmul(principal, liquidationPenalty),principal),price);
+        uint collateralToLiquidator;
+        uint collateralLeft;
+        if (data.collateral <= principalOfCollateral) {
+            principalOfCollateral = data.collateral;
+            collateralToLiquidator = data.collateral;
+            interestOfCollateral = 0;
+            penaltyOfCollateral = 0;
+        } else if (data.collateral <= add(principalOfCollateral,interestOfCollateral)) {
+            collateralToLiquidator = data.collateral;
+            interestOfCollateral = sub(data.collateral, principalOfCollateral);
+            penaltyOfCollateral = 0;
+        } else if (data.collateral <= add(add(principalOfCollateral,interestOfCollateral),penaltyOfCollateral)) {
+            collateralToLiquidator = data.collateral;
+            penaltyOfCollateral = sub(sub(data.collateral, principalOfCollateral),interestOfCollateral);
+        } else {
+            collateralToLiquidator = add(add(principalOfCollateral,interestOfCollateral),penaltyOfCollateral);
+            collateralLeft = sub(data.collateral, collateralToLiquidator);
+            data.owner.transfer(collateralLeft, ASSET_COLLATERAL);
+        }
+        delete CDPRecords[record];
+        emit CloseCDP(record);
+        liquidator.transfer(collateralToLiquidator, ASSET_COLLATERAL);
+        emit Liquidate(record, principalOfCollateral, interestOfCollateral, penaltyOfCollateral, collateralLeft);
     }
 
     function getInterestRate(CDPType _type) public view returns (uint) {

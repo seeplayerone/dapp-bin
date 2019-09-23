@@ -172,8 +172,9 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
     function terminatePhaseTwo() public note auth("SettlementContract"){
         require(settlementP1);
         require(!settlementP2);
-        if(flow.balance(this, ASSET_COLLATERAL) > 0)
+        if(flow.balance(this, ASSET_COLLATERAL) > 0) {
             settlementPrice = mul(totalDebt, RAY) / flow.balance(this, ASSET_COLLATERAL);
+        }
         discount1 = RAY;
         discount2 = RAY;
         settlementP2 = true;

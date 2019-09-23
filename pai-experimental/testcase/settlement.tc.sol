@@ -44,6 +44,7 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
         admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
         admin.callCreateNewRole(paiDAO,"SettlementContract","ADMIN",0);
+        admin.callCreateNewRole(paiDAO,"BTCCDP","ADMIN",0);
         admin.callAddMember(paiDAO,admin,"BTCOracle");
         admin.callAddMember(paiDAO,p1,"BTCOracle");
         admin.callAddMember(paiDAO,p2,"BTCOracle");
