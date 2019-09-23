@@ -56,10 +56,10 @@ contract TestBase is Template, DSTest, DSMath {
         paiIssuer.init();
         ASSET_PAI = paiIssuer.PAIGlobalId();
 
-        liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
         setting = new Setting(paiDAO);
         finance = new Finance(paiDAO,paiIssuer,setting,oracle);
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
+        liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
 
         cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,100000000000);
         admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
@@ -72,6 +72,8 @@ contract TestBase is Template, DSTest, DSMath {
         btcIssuer.mint(1000000000000, p1);
         btcIssuer.mint(1000000000000, p2);
         btcIssuer.mint(1000000000000, this);
+
+
     }
 
     function setupTest() public {
@@ -105,23 +107,21 @@ contract SettlementTest is TestBase {
         tempBool = admin.callTerminatePhaseOne(settlement);
         assertTrue(tempBool);
         assertTrue(!cdp.readyForPhaseTwo());
-        tempBool = p1.callLiquidate(cdp,idx);
+        cdp.liquidate(idx);
+
+        assertEq(liquidator.totalCollateral(), 500000000);
+        assertEq(liquidator.totalDebt(), 500000000);
+        assertTrue(cdp.readyForPhaseTwo());
+        assertEq(cdp.totalCollateral(), 0);
+        assertEq(cdp.totalPrincipal(), 0);
+
+        tempBool = p1.callTerminatePhaseTwo(settlement);
+        assertTrue(!tempBool);
+        tempBool = admin.callTerminatePhaseTwo(settlement);
         assertTrue(tempBool);
-        //cdp.liquidate(idx);
-
-        // assertEq(liquidator.totalCollateral(), 500000000);
-        // assertEq(liquidator.totalDebt(), 500000000);
-        // assertTrue(cdp.readyForPhaseTwo());
-        // assertEq(cdp.totalCollateral(), 0);
-        // assertEq(cdp.totalPrincipal(), 0);
-
-        // tempBool = p1.callTerminatePhaseTwo(settlement);
-        // assertTrue(!tempBool);
-        // tempBool = admin.callTerminatePhaseTwo(settlement);
-        // assertTrue(tempBool);
-        // liquidator.buyCollateral.value(500000000, ASSET_PAI)();
-        // assertEq(liquidator.totalCollateral(), 0);
-        // assertEq(liquidator.totalDebt(), 0);
+        liquidator.buyCollateral.value(500000000, ASSET_PAI)();
+        assertEq(liquidator.totalCollateral(), 0);
+        assertEq(liquidator.totalDebt(), 0);
     }
 
     function testSettlementMultipleCDPOverCollateral() public {
@@ -156,24 +156,24 @@ contract SettlementTest is TestBase {
         assertTrue(!cdp.readyForPhaseTwo());
 
         cdp.quickLiquidate(2);
-        assertEq(liquidator.totalCollateral(), 750000000);
-        assertEq(liquidator.totalDebt(), 1500000000);
+        // assertEq(liquidator.totalCollateral(), 750000000);
+        // assertEq(liquidator.totalDebt(), 1500000000);
 
-        assertTrue(!cdp.readyForPhaseTwo());
+        // assertTrue(!cdp.readyForPhaseTwo());
 
-        cdp.quickLiquidate(3);
-        assertEq(liquidator.totalCollateral(), 1750000000);
-        assertEq(liquidator.totalDebt(), 3500000000);
+        // cdp.quickLiquidate(3);
+        // assertEq(liquidator.totalCollateral(), 1750000000);
+        // assertEq(liquidator.totalDebt(), 3500000000);
 
-        assertTrue(cdp.totalPrincipal() == 0);
-        assertEq(flow.balance(this,ASSET_BTC),emm + 1750000000 + 2500000000 + 4000000000);
-        assertTrue(cdp.readyForPhaseTwo());
+        // assertTrue(cdp.totalPrincipal() == 0);
+        // assertEq(flow.balance(this,ASSET_BTC),emm + 1750000000 + 2500000000 + 4000000000);
+        // assertTrue(cdp.readyForPhaseTwo());
 
-        admin.callTerminatePhaseTwo(settlement);
+        // admin.callTerminatePhaseTwo(settlement);
 
-        liquidator.buyCollateral.value(3500000000, ASSET_PAI)();
-        assertEq(liquidator.totalCollateral(), 0);
-        assertEq(liquidator.totalDebt(), 0);
+        // liquidator.buyCollateral.value(3500000000, ASSET_PAI)();
+        // assertEq(liquidator.totalCollateral(), 0);
+        // assertEq(liquidator.totalDebt(), 0);
     }
 
     function testSettlementMultipleCDPUnderCollateral() public {
