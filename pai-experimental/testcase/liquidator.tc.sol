@@ -39,6 +39,7 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
         admin.callCreateNewRole(paiDAO,"SettlementContract","ADMIN",0);
         admin.callCreateNewRole(paiDAO,"BTCCDP","ADMIN",0);
+        admin.callCreateNewRole(paiDAO,"LiqudatorContract","ADMIN",0);
         admin.callAddMember(paiDAO,admin,"BTCOracle");
         admin.callAddMember(paiDAO,p1,"BTCOracle");
         admin.callAddMember(paiDAO,p2,"BTCOracle");
@@ -46,6 +47,7 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callAddMember(paiDAO,admin,"PISVOTE");
         admin.callAddMember(paiDAO,admin,"SettlementContract");
         admin.callAddMember(paiDAO,admin,"BTCCDP");
+
 
         paiIssuer = new FakePAIIssuer("PAIISSUER",paiDAO);
         paiIssuer.init();
@@ -55,6 +57,7 @@ contract TestBase is Template, DSTest, DSMath {
         finance = new Finance(paiDAO,paiIssuer,setting,oracle);
         liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
+        admin.callAddMember(paiDAO,liquidator,"LiqudatorContract");
 
         admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
         admin.callAddMember(paiDAO,admin,"PAIMINTER");
