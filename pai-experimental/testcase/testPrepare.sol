@@ -11,9 +11,9 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/tdc.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_special.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_standard.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_director_vote.sol";
+// import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_special.sol";
+// import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_standard.sol";
+// import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_director_vote.sol";
 
 contract DividendsSample is Template {
     address p1;
