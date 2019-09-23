@@ -57,7 +57,7 @@ contract TestBase is Template, DSTest, DSMath {
 
         liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
         setting = new Setting(paiDAO);
-        finance = new Finance(paiDAO,paiIssuer,setting);
+        finance = new Finance(paiDAO,paiIssuer,setting,oracle);
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
         cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,100000000000);

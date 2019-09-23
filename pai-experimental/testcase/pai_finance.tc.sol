@@ -362,7 +362,11 @@ contract FunctionTest is TestBase {
         assertTrue(tempBool);
         tempBool = p1.callMintPIS(finance);
         assertTrue(!tempBool);
-        tempBool = admin.callSetSafePad(finance,4400000001);
+        admin.callSetSafePad(finance,4400000001);
+        tempBool = p1.callMintPIS(finance);
+        assertTrue(!tempBool);
+        admin.callCreateNewRole(paiDAO,"FinanceContract","ADMIN",0);
+        admin.callAddMember(paiDAO,finance,"FinanceContract");
         tempBool = p1.callMintPIS(finance);
         assertTrue(tempBool);
         assertEq(flow.balance(p2,ASSET_PIS),100);

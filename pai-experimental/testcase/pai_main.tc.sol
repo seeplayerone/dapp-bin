@@ -11,6 +11,7 @@ contract TestPaiMain is Template, DSTest, DSMath {
 
     uint96 ASSET_PIS;
     string ADMIN = "ADMIN";
+    string PISVOTE = "PISVOTE";
     string TESTLIMITATION = "TESTLIMITATION";
 
     function testInit() public {
@@ -75,16 +76,21 @@ contract TestPaiMain is Template, DSTest, DSMath {
         paiDAO.init();
         ASSET_PIS = paiDAO.PISGlobalId();
 
-        assertTrue(paiDAO.addressExist(bytes(ADMIN),p1));//0
+        p1.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
+        p1.callAddMember(paiDAO,p1,"PISVOTE");
+
+        assertTrue(paiDAO.addressExist(bytes(PISVOTE),p1));//0
+
+
         bool tempBool = p1.callMint(paiDAO,100000000,p1);
         assertTrue(tempBool);//1
         tempBool = p2.callMint(paiDAO,100000000,p2);
         assertTrue(!tempBool);//2
-        tempBool = p1.callAddMember(paiDAO,p2,"ADMIN");
+        tempBool = p1.callAddMember(paiDAO,p2,"PISVOTE");
         assertTrue(tempBool);//3
         tempBool = p2.callMint(paiDAO,100000000,p2);
         assertTrue(tempBool);//4
-        tempBool = p2.callRemoveMember(paiDAO,p2,"ADMIN");
+        tempBool = p1.callRemoveMember(paiDAO,p2,"PISVOTE");
         assertTrue(tempBool);//5
         tempBool = p2.callMint(paiDAO,100000000,p2);
         assertTrue(!tempBool);//6
