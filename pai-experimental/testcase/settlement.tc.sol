@@ -63,6 +63,7 @@ contract TestBase is Template, DSTest, DSMath {
         cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,100000000000);
         admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
         admin.callAddMember(paiDAO,cdp,"PAIMINTER");
+        admin.callAddMember(paiDAO,cdp,"BTCCDP");
 
         settlement = new Settlement(paiDAO,oracle,cdp,liquidator);
         admin.callAddMember(paiDAO,settlement,"SettlementContract");
@@ -97,13 +98,17 @@ contract SettlementTest is TestBase {
         settlementSetup();
 
         uint idx = cdp.createDepositBorrow.value(2000000000, ASSET_BTC)(500000000,CDP.CDPType.CURRENT);
+        assertEq(idx,100);
 
         bool tempBool = p1.callTerminatePhaseOne(settlement);
         assertTrue(!tempBool);
         tempBool = admin.callTerminatePhaseOne(settlement);
         assertTrue(tempBool);
         assertTrue(!cdp.readyForPhaseTwo());
-        cdp.liquidate(idx);
+        tempBool = p1.callLiquidate(cdp,idx);
+        assertTrue(tempBool);
+        //cdp.liquidate(idx);
+
         // assertEq(liquidator.totalCollateral(), 500000000);
         // assertEq(liquidator.totalDebt(), 500000000);
         // assertTrue(cdp.readyForPhaseTwo());
