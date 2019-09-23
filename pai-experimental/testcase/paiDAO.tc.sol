@@ -6,6 +6,7 @@ contract TestBase is Template, DSTest, DSMath {
     event printString(string);
     event printAddress(address);
     event printNumber(uint);
+    event printAddrs(address[]);
     //others
     FakeBTCIssuer internal btcIssuer;
     FakeBTCIssuer internal ethIssuer;
@@ -121,7 +122,7 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callUpdateRatioLimit(setting, ASSET_ETH, RAY * 3 / 10);
         ethSettlement = new Settlement(paiDAO,ethOracle,ethCDP,ethLiquidator);
         admin.callAddMember(paiDAO,ethSettlement,"SettlementContract");
-        
+
         tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance);
         admin.callSetTDC(finance, tdc);
         admin.callRemoveMember(paiDAO,admin,"PISVOTE");
@@ -131,6 +132,10 @@ contract TestBase is Template, DSTest, DSMath {
         setup();
         uint groupNumber = paiDAO.indexOfACL();
         emit printNumber(groupNumber);
+        for (uint i = 1; i <= groupNumber; i++) {
+            emit printString(string(paiDAO.roles(i)));
+            emit printAddrs(paiDAO.getMembers(paiDAO.roles(i)));
+        }
     }
 }
 

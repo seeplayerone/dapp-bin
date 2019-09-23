@@ -3,7 +3,7 @@ pragma solidity 0.4.25;
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 
 contract ACLMaster is DSMath {
-    mapping(uint => bytes) roles;
+    mapping(uint => bytes) public roles;
     mapping(bytes => PermissionGroup) groups;
     struct PermissionGroup {
         bool exist;
