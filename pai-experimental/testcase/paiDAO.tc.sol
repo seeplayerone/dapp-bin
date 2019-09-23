@@ -4,9 +4,10 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol
 
 contract TestBase is Template, DSTest, DSMath {
     event printString(string);
-    event printAddress(address);
+    event printDoubleString(string,string);
+    event printAddr(string,address);
     event printNumber(uint);
-    event printAddrs(address[]);
+    event printAddrs(string,address[]);
     //others
     FakeBTCIssuer internal btcIssuer;
     FakeBTCIssuer internal ethIssuer;
@@ -70,15 +71,16 @@ contract TestBase is Template, DSTest, DSMath {
         CFO = new FakePerson();
 
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
-        admin.callCreateNewRole(paiDAO,"PISVote","ADMIN",0);
-        admin.callAddMember(paiDAO,admin,"PISVote");
-        admin.callChangeTopAdmin(paiDAO,"PISVote");
+        admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
+        admin.callAddMember(paiDAO,admin,"PISVOTE");
+        admin.callChangeTopAdmin(paiDAO,"PISVOTE");
+        admin.callChangeSuperior(paiDAO,"PISVOTE","PISVOTE");
         admin.callRemoveMember(paiDAO,admin,"ADMIN");
 
         paiDAO.init();
         ASSET_PIS = paiDAO.PISGlobalId();
         pisOracle = new TimefliesOracle("PISOracle", paiDAO, RAY * 100, ASSET_PIS);
-        admin.callCreateNewRole(paiDAO,"PISOracle","PISVote",3);
+        admin.callCreateNewRole(paiDAO,"PISOracle","PISVOTE",3);
         admin.callAddMember(paiDAO,oracle1,"PISOracle");
         admin.callAddMember(paiDAO,oracle2,"PISOracle");
         admin.callAddMember(paiDAO,oracle3,"PISOracle");
@@ -87,31 +89,33 @@ contract TestBase is Template, DSTest, DSMath {
         ASSET_PAI = paiIssuer.PAIGlobalId();
         setting = new Setting(paiDAO);
         finance = new Finance(paiDAO,paiIssuer,setting,pisOracle);
-        admin.callCreateNewRole(paiDAO,"AirDropAddr","PISVote",0);
-        admin.callCreateNewRole(paiDAO,"CFO","PISVote",0);
+        admin.callCreateNewRole(paiDAO,"AirDropAddr","PISVOTE",0);
+        admin.callCreateNewRole(paiDAO,"CFO","PISVOTE",0);
         admin.callAddMember(paiDAO,airDropRobot,"AirDropAddr");
         admin.callAddMember(paiDAO,CFO,"CFO");
+        admin.callCreateNewRole(paiDAO,"FinanceContract","PISVOTE",0);
+        admin.callAddMember(paiDAO,finance,"FinanceContract");
 
         btcOracle = new TimefliesOracle("BTCOracle", paiDAO, RAY * 70000, ASSET_PIS);
-        admin.callCreateNewRole(paiDAO,"BTCOracle","PISVote",3);
+        admin.callCreateNewRole(paiDAO,"BTCOracle","PISVOTE",3);
         admin.callAddMember(paiDAO,oracle1,"BTCOracle");
         admin.callAddMember(paiDAO,oracle2,"BTCOracle");
         admin.callAddMember(paiDAO,oracle3,"BTCOracle");
         btcLiquidator = new Liquidator(paiDAO,btcOracle, paiIssuer,"BTCCDP",finance,setting);
         btcCDP = new TimefliesCDP(paiDAO,paiIssuer,btcOracle,btcLiquidator,setting,finance,100000000000);
-        admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
+        admin.callCreateNewRole(paiDAO,"PAIMINTER","PISVOTE",0);
         admin.callAddMember(paiDAO,btcCDP,"PAIMINTER");
-        admin.callCreateNewRole(paiDAO,"BTCCDP","PISVote",0);
+        admin.callCreateNewRole(paiDAO,"BTCCDP","PISVOTE",0);
         admin.callAddMember(paiDAO,btcCDP,"BTCCDP");
-        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","PISVote",0);
+        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","PISVOTE",0);
         admin.callAddMember(paiDAO,admin,"DIRECTORVOTE");
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
         btcSettlement = new Settlement(paiDAO,btcOracle,btcCDP,btcLiquidator);
-        admin.callCreateNewRole(paiDAO,"SettlementContract","PISVote",0);
+        admin.callCreateNewRole(paiDAO,"SettlementContract","PISVOTE",0);
         admin.callAddMember(paiDAO,btcSettlement,"SettlementContract");
 
         ethOracle = new TimefliesOracle("ETHOracle", paiDAO, RAY * 1500, ASSET_ETH);
-        admin.callCreateNewRole(paiDAO,"ETHOracle","PISVote",3);
+        admin.callCreateNewRole(paiDAO,"ETHOracle","PISVOTE",3);
         admin.callAddMember(paiDAO,oracle1,"ETHOracle");
         admin.callAddMember(paiDAO,oracle2,"ETHOracle");
         admin.callAddMember(paiDAO,oracle3,"ETHOracle");
@@ -125,18 +129,47 @@ contract TestBase is Template, DSTest, DSMath {
 
         tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance);
         admin.callSetTDC(finance, tdc);
+
+        admin.callMint(paiDAO,1000000000000,this);
         admin.callRemoveMember(paiDAO,admin,"PISVOTE");
     }
 
     function print() public {
         setup();
         uint groupNumber = paiDAO.indexOfACL();
-        emit printNumber(groupNumber);
         for (uint i = 1; i <= groupNumber; i++) {
-            emit printString(string(paiDAO.roles(i)));
-            emit printAddrs(paiDAO.getMembers(paiDAO.roles(i)));
+            emit printString("===================================================");
+            emit printDoubleString("Role:",string(paiDAO.roles(i)));
+            emit printDoubleString("Superior:",string(paiDAO.getSuperior(paiDAO.roles(i))));
+            emit printAddrs("members:",paiDAO.getMembers(paiDAO.roles(i)));
         }
+        emit printString("===================================================");
+        emit printAddr("paiDAO",paiDAO);
+        emit printAddr("paiIssuer",paiIssuer);
+        emit printAddr("pisOracle",pisOracle);
+        emit printAddr("setting",setting);
+        emit printAddr("finance",finance);
+        emit printAddr("btcOracle",btcOracle);
+        emit printAddr("btcLiquidator",btcLiquidator);
+        emit printAddr("btcCDP",btcCDP);
+        emit printAddr("btcSettlement",btcSettlement);
+        emit printAddr("ethOracle",ethOracle);
+        emit printAddr("ethLiquidator",ethLiquidator);
+        emit printAddr("ethCDP",ethCDP);
+        emit printAddr("ethSettlement",ethSettlement);
+        emit printAddr("tdc",tdc);
+        emit printAddr("Admin",admin);
+        emit printAddr("oracle1",oracle1);
+        emit printAddr("oracle2",oracle2);
+        emit printAddr("oracle3",oracle3);
+        emit printAddr("airDropRobot",airDropRobot);
+        emit printAddr("CFO",CFO);
     }
+}
+
+contract TestCase is TestBase {
+    function 
+
 }
 
 // contract TestCase is Template, DSTest, DSMath {
