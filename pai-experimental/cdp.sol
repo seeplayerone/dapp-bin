@@ -510,11 +510,11 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         CDPRecord storage data = CDPRecords[record];
         require(data.owner != 0x0);
         require(!safe(record) || settlement);
-        
+
         (uint principal, uint interest) = debtOfCDP(record);
         liquidator.addDebt(principal);
-        totalPrincipal = sub(totalPrincipal, principal);
-        uint price = priceOracle.getPrice();
+        // totalPrincipal = sub(totalPrincipal, principal);
+        // uint price = priceOracle.getPrice();
         // uint principalOfCollateral = rdiv(principal,price);
         // uint interestOfCollateral = rdiv(interest,price);
         // uint penaltyOfCollateral = rdiv(sub(rmul(principal, liquidationPenalty),principal),price);
