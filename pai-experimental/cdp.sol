@@ -509,7 +509,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         require(!disableLiquidation);
         CDPRecord storage data = CDPRecords[record];
         require(data.owner != 0x0);
-        // require(!safe(record) || settlement);
+        require(!safe(record) || settlement);
         // (uint principal, uint interest) = debtOfCDP(record);
         // liquidator.addDebt(principal);
         // totalPrincipal = sub(totalPrincipal, principal);

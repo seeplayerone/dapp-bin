@@ -98,7 +98,6 @@ contract SettlementTest is TestBase {
         settlementSetup();
 
         uint idx = cdp.createDepositBorrow.value(2000000000, ASSET_BTC)(500000000,CDP.CDPType.CURRENT);
-        assertEq(idx,100);
 
         bool tempBool = p1.callTerminatePhaseOne(settlement);
         assertTrue(!tempBool);
