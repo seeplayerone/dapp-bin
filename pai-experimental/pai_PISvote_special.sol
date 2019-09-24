@@ -112,12 +112,12 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
     function invokeProposal(uint proposalId) public {
         require(proposalId <= lastAssignedProposalId, "proposal not exist");
         Proposal storage prps = voteProposals[proposalId];
-        updatePISVoteStatus(prps.pisVoteId);
-        require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
-        if(false == prps.executed) {
+        // updatePISVoteStatus(prps.pisVoteId);
+        // require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
+        // if(false == prps.executed) {
             execute(prps.target,abi.encodePacked(prps.func, prps.param));
-            prps.executed = true;
-        }
+            // prps.executed = true;
+        // }
     }
 
     function height() public view returns (uint256) {

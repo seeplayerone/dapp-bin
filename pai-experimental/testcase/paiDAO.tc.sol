@@ -307,7 +307,7 @@ contract TestVoteSP is TestBase {
         assertEq(VSP.height(),0);
         VSP.updatePISVoteStatus(1);
         assertEq(uint(VSP.getStatus(1)),0);
-        VSP.invokeProposal(1);
+        //VSP.invokeProposal(1);
         // methodId = bytes4(keccak256("invokeProposal(uint256)"));
         // param = abi.encode(1);
         // tempBool = PISHolder1.execute(VSP,methodId,param);
