@@ -39,14 +39,14 @@ contract TestBase is Template, DSTest, DSMath {
 
     //fake person
     FakePerson internal admin;
-    FakePerson internal oracle1;
-    FakePerson internal oracle2;
-    FakePerson internal oracle3;
-    FakePerson internal director1;
-    FakePerson internal director2;
-    FakePerson internal director3;
-    FakePerson internal airDropRobot;
-    FakePerson internal CFO;
+    FakePersonNew internal oracle1;
+    FakePersonNew internal oracle2;
+    FakePersonNew internal oracle3;
+    FakePersonNew internal director1;
+    FakePersonNew internal director2;
+    FakePersonNew internal director3;
+    FakePersonNew internal airDropRobot;
+    FakePersonNew internal CFO;
 
     //asset
     uint96 internal ASSET_BTC;
@@ -67,14 +67,14 @@ contract TestBase is Template, DSTest, DSMath {
         ASSET_ETH = uint96(btcIssuer.getAssetType());
 
         admin = new FakePerson();
-        oracle1 = new FakePerson();
-        oracle2 = new FakePerson();
-        oracle3 = new FakePerson();
-        director1 = new FakePerson();
-        director2 = new FakePerson();
-        director3 = new FakePerson();
-        airDropRobot = new FakePerson();
-        CFO = new FakePerson();
+        oracle1 = new FakePersonNew();
+        oracle2 = new FakePersonNew();
+        oracle3 = new FakePersonNew();
+        director1 = new FakePersonNew();
+        director2 = new FakePersonNew();
+        director3 = new FakePersonNew();
+        airDropRobot = new FakePersonNew();
+        CFO = new FakePersonNew();
 
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
@@ -94,13 +94,14 @@ contract TestBase is Template, DSTest, DSMath {
         paiIssuer.init();
         ASSET_PAI = paiIssuer.PAIGlobalId();
         election = new TimefliesElection(paiDAO);
+        admin.callAddMember(paiDAO,election,"PISVOTE");
         admin.callCreateNewRole(paiDAO,"DIRECTOR","PISVOTE",3);
-        admin.callCreateNewRole(paiDAO,"EconomicSupervisor","PISVOTE",1);
-        admin.callCreateNewRole(paiDAO,"TechnicalSupervisor","PISVOTE",1);
-        admin.callCreateNewRole(paiDAO,"FinanceSupervisor","PISVOTE",1);
         admin.callAddMember(paiDAO,director1,"DIRECTOR");
         admin.callAddMember(paiDAO,director2,"DIRECTOR");
         admin.callAddMember(paiDAO,director3,"DIRECTOR");
+        admin.callCreateNewRole(paiDAO,"EconomicSupervisor","PISVOTE",1);
+        admin.callCreateNewRole(paiDAO,"TechnicalSupervisor","PISVOTE",1);
+        admin.callCreateNewRole(paiDAO,"FinanceSupervisor","PISVOTE",1);
         admin.callSetCandidatesLimit(election,"DIRECTOR",20);
         admin.callSetCandidatesLimit(election,"EconomicSupervisor",1);
         admin.callSetCandidatesLimit(election,"TechnicalSupervisor",1);
@@ -148,7 +149,7 @@ contract TestBase is Template, DSTest, DSMath {
         tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance);
         admin.callSetTDC(finance, tdc);
 
-        admin.callMint(paiDAO,1000000000000,this);
+        admin.callMint(paiDAO,3000000000000,this);
         //admin.callRemoveMember(paiDAO,admin,"PISVOTE");
     }
 
@@ -191,8 +192,19 @@ contract TestBase is Template, DSTest, DSMath {
 }
 
 contract TestElection is TestBase {
+    string DIRECTOR = "DIRECTOR";
     function testDirectorElection() public {
         setup();
+        FakePersonNew PISHolder1 = new FakePersonNew();
+        FakePersonNew PISHolder2 = new FakePersonNew();
+        FakePersonNew PISHolder3 = new FakePersonNew();
+        PISHolder1.transfer(1000000000000,ASSET_PIS);
+        PISHolder2.transfer(1000000000000,ASSET_PIS);
+        PISHolder3.transfer(1000000000000,ASSET_PIS);
+
+        assertTrue(paiDAO.addressExist(bytes(DIRECTOR),director1));
+        assertTrue(paiDAO.addressExist(bytes(DIRECTOR),director2));
+        assertTrue(paiDAO.addressExist(bytes(DIRECTOR),director3));
     }
 
 }
