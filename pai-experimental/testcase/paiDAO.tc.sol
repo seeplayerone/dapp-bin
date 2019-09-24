@@ -293,12 +293,12 @@ contract TestVoteSP is TestBase {
         param = abi.encode(1,0);
         tempBool = PISHolder1.execute(VSP,methodId,param,1000000000000,ASSET_PIS);
         assertTrue(tempBool);
-        （uint agreeVotes,uint disagreeVotes,uint abstainVotes,uint passProportion) = VSP.getPisVoteInfo(1);
+        （uint agreeVotes,uint disagreeVotes,uint abstainVotes) = VSP.getPisVoteInfo(1);
         // （uint agreeVotes,uint disagreeVotes,uint abstainVotes,uint passProportion,uint startTime,uint lastTime,) = VSP.pisVotes(1);
         assertEq(agreeVotes,1000000000000);
         assertEq(disagreeVotes,0);
         assertEq(abstainVotes,0);
-        assertEq(passProportion,0);
+        //assertEq(passProportion,0);
         // assertEq(startTime,VSP.height());
         // assertEq(lastTime,10 days / 5);
         // assertEq(uint8(status),1);
