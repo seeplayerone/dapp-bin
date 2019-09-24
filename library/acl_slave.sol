@@ -8,4 +8,8 @@ contract ACLSlave {
         require(master.canPerform(role, msg.sender));
         _;
     }
+    modifier auth(bytes role) {
+        require(master.canPerform(role, msg.sender));
+        _;
+    }
 }
