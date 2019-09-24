@@ -205,6 +205,11 @@ contract TestElection is TestBase {
         assertTrue(paiDAO.addressExist(bytes(DIRECTOR),director1));
         assertTrue(paiDAO.addressExist(bytes(DIRECTOR),director2));
         assertTrue(paiDAO.addressExist(bytes(DIRECTOR),director3));
+
+        bytes4 methodId = bytes4(keccak256("startElectionByDirector(bytes)"));
+        bytes memory param = abi.encode("DIRECTOR");
+        bool tempBool = director1.execute(election,methodId,param);
+        assertTrue(tempBool);
     }
 
 }

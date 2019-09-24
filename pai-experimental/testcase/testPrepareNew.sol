@@ -24,13 +24,11 @@ contract FakePerson is Template {
         return (new FakePaiDao(_str));
     }
 
-    function execute(address target, string signature, bytes params, uint amount, uint assettype) public returns (bool){
-        bytes4 selector = bytes4(keccak256(signature));
+    function execute(address target, bytes4 selector, bytes params, uint amount, uint assettype) public returns (bool){
         return target.call.value(amount, assettype)(abi.encodePacked(selector, params));
     }
 
-    function execute(address target, string signature, bytes params) public returns (bool){
-        bytes4 selector = bytes4(keccak256(signature));
+    function execute(address target, bytes4 selector, bytes params) public returns (bool){
         return target.call(abi.encodePacked(selector, params));
     }
 
