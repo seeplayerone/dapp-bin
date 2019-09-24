@@ -124,10 +124,38 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
         return block.number;
     }
 
-    function getPisVoteInfo(uint voteId) public view returns(uint,uint,uint) {
+    function getAgreeVotes(uint voteId) public view returns(uint) {
         PISVote storage pv = pisVotes[voteId];
-        return(pv.agreeVotes,pv.disagreeVotes,pv.abstainVotes);
-        //,pv.startTime,pv.duration,uint8(pv.status));
-        // return 0;
+        return pv.agreeVotes;
+    }
+
+    function getDisagreeVotes(uint voteId) public view returns(uint) {
+        PISVote storage pv = pisVotes[voteId];
+        return pv.disagreeVotes;
+    }
+
+    function getAbstainVotes(uint voteId) public view returns(uint) {
+        PISVote storage pv = pisVotes[voteId];
+        return pv.abstainVotes;
+    }
+
+    function getPassProportion(uint voteId) public view returns(uint) {
+        PISVote storage pv = pisVotes[voteId];
+        return pv.passProportion;
+    }
+
+    function getStartTime(uint voteId) public view returns(uint) {
+        PISVote storage pv = pisVotes[voteId];
+        return pv.startTime;
+    }
+
+    function getDuration(uint voteId) public view returns(uint) {
+        PISVote storage pv = pisVotes[voteId];
+        return pv.duration;
+    }
+
+    function getStatus(uint voteId) public view returns(uint8) {
+        PISVote storage pv = pisVotes[voteId];
+        return uint8(pv.status);
     }
 }
