@@ -295,11 +295,11 @@ contract TestVoteSP is TestBase {
         assertTrue(tempBool);
         assertEq(VSP.getAgreeVotes(1),1000000000000);
         assertEq(VSP.getDisagreeVotes(1),0);
-        //assertEq(abstainVotes,0);
-        //assertEq(passProportion,0);
-        // assertEq(startTime,VSP.height());
-        // assertEq(lastTime,10 days / 5);
-        // assertEq(uint8(status),1);
+        assertEq(VSP.getAbstainVotes(1),0);
+        assertEq(VSP.getPassProportion(1),0);
+        assertEq(VSP.getStartTime(1),VSP.height());
+        assertEq(VSP.getDuration(1),0);
+        assertEq(uint(VSP.getStatus(1)),0);
 
         assertEq(VSP.height(),0);
         VSP.fly(10 days);
