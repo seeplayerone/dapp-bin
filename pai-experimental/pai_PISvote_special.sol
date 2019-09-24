@@ -159,7 +159,7 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
         return uint8(pv.status);
     }
 
-    function getVoteId(uint propasalId) public view returns(uint) {
+    function getVoteId(uint proposalId) public view returns(uint) {
         Proposal storage prps = voteProposals[proposalId];
         return prps.pisVoteId;
     }
