@@ -124,8 +124,8 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
         return block.number;
     }
 
-    function getPisVoteInfo(uint voteId) public view returns(uint) {
+    function getPisVoteInfo(uint voteId) public view returns(uint,uint) {
         PISVote storage pv = pisVotes[voteId];
-        return pv.agreeVotes;
+        return(pv.agreeVotes,pv.disagreeVotes);
     }
 }
