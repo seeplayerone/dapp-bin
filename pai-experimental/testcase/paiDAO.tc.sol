@@ -21,6 +21,7 @@ contract TestBase is Template, DSTest, DSMath {
     TimefliesOracle internal pisOracle;
     Setting internal setting;
     Finance internal finance;
+    Liquidator internal PISseller;
 
     //BTC LENDING
     TimefliesOracle internal btcOracle;
@@ -114,6 +115,8 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callAddMember(paiDAO,CFO,"CFO");
         admin.callCreateNewRole(paiDAO,"FinanceContract","PISVOTE",0);
         admin.callAddMember(paiDAO,finance,"FinanceContract");
+        PISseller = new Liquidator(paiDAO,pisOracle, paiIssuer,"ADMIN",finance,setting);
+        admin.callSetPISseller(finance,PISseller);
 
         btcOracle = new TimefliesOracle("BTCOracle", paiDAO, RAY * 70000, ASSET_PIS);
         admin.callCreateNewRole(paiDAO,"BTCOracle","PISVOTE",3);
@@ -170,6 +173,7 @@ contract TestBase is Template, DSTest, DSMath {
         emit printAddr("election",election);
         emit printAddr("setting",setting);
         emit printAddr("finance",finance);
+        emit printAddr("PISseller",PISseller);
         emit printAddr("btcOracle",btcOracle);
         emit printAddr("btcLiquidator",btcLiquidator);
         emit printAddr("btcCDP",btcCDP);

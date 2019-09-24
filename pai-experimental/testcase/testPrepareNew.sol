@@ -464,11 +464,11 @@ contract FakePerson is Template {
     //     return result;
     // }
 
-    // function callSetPISseller(address finance, address newSeller) public returns (bool) {
-    //     bytes4 methodId = bytes4(keccak256("setPISseller(address)"));
-    //     bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,newSeller));
-    //     return result;
-    // }
+    function callSetPISseller(address finance, address newSeller) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("setPISseller(address)"));
+        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,newSeller));
+        return result;
+    }
 
     // function callMintPIS(address finance) public returns (bool) {
     //     bytes4 methodId = bytes4(keccak256("mintPIS()"));
