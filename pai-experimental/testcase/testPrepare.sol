@@ -517,6 +517,13 @@ contract FakePerson is Template {
         bool result = DividendsSample(Dividends).call(abi.encodeWithSelector(methodId));
         return result;
     }
+
+    function callSetCandidatesLimit(address election, bytes role, uint limits) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("setCandidatesLimit(bytes,uint256)"));
+        bool result = PISelection(election).call(abi.encodeWithSelector(methodId,role,limits));
+        return result;
+    }
+
 }
 
 contract FakePAIIssuer is PAIIssuer {

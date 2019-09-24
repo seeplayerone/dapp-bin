@@ -15,7 +15,7 @@ contract TestBase is Template, DSTest, DSMath {
     //MAIN
     FakePaiDao internal paiDAO;
     FakePAIIssuer internal paiIssuer;
-    //vote1
+    TimefliesElection internal election;
     //vote2
     //vote3
     TimefliesOracle internal pisOracle;
@@ -42,6 +42,9 @@ contract TestBase is Template, DSTest, DSMath {
     FakePerson internal oracle1;
     FakePerson internal oracle2;
     FakePerson internal oracle3;
+    FakePerson internal director1;
+    FakePerson internal director2;
+    FakePerson internal director3;
     FakePerson internal airDropRobot;
     FakePerson internal CFO;
 
@@ -67,6 +70,9 @@ contract TestBase is Template, DSTest, DSMath {
         oracle1 = new FakePerson();
         oracle2 = new FakePerson();
         oracle3 = new FakePerson();
+        director1 = new FakePerson();
+        director2 = new FakePerson();
+        director3 = new FakePerson();
         airDropRobot = new FakePerson();
         CFO = new FakePerson();
 
@@ -87,6 +93,18 @@ contract TestBase is Template, DSTest, DSMath {
         paiIssuer = new FakePAIIssuer("PAIISSUER",paiDAO);
         paiIssuer.init();
         ASSET_PAI = paiIssuer.PAIGlobalId();
+        election = new TimefliesElection(paiDAO);
+        admin.callCreateNewRole(paiDAO,"DIRECTOR","PISVOTE",3);
+        admin.callCreateNewRole(paiDAO,"EconomicSupervisor","PISVOTE",1);
+        admin.callCreateNewRole(paiDAO,"TechnicalSupervisor","PISVOTE",1);
+        admin.callCreateNewRole(paiDAO,"FinanceSupervisor","PISVOTE",1);
+        admin.callAddMember(paiDAO,director1,"DIRECTOR");
+        admin.callAddMember(paiDAO,director2,"DIRECTOR");
+        admin.callAddMember(paiDAO,director3,"DIRECTOR");
+        admin.callSetCandidatesLimit(election,"DIRECTOR",20);
+        admin.callSetCandidatesLimit(election,"EconomicSupervisor",1);
+        admin.callSetCandidatesLimit(election,"TechnicalSupervisor",1);
+        admin.callSetCandidatesLimit(election,"FinanceSupervisor",1);
         setting = new Setting(paiDAO);
         finance = new Finance(paiDAO,paiIssuer,setting,pisOracle);
         admin.callCreateNewRole(paiDAO,"AirDropAddr","PISVOTE",0);
@@ -131,11 +149,12 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callSetTDC(finance, tdc);
 
         admin.callMint(paiDAO,1000000000000,this);
-        admin.callRemoveMember(paiDAO,admin,"PISVOTE");
+        //admin.callRemoveMember(paiDAO,admin,"PISVOTE");
     }
 
     function print() public {
         setup();
+        admin.callRemoveMember(paiDAO,admin,"PISVOTE");
         uint groupNumber = paiDAO.indexOfACL();
         for (uint i = 1; i <= groupNumber; i++) {
             emit printString("===================================================");
@@ -147,6 +166,7 @@ contract TestBase is Template, DSTest, DSMath {
         emit printAddr("paiDAO",paiDAO);
         emit printAddr("paiIssuer",paiIssuer);
         emit printAddr("pisOracle",pisOracle);
+        emit printAddr("election",election);
         emit printAddr("setting",setting);
         emit printAddr("finance",finance);
         emit printAddr("btcOracle",btcOracle);
@@ -162,13 +182,16 @@ contract TestBase is Template, DSTest, DSMath {
         emit printAddr("oracle1",oracle1);
         emit printAddr("oracle2",oracle2);
         emit printAddr("oracle3",oracle3);
+        emit printAddr("director1",director1);
+        emit printAddr("director2",director2);
+        emit printAddr("director3",director3);
         emit printAddr("airDropRobot",airDropRobot);
         emit printAddr("CFO",CFO);
     }
 }
 
-contract TestCase is TestBase {
-    function VoteSetAssetCollateral() public {
+contract TestElection is TestBase {
+    function election() public {
         setup();
     }
 
