@@ -72,14 +72,14 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     function updateOverallPrice() internal {
         if (master.getMemberLimit(bytes(ORACLE)) / 2 >= pirces.length) {
             lastUpdateBlock = height();
-            lastUpdateIndex = lastUpdateIndex + 1;
+            lastUpdateIndex = uint8(lastUpdateIndex + 1); //overflow is expected;
             //the lastUpdatePrice also needs to be updated, but its value needs no change, so the following code is noted.
             //lastUpdatePrice = lastUpdatePrice;
             priceHistory[lastUpdateIndex] = lastUpdatePrice;
             return;
         }
         lastUpdateBlock = height();
-        lastUpdateIndex = lastUpdateIndex + 1; //overflow is expected;
+        lastUpdateIndex = uint8(lastUpdateIndex + 1); //overflow is expected;
         uint priceCalculated = calculatePrice();
         uint priceCompared1 = rmul(comparedPrice(),add(RAY,sensitivityRate));
         uint priceCompared2 = rmul(comparedPrice(),sub(RAY,sensitivityRate));
@@ -95,7 +95,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     }
 
     function comparedPrice() internal view returns(uint) {
-        uint8 index = lastUpdateIndex - uint8(sensitivityTime / updateInterval);  //overflow is expected;
+        uint8 index = uint8(lastUpdateIndex - uint8(sensitivityTime / updateInterval));  //overflow is expected;
         if(priceHistory[index] > 0) {
             return priceHistory[index];
         }
