@@ -61,7 +61,7 @@ contract Finance is Template,ACLSlave,DSMath {
 
     function setAssetPIS(address newPriceOracle) public auth("PISVOTE") {
         priceOracle = PriceOracle(newPriceOracle);
-        ASSET_PIS = priceOracle.ASSET_COLLATERAL();
+        ASSET_PIS = priceOracle.ASSET_COLLATERAL();//not safe,need to be improve
     }
 
     function setPAIIssuer(address newIssuer) public auth("DIRECTORVOTE") {

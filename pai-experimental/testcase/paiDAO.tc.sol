@@ -168,7 +168,9 @@ contract TestBase is Template, DSTest, DSMath {
 }
 
 contract TestCase is TestBase {
-    function 
+    function VoteSetAssetCollateral() public {
+        setup();
+    }
 
 }
 

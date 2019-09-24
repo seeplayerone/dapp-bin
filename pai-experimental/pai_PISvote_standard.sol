@@ -1,69 +1,144 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/library/string_utils.sol";
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/library/vote.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/evilcc2018/dapp-bin/library/execution.sol";
+import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 
-/// interface....
-/// @title This is a simple vote contract, everyone has the same vote weights
-/// @dev Every template contract needs to inherit Template contract directly or indirectly
-contract PISVoteStandard is BasicVote {
-    using StringLib for string;
-    
-    /// params to be init
-    PAIDAO public paiDAO;
+contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
 
-    ///
-    struct funcData {
-        uint startProportion;
+    enum VoteStatus {NOTSTARTED, ONGOING, APPROVED, REJECTED}
+    enum VoteAttitude {AGREE,DISAGREE,ABSTAIN}
+
+    // vote event
+    event CreateVote(uint);
+    event ConductVote(uint, uint, VoteStatus);
+
+    struct Proposal {
+        address target; /// call contract of vote result
+        bytes4 func; /// functionHash of the callback function
+        bytes param; /// parameters for the callback function
+        bool executed; /// whether vote result is executed
+        uint pisVoteId;
+    }
+
+    struct FuncData {
         uint passProportion;
-        bytes4 _func;
-        bytes _param;
-    }
-    mapping(uint => funcData) voteFuncData;
-
-    constructor(address _organizationContract) public {
-        paiDAO = PAIDAO(_organizationContract);
-        voteFuncData[1].startProportion = RAY / 1000;
-        voteFuncData[1].passProportion = RAY * 3 / 10;
-        voteFuncData[1]._func = hex"4b28ad80";
-        voteFuncData[1]._param = hex"";
+        bytes4 func;
+        uint pisVotelastTime;
     }
 
-    /// @dev ACL through functionHash
-    ///  Note all ACL mappings are kept in the organization contract
-    ///  An organization can deploy multiple vote contracts from the same template
-    ///  As a result, the functionHash is generated combining contract address and functionHash string
-    modifier authFunctionHash(string func) {
-        require(msg.sender == address(this) ||
-                paiDAO.canPerform(msg.sender, func));
-        _;
+    struct PISVote {
+        uint agreeVotes;
+        uint disagreeVotes;
+        uint abstainVotes;
+        uint passProportion; ///in RAY;
+        uint startTime; /// vote start time, measured by block timestamp
+        uint lastTime;  /// vote end time, measured by block timestamp
+        VoteStatus status;
     }
- 
-    function startVote(
-         string _subject,
-           uint _totalVotes,
-           uint _duration,
-        address _targetContract,
-           uint funcIndex,
-           uint voteNumber
-        )
-        public
-        authFunctionHash("VOTEMANAGER")
-        returns (uint)
-    {
-        //require funcIndex exist;
-        require(voteNumber >= rmul(_totalVotes,voteFuncData[funcIndex].startProportion),"not enough weights to start a vote");
-        uint voteId = startVoteInternal(_subject, rmul(_totalVotes, voteFuncData[funcIndex].passProportion), _totalVotes,
-                                        timeNow(), add(timeNow(),_duration), _targetContract,
-                                        voteFuncData[funcIndex]._func, voteFuncData[funcIndex]._param);
-        voteInternal(voteId,true,voteNumber);
-        return voteId;
+   
+    /// all votes in this contract
+    mapping(uint => PISVote) public pisVotes;
+    mapping(uint => FuncData) public voteFuncDatas;
+    mapping(uint => Proposal) public voteProposals;
+    uint public lastPISVoteId = 0;
+    uint public lastAssignedProposalId = 0;
+    uint public lastFuncDataId = 0;
+    uint96 public ASSET_PIS;
+    uint public startProportion = RAY / 20;
+
+    constructor(address paiMainContract) {
+        master = ACLMaster(paiMainContract);
+        ASSET_PIS = PAIDAO(master).PISGlobalId();
     }
 
-    function vote(uint voteId, bool attitude, uint voteNumber) public authFunctionHash("VOTEMANAGER") {
-        voteInternal(voteId, attitude, voteNumber);
+    function addNewVoteParam(
+        uint _passProportion,
+        bytes4 _func,
+        uint _pisVotelastTime
+        ) public auth("PISVOTE") {
+        lastFuncDataId = add(lastFuncDataId,1);
+        voteFuncDatas[lastFuncDataId].passProportion = _passProportion;
+        voteFuncDatas[lastFuncDataId].func = _func;
+        voteFuncDatas[lastFuncDataId].pisVotelastTime = _pisVotelastTime;
+    }
+
+    function startPISVote(uint _passProportion,uint _startTime,uint _lastTime) internal returns(uint) {
+        lastPISVoteId = add(lastPISVoteId,1);
+        pisVotes[lastPISVoteId].passProportion = _passProportion;
+        pisVotes[lastPISVoteId].startTime = _startTime;
+        pisVotes[lastPISVoteId].lastTime = _lastTime;
+        return lastPISVoteId;
+    }
+
+    function updatePISVoteStatus(uint voteId) public {
+        require(voteId <= lastPISVoteId, "vote not exist");
+        PISVote storage pv = pisVotes[voteId];
+        if(pv.status > VoteStatus.ONGOING)
+            return;
+        if (timeNow() < pv.startTime) {
+            pv.status = VoteStatus.NOTSTARTED;
+            return;
+        }
+        if (timeNow() > add(pv.startTime, pv.lastTime)) {
+            if(pv.agreeVotes > rmul(add(add(pv.agreeVotes,pv.disagreeVotes),pv.abstainVotes),pv.passProportion)) {
+                pv.status = VoteStatus.APPROVED;
+                return;
+            }
+            pv.status = VoteStatus.REJECTED;
+            return;
+        }
+        pv.status = VoteStatus.ONGOING;
+    }
+
+    /// @dev start a vote
+    function startProposal(uint FuncDataId,uint _startTime,address _targetContract,bytes _param) public payable returns(uint) {
+        require(msg.assettype == ASSET_PIS);
+        require(0 == _startTime || _startTime >= timeNow());
+        (,,,,,uint totalPISSupply) = PAIDAO(master).getAssetInfo(0);
+        require(msg.value > rmul(startProportion,totalPISSupply));
+        lastAssignedProposalId = add(lastAssignedProposalId,1);
+        FuncData storage fd = voteFuncDatas[FuncDataId];
+        uint startTime = 0 == _startTime ? timeNow():_startTime;
+        voteProposals[lastAssignedProposalId].target = _targetContract;
+        voteProposals[lastAssignedProposalId].func = fd.func;
+        voteProposals[lastAssignedProposalId].param = _param;
+        voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(fd.passProportion,startTime,fd.pisVotelastTime);
+        msg.sender.transfer(msg.value,ASSET_PIS);
+        return lastAssignedProposalId;
+    }
+
+    function pisVote(uint voteId, VoteAttitude attitude) public payable{
+        require(msg.assettype == ASSET_PIS);
+        require(voteId <= lastPISVoteId, "vote not exist");
+        updatePISVoteStatus(voteId);
+        PISVote storage pv = pisVotes[voteId];
+        require(VoteStatus.ONGOING == pv.status, "vote not ongoing");
+        if (VoteAttitude.AGREE == attitude) {
+            pv.agreeVotes = add(pv.agreeVotes, msg.value);
+        } else if (VoteAttitude.DISAGREE == attitude) {
+            pv.disagreeVotes = add(pv.disagreeVotes,msg.value);
+        } else {
+            pv.abstainVotes = add(pv.abstainVotes,msg.value);
+        }
+        msg.sender.transfer(msg.value,ASSET_PIS);
+    }
+
+    /// @dev callback function to invoke organization contract
+    function invokeProposal(uint proposalId) public {
+        require(proposalId <= lastAssignedProposalId, "proposal not exist");
+        Proposal storage prps = voteProposals[proposalId];
+        updatePISVoteStatus(prps.pisVoteId);
+        require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
+        if(false == prps.executed) {
+            execute(prps.target,abi.encodePacked(prps.func, prps.param));
+            prps.executed = true;
+        }
+    }
+
+    function timeNow() public view returns (uint256) {
+        return block.timestamp;
     }
 }
