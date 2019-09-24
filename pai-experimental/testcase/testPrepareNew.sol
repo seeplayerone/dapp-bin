@@ -17,55 +17,21 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_election.sol";
 // import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_director_vote.sol";
 
 
-contract DividendsSample is Template {
-    address p1;
-    address p2;
-    address p3;
-    uint p1money;
-    uint p2money;
-    uint p3money;
-    bool p1Payed;
-    bool p2Payed;
-    bool p3Payed;
-    Finance internal finance;
-
-    constructor(address _p1,address _p2,address _p3,address _finance) {
-        p1 = _p1;
-        p2 = _p2;
-        p3 = _p3;
-        p1money = 10000;
-        p2money = 20000;
-        p3money = 30000;
-        finance = Finance(_finance);
-    }
-
-    function getMoney() public {
-        if(msg.sender == p1) {
-            require(!p1Payed);
-            finance.payForDividends(p1money,p1);
-            p1Payed = true;
-            return;
-        }
-        if(msg.sender == p2) {
-            require(!p2Payed);
-            finance.payForDividends(p2money,p2);
-            p2Payed = true;
-            return;
-        }
-        if(msg.sender == p3) {
-            require(!p3Payed);
-            finance.payForDividends(p3money,p3);
-            p3Payed = true;
-            return;
-        }
-    }
-}
-
 contract FakePerson is Template {
     function() public payable {}
 
     function createPAIDAO(string _str) public returns (address) {
         return (new FakePaiDao(_str));
+    }
+
+    function execute(address target, string signature, bytes params, uint amount, uint assettype) public returns (bool){
+        bytes4 selector = bytes4(keccak256(signature));
+        return target.call.value(amount, assettype)(abi.encodePacked(selector, params));
+    }
+
+    function execute(address target, string signature, bytes params) public returns (bool){
+        bytes4 selector = bytes4(keccak256(signature));
+        return target.call(abi.encodePacked(selector, params));
     }
 
     // function createPAIDAONoGovernance(string _str) public returns (address) {
@@ -120,11 +86,11 @@ contract FakePerson is Template {
     //     return result;
     // }
 
-    // function callChangeSuperior(address paidao, string role, string newSuperior) public returns (bool) {
-    //     bytes4 methodId = bytes4(keccak256("changeSuperior(bytes,bytes)"));
-    //     bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId, bytes(role),bytes(newSuperior)));
-    //     return result;
-    // }
+    function callChangeSuperior(address paidao, string role, string newSuperior) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("changeSuperior(bytes,bytes)"));
+        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId, bytes(role),bytes(newSuperior)));
+        return result;
+    }
 
     // function callChangeMemberLimit(address paidao, string role, uint32 limit) public returns (bool) {
     //     bytes4 methodId = bytes4(keccak256("changeMemberLimit(bytes,uint32)"));
