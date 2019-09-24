@@ -12,7 +12,7 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
     enum VoteAttitude {AGREE,DISAGREE,ABSTAIN}
     uint public passProportion = RAY * 2 / 3;
     uint public startProportion = RAY / 20;
-    uint public pisVotelastTime = 10 days;
+    uint public pisVotelastTime = 10 days / 5;
 
     // vote event
     event CreateVote(uint);

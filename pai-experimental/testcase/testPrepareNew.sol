@@ -488,6 +488,12 @@ contract FakePerson is Template {
         return result;
     }
 
+    function callStartProposal(address VSP, uint _startTime,address _targetContract,bytes4 _func,bytes _param) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("startProposal(uint256,address,bytes4,bytes)"));
+        bool result = PISVoteSpecial(VSP).call(abi.encodeWithSelector(methodId,_startTime,_targetContract,_func,_param));
+        return result;
+    }
+
 }
 
 contract FakePAIIssuer is PAIIssuer {
@@ -610,156 +616,3 @@ contract TimefliesVoteSP is PISVoteSpecial,TestTimeflies {
 //     }
 // }
 
-// contract FakePerson is Template {
-//     function() public payable {}
-
-//     function createPAIDAO(string _str) public returns (address) {
-//         return (new FakePaiDao(_str, new address[](0)));
-//     }
-
-//     function callInit(address paidao) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("init()"));
-//         bool result = FakePaiDao(paidao).call(methodId);
-//         return result;
-//     }
-
-//     function callConfigFunc(address paidao, string _function, address _address, uint8 _opMode) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("configFunc(string,address,uint8)"));
-//         bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,_function,_address,_opMode));
-//         return result;
-//     }
-
-//     function callConfigOthersFunc(address paidao, address _contract, address _caller, string _str, uint8 _opMode) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("configOthersFunc(address,address,string,uint8)"));
-//         bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,_contract,_caller,_str,_opMode));
-//         return result;
-//     }
-
-//     function callTempConfig(address paidao, string _function, address _address, uint8 _opMode) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("tempConfig(string,address,uint8)"));
-//         bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,_function,_address,_opMode));
-//         return result;
-//     }
-
-//     function callTempOthersConfig(address paidao,address _contract, address _caller, string _str, uint8 _opMode) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("tempOthersConfig(address,address,string,uint8)"));
-//         bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,_contract,_caller,_str,_opMode));
-//         return result;
-//     }
-    
-//     function callTempMintPIS(address paidao, uint amount, address dest) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("tempMintPIS(uint256,address)"));
-//         bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,amount,dest));
-//         return result;
-//     }
-
-//     function callMintPIS(address paidao, uint amount, address dest) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("mintPIS(uint256,address)"));
-//         bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,amount,dest));
-//         return result;
-//     }
-
-//     function callMintPAI(address paidao, uint amount, address dest) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("mintPAI(uint256,address)"));
-//         bool result = FakePaiDao(paidao).call(abi.encodeWithSelector(methodId,amount,dest));
-//         return result;
-//     }
-
-//     function callBurn(address paidao, uint amount, uint96 id) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("burn()"));
-//         bool result = FakePaiDao(paidao).call.value(amount,id)(abi.encodeWithSelector(methodId));
-//         return result;
-//     }
-
-//     function callEveryThingIsOk(address paidao) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("everyThingIsOk()"));
-//         bool result = FakePaiDao(paidao).call(methodId);
-//         return result;
-//     }
-
-//     function callDeposit(address voteManager, uint amount, uint96 id) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("deposit()"));
-//         bool result = PISVoteManager(voteManager).call.value(amount,id)(abi.encodeWithSelector(methodId));
-//         return result;
-//     }
-
-//     function callWithdraw(address voteManager, uint amount) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("withdraw(uint256)"));
-//         bool result = PISVoteManager(voteManager).call(abi.encodeWithSelector(methodId,amount));
-//         return result;
-//     }
-
-//     function callStartVoteTo(
-//         address voteManager,
-//         address _voteContract,
-//          string _subject,
-//            uint _duration,
-//         address _targetContract,
-//          bytes4 _func,
-//           bytes _param,
-//            uint _voteNumber
-//         )
-//         public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("startVoteTo(address,string,uint256,address,bytes4,bytes,uint256)"));
-//         bool result = PISVoteManager(voteManager).call(abi.encodeWithSelector(methodId,
-//         _voteContract,_subject,_duration,_targetContract,_func,_param,_voteNumber));
-//         return result;
-//     }
-//     function callStartVoteToStandard(
-//         address voteManager,
-//         address _voteContract,
-//          string _subject,
-//            uint _duration,
-//         address _targetContract,
-//            uint _funcIndex,
-//            uint _voteNumber
-//         )
-//         public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("startVoteToStandard(address,string,uint256,address,uint256,uint256)"));
-//         bool result = PISVoteManager(voteManager).call(abi.encodeWithSelector(methodId,
-//         _voteContract,_subject,_duration,_targetContract,_funcIndex,_voteNumber));
-//         return result;
-//     }
-
-//     function callVoteTo(address voteManager, address _voteContract, uint _voteId, bool attitude, uint _voteNumber) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("voteTo(address,uint256,bool,uint256)"));
-//         bool result = PISVoteManager(voteManager).call(abi.encodeWithSelector(methodId,_voteContract,_voteId,attitude,_voteNumber));
-//         return result;
-//     }
-
-//     function callStartVote(address directorVote,string _subject,uint _duration,address _targetContract,uint funcIndex) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("startVote(string,uint256,address,uint256)"));
-//         bool result = DirectorVote(directorVote).call(abi.encodeWithSelector(methodId,_subject,_duration,_targetContract,funcIndex));
-//         return result;
-//     }
-
-//     function callVote(address directorVote,uint voteId,bool attitude) public returns (bool) {
-//         bytes4 methodId = bytes4(keccak256("vote(uint256,bool)"));
-//         bool result = DirectorVote(directorVote).call(abi.encodeWithSelector(methodId,voteId,attitude));
-//         return result;
-//     }
-
-//     function callFunc1(address bussinessContract) public returns(bool) {
-//         bytes4 methodId = bytes4(keccak256("plusOne()"));
-//         bool result = TestPaiDAO(bussinessContract).call(abi.encodeWithSelector(methodId));
-//         return result;
-//     }
-
-//     function callFunc2(address bussinessContract) public returns(bool) {
-//         bytes4 methodId = bytes4(keccak256("plusTwo()"));
-//         bool result = TestPaiDAO(bussinessContract).call(abi.encodeWithSelector(methodId));
-//         return result;
-//     }
-
-//     function callFunc3(address bussinessContract) public returns(bool) {
-//         bytes4 methodId = bytes4(keccak256("plusThree()"));
-//         bool result = TestPaiDAO(bussinessContract).call(abi.encodeWithSelector(methodId));
-//         return result;
-//     }
-
-//     function callFunc4(address bussinessContract) public returns(bool) {
-//         bytes4 methodId = bytes4(keccak256("plusFour()"));
-//         bool result = TestPaiDAO(bussinessContract).call(abi.encodeWithSelector(methodId));
-//         return result;
-//     }
-// }
