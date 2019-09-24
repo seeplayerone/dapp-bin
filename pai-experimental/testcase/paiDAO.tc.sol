@@ -294,7 +294,7 @@ contract TestVoteSP is TestBase {
         tempBool = PISHolder1.execute(VSP,methodId,param,1000000000000,ASSET_PIS);
         assertTrue(tempBool);
         uint agreeVotes;
-        （agreeVotes,,,,,,) = VSP.getPisVoteInfo(1);
+        agreeVotes = VSP.getPisVoteInfo(1);
         // （uint agreeVotes,uint disagreeVotes,uint abstainVotes,uint passProportion,uint startTime,uint lastTime,) = VSP.pisVotes(1);
         assertEq(agreeVotes,1000000000000);
         // assertEq(disagreeVotes,0);
