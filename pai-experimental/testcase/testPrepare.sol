@@ -11,9 +11,11 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/tdc.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_election.sol";
 // import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_special.sol";
 // import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_standard.sol";
 // import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_director_vote.sol";
+
 
 contract DividendsSample is Template {
     address p1;
@@ -572,6 +574,10 @@ contract TestTimeflies {
         return testHeight;
     }
 
+    function nowBlock() public view returns (uint256) {
+        return testHeight;
+    }
+
     function fly(uint age) public {
         if (0 == age) {
             testTime = originalTime;
@@ -619,6 +625,24 @@ contract TimefliesFinance is Finance, TestTimeflies {
 
     }
 }
+
+contract TimefliesFinance is Finance, TestTimeflies {
+    constructor(address paiMainContract,address _issuer,address _setting,address _oracle)
+        Finance(paiMainContract,_issuer,_setting,_oracle)
+        public
+    {
+
+    }
+}
+
+contract TimefliesElection is PISelection,TestTimeflies {
+    constructor(address paiMainContract)
+    PISelection(paiMainContract)
+    public {
+    }
+}
+
+
 
 // contract TimefliesVoteSP is PISVoteSpecial,TestTimeflies {
 //     constructor(address _organizationContract)

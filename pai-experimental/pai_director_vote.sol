@@ -36,8 +36,8 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
         uint agreeVotes;
         uint disagreeVotes;
         uint passVotes;
-        uint startTime; /// vote start time, measured by block timestamp
-        uint lastTime;  /// vote end time, measured by block timestamp
+        uint startTime; /// vote start time, measured by block height
+        uint lastTime;  /// vote end time, measured by block height
         address[] alreadyVoted;
         VoteStatus status;
     }
@@ -47,8 +47,8 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
         uint disagreeVotes;
         uint abstainVotes;
         uint passProportion; ///in RAY;
-        uint startTime; /// vote start time, measured by block timestamp
-        uint lastTime;  /// vote end time, measured by block timestamp
+        uint startTime; /// vote start time, measured by block height
+        uint lastTime;  /// vote end time, measured by block height
         VoteStatus status;
     }
    
@@ -97,11 +97,11 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
         DirectorVote storage dv = directorVotes[voteId];
         if(dv.status > VoteStatus.ONGOING)
             return;
-        if (timeNow() < dv.startTime) {
+        if (height() < dv.startTime) {
             dv.status = VoteStatus.NOTSTARTED;
             return;
         }
-        if (timeNow() > add(dv.startTime, dv.lastTime)) {
+        if (height() > add(dv.startTime, dv.lastTime)) {
             if (dv.agreeVotes >= dv.passVotes) {
                 dv.status = VoteStatus.APPROVED;
                 return;
@@ -125,11 +125,11 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
         PISVote storage pv = pisVotes[voteId];
         if(pv.status > VoteStatus.ONGOING)
             return;
-        if (timeNow() < pv.startTime) {
+        if (height() < pv.startTime) {
             pv.status = VoteStatus.NOTSTARTED;
             return;
         }
-        if (timeNow() > add(pv.startTime, pv.lastTime)) {
+        if (height() > add(pv.startTime, pv.lastTime)) {
             if(pv.agreeVotes > rmul(add(add(pv.agreeVotes,pv.disagreeVotes),pv.abstainVotes),pv.passProportion)) {
                 pv.status = VoteStatus.APPROVED;
                 return;
@@ -142,10 +142,10 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
 
     /// @dev start a vote
     function startProposal(uint FuncDataId,uint _startTime,address _targetContract,bytes _param) public auth("DIRECTOR") returns(uint) {
-        require(0 == _startTime || _startTime >= timeNow());
+        require(0 == _startTime || _startTime >= height());
         lastAssignedProposalId = add(lastAssignedProposalId,1);
         FuncData storage fd = voteFuncDatas[FuncDataId];
-        uint startTime = 0 == _startTime ? timeNow():_startTime;
+        uint startTime = 0 == _startTime ? height():_startTime;
         voteProposals[lastAssignedProposalId].target = _targetContract;
         voteProposals[lastAssignedProposalId].func = fd.func;
         voteProposals[lastAssignedProposalId].param = _param;
@@ -219,11 +219,11 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
         Proposal storage prps = voteProposals[proposalId];
         require(directorVotes[prps.directorVoteId].agreeVotes > directorVotes[prps.directorVoteId].passVotes);
         if(prps.pisVoteId != 0) {
-           pisVotes[prps.pisVoteId].startTime = timeNow();
+           pisVotes[prps.pisVoteId].startTime = height();
         }
     }
 
-    function timeNow() public view returns (uint256) {
-        return block.timestamp;
+    function height() public view returns (uint256) {
+        return block.number;
     }
 }

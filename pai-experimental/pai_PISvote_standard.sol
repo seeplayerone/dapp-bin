@@ -34,8 +34,8 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
         uint disagreeVotes;
         uint abstainVotes;
         uint passProportion; ///in RAY;
-        uint startTime; /// vote start time, measured by block timestamp
-        uint lastTime;  /// vote end time, measured by block timestamp
+        uint startTime; /// vote start time, measured by block height
+        uint lastTime;  /// vote end time, measured by block height
         VoteStatus status;
     }
    
@@ -78,11 +78,11 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
         PISVote storage pv = pisVotes[voteId];
         if(pv.status > VoteStatus.ONGOING)
             return;
-        if (timeNow() < pv.startTime) {
+        if (height() < pv.startTime) {
             pv.status = VoteStatus.NOTSTARTED;
             return;
         }
-        if (timeNow() > add(pv.startTime, pv.lastTime)) {
+        if (height() > add(pv.startTime, pv.lastTime)) {
             if(pv.agreeVotes > rmul(add(add(pv.agreeVotes,pv.disagreeVotes),pv.abstainVotes),pv.passProportion)) {
                 pv.status = VoteStatus.APPROVED;
                 return;
@@ -96,12 +96,12 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
     /// @dev start a vote
     function startProposal(uint FuncDataId,uint _startTime,address _targetContract,bytes _param) public payable returns(uint) {
         require(msg.assettype == ASSET_PIS);
-        require(0 == _startTime || _startTime >= timeNow());
+        require(0 == _startTime || _startTime >= height());
         (,,,,,uint totalPISSupply) = PAIDAO(master).getAssetInfo(0);
         require(msg.value > rmul(startProportion,totalPISSupply));
         lastAssignedProposalId = add(lastAssignedProposalId,1);
         FuncData storage fd = voteFuncDatas[FuncDataId];
-        uint startTime = 0 == _startTime ? timeNow():_startTime;
+        uint startTime = 0 == _startTime ? height():_startTime;
         voteProposals[lastAssignedProposalId].target = _targetContract;
         voteProposals[lastAssignedProposalId].func = fd.func;
         voteProposals[lastAssignedProposalId].param = _param;
@@ -138,7 +138,7 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
         }
     }
 
-    function timeNow() public view returns (uint256) {
-        return block.timestamp;
+    function height() public view returns (uint256) {
+        return block.number;
     }
 }
