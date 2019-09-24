@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepareNew.sol";
 
 contract TestBase is Template, DSTest, DSMath {
     event printString(string);
@@ -39,14 +39,14 @@ contract TestBase is Template, DSTest, DSMath {
 
     //fake person
     FakePerson internal admin;
-    FakePersonNew internal oracle1;
-    FakePersonNew internal oracle2;
-    FakePersonNew internal oracle3;
-    FakePersonNew internal director1;
-    FakePersonNew internal director2;
-    FakePersonNew internal director3;
-    FakePersonNew internal airDropRobot;
-    FakePersonNew internal CFO;
+    FakePerson internal oracle1;
+    FakePerson internal oracle2;
+    FakePerson internal oracle3;
+    FakePerson internal director1;
+    FakePerson internal director2;
+    FakePerson internal director3;
+    FakePerson internal airDropRobot;
+    FakePerson internal CFO;
 
     //asset
     uint96 internal ASSET_BTC;
@@ -67,14 +67,14 @@ contract TestBase is Template, DSTest, DSMath {
         ASSET_ETH = uint96(btcIssuer.getAssetType());
 
         admin = new FakePerson();
-        oracle1 = new FakePersonNew();
-        oracle2 = new FakePersonNew();
-        oracle3 = new FakePersonNew();
-        director1 = new FakePersonNew();
-        director2 = new FakePersonNew();
-        director3 = new FakePersonNew();
-        airDropRobot = new FakePersonNew();
-        CFO = new FakePersonNew();
+        oracle1 = new FakePerson();
+        oracle2 = new FakePerson();
+        oracle3 = new FakePerson();
+        director1 = new FakePerson();
+        director2 = new FakePerson();
+        director3 = new FakePerson();
+        airDropRobot = new FakePerson();
+        CFO = new FakePerson();
 
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
@@ -195,9 +195,9 @@ contract TestElection is TestBase {
     string DIRECTOR = "DIRECTOR";
     function testDirectorElection() public {
         setup();
-        FakePersonNew PISHolder1 = new FakePersonNew();
-        FakePersonNew PISHolder2 = new FakePersonNew();
-        FakePersonNew PISHolder3 = new FakePersonNew();
+        FakePerson PISHolder1 = new FakePerson();
+        FakePerson PISHolder2 = new FakePerson();
+        FakePerson PISHolder3 = new FakePerson();
         PISHolder1.transfer(1000000000000,ASSET_PIS);
         PISHolder2.transfer(1000000000000,ASSET_PIS);
         PISHolder3.transfer(1000000000000,ASSET_PIS);

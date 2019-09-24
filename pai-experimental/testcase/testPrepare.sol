@@ -61,20 +61,6 @@ contract DividendsSample is Template {
     }
 }
 
-contract FakePersonNew {
-    function() public payable {}
-
-    function execute(address target, string signature, bytes params, uint amount, uint assettype) public returns (bool) {
-        bytes4 selector = bytes4(keccak256(signature));
-        return target.call.value(amount, assettype)(abi.encodePacked(selector, params));
-    }
-
-    function execute(address target, string signature, bytes params) public returns (bool) {
-        bytes4 selector = bytes4(keccak256(signature));
-        return target.call(abi.encodePacked(selector, params));
-    }
-}
-
 contract FakePerson is Template {
     function() public payable {}
 
