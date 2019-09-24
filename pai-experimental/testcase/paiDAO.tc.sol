@@ -286,7 +286,7 @@ contract TestVoteSP is TestBase {
 
         bytes4 methodId = bytes4(keccak256("mint(uint256,address)"));
         bytes memory param = abi.encode(100,address(p1));
-        bool tempBool = director1.callStartProposal(VSP,0,paiDAO,methodId,param);
+        bool tempBool = PISHolder1.callStartProposal(VSP,0,paiDAO,methodId,param,1000000000000,ASSET_PIS);
         assertTrue(tempBool);
 
         methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
