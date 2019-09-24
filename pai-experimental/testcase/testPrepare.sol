@@ -633,15 +633,6 @@ contract TimefliesFinance is Finance, TestTimeflies {
     }
 }
 
-contract TimefliesFinance is Finance, TestTimeflies {
-    constructor(address paiMainContract,address _issuer,address _setting,address _oracle)
-        Finance(paiMainContract,_issuer,_setting,_oracle)
-        public
-    {
-
-    }
-}
-
 contract TimefliesElection is PISelection,TestTimeflies {
     constructor(address paiMainContract)
     PISelection(paiMainContract)

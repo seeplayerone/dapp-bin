@@ -191,7 +191,7 @@ contract TestBase is Template, DSTest, DSMath {
 }
 
 contract TestElection is TestBase {
-    function election() public {
+    function testDirectorElection() public {
         setup();
     }
 
