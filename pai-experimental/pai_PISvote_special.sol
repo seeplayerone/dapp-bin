@@ -12,7 +12,7 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
     enum VoteAttitude {AGREE,DISAGREE,ABSTAIN}
     uint public passProportion = RAY * 2 / 3;
     uint public startProportion = RAY / 20;
-    uint public pisVotelastTime = 10 days / 5;
+    uint public pisVoteDuration = 10 days / 5;
 
     // vote event
     event CreateVote(uint);
@@ -32,7 +32,7 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
         uint abstainVotes;
         uint passProportion; ///in RAY;
         uint startTime; /// vote start time, measured by block height
-        uint lastTime;  /// vote end time, measured by block height
+        uint duration;  /// vote end time, measured by block height
         VoteStatus status;
     }
    
@@ -48,11 +48,11 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
         ASSET_PIS = PAIDAO(master).PISGlobalId();
     }
 
-    function startPISVote(uint _passProportion,uint _startTime,uint _lastTime) internal returns(uint) {
+    function startPISVote(uint _passProportion,uint _startTime,uint _duration) internal returns(uint) {
         lastPISVoteId = add(lastPISVoteId,1);
         pisVotes[lastPISVoteId].passProportion = _passProportion;
         pisVotes[lastPISVoteId].startTime = _startTime;
-        pisVotes[lastPISVoteId].lastTime = _lastTime;
+        pisVotes[lastPISVoteId].duration = _duration;
         return lastPISVoteId;
     }
 
@@ -65,7 +65,7 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
             pv.status = VoteStatus.NOTSTARTED;
             return;
         }
-        if (height() > add(pv.startTime, pv.lastTime)) {
+        if (height() > add(pv.startTime, pv.duration)) {
             if(pv.agreeVotes > rmul(add(add(pv.agreeVotes,pv.disagreeVotes),pv.abstainVotes),pv.passProportion)) {
                 pv.status = VoteStatus.APPROVED;
                 return;
@@ -87,7 +87,7 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
         voteProposals[lastAssignedProposalId].target = _targetContract;
         voteProposals[lastAssignedProposalId].func = _func;
         voteProposals[lastAssignedProposalId].param = _param;
-        voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(passProportion,startTime,pisVotelastTime);
+        voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(passProportion,startTime,pisVoteDuration);
         msg.sender.transfer(msg.value,ASSET_PIS);
         return lastAssignedProposalId;
     }
@@ -124,8 +124,10 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
         return block.number;
     }
 
-    function getPisVoteInfo(uint voteId) public view returns(uint,uint) {
+    function getPisVoteInfo(uint voteId) public view returns(uint,uint,uint,uint) {
         PISVote storage pv = pisVotes[voteId];
-        return(pv.agreeVotes,pv.disagreeVotes);
+        return(pv.agreeVotes,pv.disagreeVotes,pv.abstainVotes,pv.passProportion);
+        //,pv.startTime,pv.duration,uint8(pv.status));
+        // return 0;
     }
 }
