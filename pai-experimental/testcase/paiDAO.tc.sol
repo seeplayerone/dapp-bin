@@ -159,6 +159,7 @@ contract TestBase is Template, DSTest, DSMath {
     function print() public {
         setup();
         admin.callRemoveMember(paiDAO,admin,"PISVOTE");
+        admin.callRemoveMember(paiDAO,admin,"DIRECTORVOTE");
         uint groupNumber = paiDAO.indexOfACL();
         for (uint i = 1; i <= groupNumber; i++) {
             emit printString("===================================================");
@@ -217,11 +218,22 @@ contract TestElection is TestBase {
 
         methodId = bytes4(keccak256("nominateCandidate(uint256,address)"));
         param = abi.encode(1,address(PISHolder1));
-        tempBool = p1.execute(election,methodId,param,1000000000000,ASSET_PIS);
+        tempBool = PISHolder1.execute(election,methodId,param,1000000000000,ASSET_PIS);
         assertTrue(tempBool);
-        assertEq(flow.balance(p1,ASSET_PIS),1000000000000);
+        assertEq(flow.balance(PISHolder1,ASSET_PIS),1000000000000);
 
+        address[] list;
+        list.push(PISHolder2);
+        list.push(PISHolder3);
+        methodId = bytes4(keccak256("nominateByDirectors(uint256,address[])"));
+        param = abi.encode(1,list);
 
+        tempBool = admin.execute(election,methodId,param);
+        assertTrue(!tempBool);
+
+        election.fly(6 days + 23 hours);
+        tempBool = admin.execute(election,methodId,param);
+        assertTrue(tempBool);
     }
 
 }
