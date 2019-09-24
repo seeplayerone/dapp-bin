@@ -46,6 +46,15 @@ contract PISelection is Election,ACLSlave,DSMath {
         nominateCandidatesByAuthroity(electionIndex,candidates);
     }
 
+    function becomeCandidates(uint electionIndex) public auth(electionRoles[electionIndex]){
+        ElectionRecord storage election = electionRecords[electionIndex];
+        require(nowBlock() >= election.nominateStartBlock);
+        require(nowBlock() < election.electionStartBlock);
+        require(!election.candidates.contains(msg.sender));
+        election.candidates.push(msg.sender);
+        election.candidateSupportRates.push(0);
+    }
+
     function executeResult(uint electionIndex) public {
         ElectionRecord storage election = electionRecords[electionIndex];
         require(nowBlock() >= election.executionStartBlock);

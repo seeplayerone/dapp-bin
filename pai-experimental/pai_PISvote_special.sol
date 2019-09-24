@@ -46,8 +46,6 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
     constructor(address paiMainContract) {
         master = ACLMaster(paiMainContract);
         ASSET_PIS = PAIDAO(master).PISGlobalId();
-        passProportion = RAY / 2;
-        startProportion = RAY / 1000;
     }
 
     function startPISVote(uint _passProportion,uint _startTime,uint _lastTime) internal returns(uint) {

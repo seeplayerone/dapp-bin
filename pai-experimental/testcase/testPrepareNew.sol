@@ -12,7 +12,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/tdc.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_election.sol";
-// import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_special.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_special.sol";
 // import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_standard.sol";
 // import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_director_vote.sol";
 
@@ -589,12 +589,12 @@ contract TimefliesElection is PISelection,TestTimeflies {
 
 
 
-// contract TimefliesVoteSP is PISVoteSpecial,TestTimeflies {
-//     constructor(address _organizationContract)
-//     PISVoteSpecial(_organizationContract)
-//     public {
-//     }
-// }
+contract TimefliesVoteSP is PISVoteSpecial,TestTimeflies {
+    constructor(address paiMainContract)
+    PISVoteSpecial(paiMainContract)
+    public {
+    }
+}
 
 // contract TimefliesVoteST is PISVoteStandard,TestTimeflies {
 //     constructor(address _organizationContract)
