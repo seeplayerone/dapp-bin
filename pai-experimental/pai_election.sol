@@ -37,6 +37,7 @@ contract PISelection is Election,ACLSlave,DSMath {
         require(percent(msg.value, totalSupply) >= qualification);
         uint electionId = startElection(nominateLength, electionLength, qualification);
         electionRoles[electionId] = electionRole;
+        msg.sender.transfer(msg.value,assettype);
     }
 
     function nominateByDirectors(uint electionIndex, address[] candidates) public auth("DIRECTORVOTE") {

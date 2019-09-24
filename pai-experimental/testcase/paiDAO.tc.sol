@@ -214,6 +214,14 @@ contract TestElection is TestBase {
         bytes memory param = abi.encode("DIRECTOR");
         bool tempBool = director1.execute(election,methodId,param);
         assertTrue(tempBool);
+
+        methodId = bytes4(keccak256("nominateCandidate(uint256,address)"));
+        param = abi.encode(1,address(PISHolder1));
+        tempBool = p1.execute(election,methodId,param,1000000000000,ASSET_PIS);
+        assertTrue(tempBool);
+        assertEq(flow.balance(p1,ASSET_PIS),1000000000000);
+
+
     }
 
 }

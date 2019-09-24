@@ -48,7 +48,7 @@ contract Election is Template {
     function startElection(uint nominateLength, uint electionLength, uint qualification) internal returns (uint) {
         ElectionRecord storage election = electionRecords[currentElectionIndex];
         require(!election.created);
-        election.nominateStartBlock = block.number;
+        election.nominateStartBlock = nowBlock();
 
         require(nominateLength >= ONE_DAY_BLOCKS);
         require(electionLength >= ONE_DAY_BLOCKS);
@@ -78,6 +78,7 @@ contract Election is Template {
 
         election.candidates.push(candidate);
         election.candidateSupportRates.push(0);
+        msg.sender.transfer(msg.value,assettype);
     }
 
     function nominateCandidates(uint electionIndex, address[] candidates) public payable {
@@ -91,6 +92,7 @@ contract Election is Template {
         for(uint i = 0; i < length; i ++) {
             nominateCandidate(electionIndex, candidates[i]);
         }
+        msg.sender.transfer(msg.value,assettype);
     }
 
     /// @dev election stage
