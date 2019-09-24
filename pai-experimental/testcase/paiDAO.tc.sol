@@ -231,7 +231,7 @@ contract TestElection is TestBase {
         tempBool = admin.execute(election,methodId,param);
         assertTrue(!tempBool);
 
-        election.fly(6 days + 23 hours);
+        election.fly(7 days );
         tempBool = admin.execute(election,methodId,param);
         assertTrue(tempBool);
     }
