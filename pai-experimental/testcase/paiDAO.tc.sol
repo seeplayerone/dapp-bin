@@ -293,12 +293,28 @@ contract TestVoteSP is TestBase {
         param = abi.encode(1,0);
         tempBool = PISHolder1.execute(VSP,methodId,param,1000000000000,ASSET_PIS);
         assertTrue(tempBool);
-        election.fly(7 days);
+        uint agreeVotes;
+        （agreeVotes,,,,,,) = VSP.getPisVoteInfo(1);
+        // （uint agreeVotes,uint disagreeVotes,uint abstainVotes,uint passProportion,uint startTime,uint lastTime,) = VSP.pisVotes(1);
+        assertEq(agreeVotes,1000000000000);
+        // assertEq(disagreeVotes,0);
+        // assertEq(abstainVotes,0);
+        // assertEq(passProportion,0);
+        // assertEq(startTime,VSP.height());
+        // assertEq(lastTime,10 days / 5);
+        // assertEq(uint8(status),1);
 
-        methodId = bytes4(keccak256("invokeProposal(uint256)"));
-        param = abi.encode(1);
-        tempBool = PISHolder1.execute(VSP,methodId,param);
-        assertTrue(tempBool);
-        assertEq(flow.balance(p1,ASSET_PIS),100);
+        assertEq(VSP.height(),0);
+        VSP.fly(10 days);
+        assertEq(VSP.height(),0);
+
+        // methodId = bytes4(keccak256("invokeProposal(uint256)"));
+        // param = abi.encode(1);
+        // tempBool = PISHolder1.execute(VSP,methodId,param);
+        // assertTrue(!tempBool);
+        // VSP.fly(10 days);
+        // tempBool = PISHolder1.execute(VSP,methodId,param);
+        // assertTrue(tempBool);
+        // assertEq(flow.balance(p1,ASSET_PIS),100);
     }
 }
