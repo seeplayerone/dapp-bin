@@ -164,11 +164,11 @@ contract FakePerson is Template {
     //     return result;
     // }
 
-    // function callUpdateRatioLimit(address setting, uint96 assetGlobalId, uint newRate) public returns (bool) {
-    //     bytes4 methodId = bytes4(keccak256("updateRatioLimit(uint96,uint256)"));
-    //     bool result = Setting(setting).call(abi.encodeWithSelector(methodId,assetGlobalId,newRate));
-    //     return result;
-    // }
+    function callUpdateRatioLimit(address setting, uint96 assetGlobalId, uint newRate) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("updateRatioLimit(uint96,uint256)"));
+        bool result = Setting(setting).call(abi.encodeWithSelector(methodId,assetGlobalId,newRate));
+        return result;
+    }
 
     // function callGlobalShutDown(address setting) public returns (bool) {
     //     bytes4 methodId = bytes4(keccak256("globalShutDown()"));
@@ -406,11 +406,11 @@ contract FakePerson is Template {
     //     return result;
     // }
 
-    // function callSetTDC(address finance, address _tdc) public returns (bool) {
-    //     bytes4 methodId = bytes4(keccak256("setTDC(address)"));
-    //     bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,_tdc));
-    //     return result;
-    // }
+    function callSetTDC(address finance, address _tdc) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("setTDC(address)"));
+        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,_tdc));
+        return result;
+    }
 
     // function callSetAssetPIS(address finance, address newPriceOracle) public returns (bool) {
     //     bytes4 methodId = bytes4(keccak256("setAssetPIS(address)"));
