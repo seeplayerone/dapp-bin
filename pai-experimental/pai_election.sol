@@ -8,7 +8,8 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 contract PISelection is Election,ACLSlave,DSMath {
     mapping (uint => bool) public executed;
     mapping (uint => bytes) public electionRoles;
-    mapping (bytes => uint) public candidatesNumberLimit;
+    mapping (bytes => uint) candidatesNumberLimit;
+
     uint public nominateLength = 7 days / 5;
     uint public electionLength = 7 days / 5;
     uint public qualification = RAY / 20;
@@ -17,15 +18,18 @@ contract PISelection is Election,ACLSlave,DSMath {
         assettype = PAIDAO(master).PISGlobalId();
     }
 
+    function setCandidatesLimit(bytes role, uint limits) public auth("PISVOTE") {
+        candidatesNumberLimit[role] = limits;
+    }
+
     function updateTotalSupply() public {
-        (,,,,, totalPISSupply) = PAIDAO(master).getAssetInfo(0);
+        (,,,,, totalSupply) = PAIDAO(master).getAssetInfo(0);
     }
 
     function startElectionByDirector(bytes electionRole) public auth("DIRECTOR") {
         updateTotalSupply();
         uint electionId = startElection(nominateLength, electionLength, qualification);
         electionRoles[electionId] = electionRole;
-        candidatesNumberLimit[bytes("DIRECTOR")] = 20;
     }
 
     function startElectionByPISHolder(bytes electionRole) public payable {
@@ -36,8 +40,9 @@ contract PISelection is Election,ACLSlave,DSMath {
     }
 
     function nominateByDirectors(uint electionIndex, address[] candidates) public auth("DIRECTORVOTE") {
+        ElectionRecord storage election = electionRecords[electionIndex];
         require(nowBlock() > sub(election.executionStartBlock, 3600 / 5));
-        require(add(candidates.length, electionRecords[electionIndex].candidates.length) <= candidatesNumberLimit[electionRoles[electionId]]);
+        require(add(candidates.length, election.candidates.length) <= candidatesNumberLimit[electionRoles[electionIndex]]);
         nominateCandidatesByAuthroity(electionIndex,candidates);
     }
 
@@ -48,11 +53,18 @@ contract PISelection is Election,ACLSlave,DSMath {
         if(!election.sorted) {
             processElectionResult(electionIndex);
         }
-        address[] memory tempAddr = getElectionCandidates(electionIndex);
-        if(tempAddr.length > master.getMemberLimit(electionRoles[electionId])) {
-            tempAddr.length = master.getMemberLimit(electionRoles[electionId]);
+        uint len = master.getMemberLimit(electionRoles[electionIndex]);
+        if (0 == election.candidates.length) {
+            return;
         }
-        master.resetMembers(tempAddr,electionRoles[electionId]);
+        if (0 == len || len > election.candidates.length) {
+            len = election.candidates.length;
+        }
+        address[] memory tempAddr = new address[](len);
+        for(uint i = 0; i < len; i++) {
+            tempAddr[i] = election.candidates[i];
+        }
+        master.resetMembers(tempAddr,electionRoles[electionIndex]);
         executed[electionIndex] = true;
     }
 }
