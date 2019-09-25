@@ -49,6 +49,7 @@ contract TestBase is Template, DSTest, DSMath {
     FakePerson internal director3;
     FakePerson internal airDropRobot;
     FakePerson internal CFO;
+    FakePerson internal oracleManager;
 
     //asset
     uint96 internal ASSET_BTC;
@@ -77,6 +78,7 @@ contract TestBase is Template, DSTest, DSMath {
         director3 = new FakePerson();
         airDropRobot = new FakePerson();
         CFO = new FakePerson();
+        oracleManager = new FakePerson();
 
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
@@ -109,23 +111,25 @@ contract TestBase is Template, DSTest, DSMath {
         VST = new TimefliesVoteST(paiDAO);
         admin.callAddMember(paiDAO,VST,"PISVOTE");
         DV = new TimefliesVoteDir(paiDAO);
-        admin.callAddMember(paiDAO,DV,"DIRECTOR");
+        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","PISVOTE",0);
+        admin.callAddMember(paiDAO,DV,"DIRECTORVOTE");
         pisOracle = new TimefliesOracle("PISOracle", paiDAO, RAY * 100, ASSET_PIS);
         admin.callCreateNewRole(paiDAO,"PISOracle","PISVOTE",3);
         admin.callAddMember(paiDAO,oracle1,"PISOracle");
         admin.callAddMember(paiDAO,oracle2,"PISOracle");
         admin.callAddMember(paiDAO,oracle3,"PISOracle");
+        admin.callCreateNewRole(paiDAO,"ORACLEMANAGER","DIRECTORVOTE",0);
+        admin.callAddMember(paiDAO,oracleManager,"ORACLEMANAGER");
         setting = new Setting(paiDAO);
         finance = new Finance(paiDAO,paiIssuer,setting,pisOracle);
         admin.callCreateNewRole(paiDAO,"AirDropAddr","PISVOTE",0);
-        admin.callCreateNewRole(paiDAO,"CFO","PISVOTE",0);
+        admin.callCreateNewRole(paiDAO,"CFO","DIRECTORVOTE",0);
         admin.callAddMember(paiDAO,airDropRobot,"AirDropAddr");
         admin.callAddMember(paiDAO,CFO,"CFO");
         admin.callCreateNewRole(paiDAO,"FinanceContract","PISVOTE",0);
         admin.callAddMember(paiDAO,finance,"FinanceContract");
         PISseller = new Liquidator(paiDAO,pisOracle, paiIssuer,"ADMIN",finance,setting);
         admin.callSetPISseller(finance,PISseller);
-
         btcOracle = new TimefliesOracle("BTCOracle", paiDAO, RAY * 70000, ASSET_PIS);
         admin.callCreateNewRole(paiDAO,"BTCOracle","PISVOTE",3);
         admin.callAddMember(paiDAO,oracle1,"BTCOracle");
@@ -137,7 +141,7 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callAddMember(paiDAO,btcCDP,"PAIMINTER");
         admin.callCreateNewRole(paiDAO,"BTCCDP","PISVOTE",0);
         admin.callAddMember(paiDAO,btcCDP,"BTCCDP");
-        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","PISVOTE",0);
+        
         admin.callAddMember(paiDAO,admin,"DIRECTORVOTE");
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
         btcSettlement = new Settlement(paiDAO,btcOracle,btcCDP,btcLiquidator);
@@ -206,6 +210,7 @@ contract TestBase is Template, DSTest, DSMath {
         emit printAddr("director3",director3);
         emit printAddr("airDropRobot",airDropRobot);
         emit printAddr("CFO",CFO);
+        emit printAddr("oracleManager",oracleManager);
     }
 }
 
@@ -364,10 +369,11 @@ contract TestVoteDir is TestBase {
         FakePerson PISHolder1 = new FakePerson();
         PISHolder1.transfer(1000000000000,ASSET_PIS);
         assertEq(setting.lendingInterestRate(), RAY / 5);
-
-        bytes memory param = abi.encode(RAY * 21 /100);
+        bytes memory param = abi.encode(RAY * 21 / 100);
         bool tempBool = PISHolder1.callStartProposal(DV,1,0,paiDAO,param);
-        assertTrue(tempBool);
+        assertTrue(!tempBool);
+        tempBool = director1.callStartProposal(DV,1,0,paiDAO,param);
+        assertTrue(!tempBool);
 
         // bytes4 methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
         // param = abi.encode(1,0);
