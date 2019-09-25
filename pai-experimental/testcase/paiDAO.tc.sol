@@ -303,5 +303,7 @@ contract TestVoteSP is TestBase {
         tempBool = PISHolder1.execute(VSP,methodId,param);
         assertTrue(tempBool);
         assertEq(flow.balance(p1,ASSET_PIS),100);
+        tempBool = PISHolder1.execute(VSP,methodId,param);
+        assertTrue(!tempBool);
     }
 }
