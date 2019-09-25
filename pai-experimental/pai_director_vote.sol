@@ -6,7 +6,7 @@ import "github.com/evilcc2018/dapp-bin/library/execution.sol";
 import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 
-contract DirectorVote is DSMath, Execution, Template, ACLSlave {
+contract DirectorVoteContract is DSMath, Execution, Template, ACLSlave {
 
     enum VoteStatus {NOTSTARTED, ONGOING, APPROVED, REJECTED}
     enum VoteAttitude {AGREE,DISAGREE,ABSTAIN}

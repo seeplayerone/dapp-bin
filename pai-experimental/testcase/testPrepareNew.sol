@@ -116,7 +116,7 @@ contract FakePerson is Template {
 
     function callAddNewVoteParam(address DV,uint _passVotes, uint _passProportion,bytes4 _func,uint _directorVoteDuration, uint _pisVoteDuration) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("addNewVoteParam(uint256,uint256,bytes4,uint256,uint256)"));
-        bool result = DirectorVote(DV).call(abi.encodeWithSelector(methodId,_passVotes,_passProportion,_func,_directorVoteDuration,_pisVoteDuration));
+        bool result = DirectorVoteContract(DV).call(abi.encodeWithSelector(methodId,_passVotes,_passProportion,_func,_directorVoteDuration,_pisVoteDuration));
         return result;
     }
 }
@@ -234,10 +234,9 @@ contract TimefliesVoteST is PISVoteStandard,TestTimeflies {
     }
 }
 
-contract TimefliesVoteDir is DirectorVote,TestTimeflies {
+contract TimefliesVoteDir is DirectorVoteContract,TestTimeflies {
     constructor(address paiMainContract)
-    DirectorVote(paiMainContract)
+    DirectorVoteContract(paiMainContract)
     public {
     }
 }
-
