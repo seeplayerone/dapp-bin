@@ -114,7 +114,7 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
         Proposal storage prps = voteProposals[proposalId];
         updatePISVoteStatus(prps.pisVoteId);
         require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
-        require(false == prps.executed)
+        require(false == prps.executed);
         execute(prps.target,abi.encodePacked(prps.func, prps.param));
         prps.executed = true;
     }
