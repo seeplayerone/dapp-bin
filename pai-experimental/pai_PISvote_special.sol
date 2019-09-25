@@ -110,72 +110,17 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
 
     /// @dev callback function to invoke organization contract
     function invokeProposal(uint proposalId) public {
-       // require(proposalId <= lastAssignedProposalId, "proposal not exist");
+        require(proposalId <= lastAssignedProposalId, "proposal not exist");
         Proposal storage prps = voteProposals[proposalId];
-        // updatePISVoteStatus(prps.pisVoteId);
-        // require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
-        // if(false == prps.executed) {
+        updatePISVoteStatus(prps.pisVoteId);
+        require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
+        if(false == prps.executed) {
             execute(prps.target,abi.encodePacked(prps.func, prps.param));
-            // prps.executed = true;
-        // }
+            prps.executed = true;
+        }
     }
 
     function height() public view returns (uint256) {
         return block.number;
-    }
-
-    function getAgreeVotes(uint voteId) public view returns(uint) {
-        PISVote storage pv = pisVotes[voteId];
-        return pv.agreeVotes;
-    }
-
-    function getDisagreeVotes(uint voteId) public view returns(uint) {
-        PISVote storage pv = pisVotes[voteId];
-        return pv.disagreeVotes;
-    }
-
-    function getAbstainVotes(uint voteId) public view returns(uint) {
-        PISVote storage pv = pisVotes[voteId];
-        return pv.abstainVotes;
-    }
-
-    function getPassProportion(uint voteId) public view returns(uint) {
-        PISVote storage pv = pisVotes[voteId];
-        return pv.passProportion;
-    }
-
-    function getStartTime(uint voteId) public view returns(uint) {
-        PISVote storage pv = pisVotes[voteId];
-        return pv.startTime;
-    }
-
-    function getDuration(uint voteId) public view returns(uint) {
-        PISVote storage pv = pisVotes[voteId];
-        return pv.duration;
-    }
-
-    function getStatus(uint voteId) public view returns(uint8) {
-        PISVote storage pv = pisVotes[voteId];
-        return uint8(pv.status);
-    }
-
-    function getVoteId(uint proposalId) public view returns(uint) {
-        Proposal storage prps = voteProposals[proposalId];
-        return prps.pisVoteId;
-    }
-
-    function getTarget(uint proposalId) public view returns(address) {
-        Proposal storage prps = voteProposals[proposalId];
-        return prps.target;
-    }
-
-    function getFunc(uint proposalId) public view returns(bytes4) {
-        Proposal storage prps = voteProposals[proposalId];
-        return prps.func;
-    }
-
-    function getParam(uint proposalId) public view returns(bytes) {
-        Proposal storage prps = voteProposals[proposalId];
-        return prps.param;
     }
 }
