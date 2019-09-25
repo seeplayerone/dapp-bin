@@ -296,25 +296,21 @@ contract TestVoteSP is TestBase {
         assertEq(VSP.getAgreeVotes(1),1000000000000);
         assertEq(VSP.getDisagreeVotes(1),0);
         assertEq(VSP.getAbstainVotes(1),0);
-        assertEq(VSP.getPassProportion(1),0);
-        assertEq(VSP.getStartTime(1),VSP.height());
-        assertEq(VSP.getDuration(1),0);
-        assertEq(uint(VSP.getStatus(1)),0);
-        assertEq(VSP.getVoteId(1),1);
+        assertEq(VSP.getPassProportion(1),0);//6
+        assertEq(VSP.getStartTime(1),VSP.height());//7
+        assertEq(VSP.getDuration(1),0);//8
+        assertEq(uint(VSP.getStatus(1)),0);//9
+        assertEq(VSP.getVoteId(1),1);//10
+        assertEq(VSP.getTarget(1),0x0);//11
+        assertEq(paiDAO,0x0);//11
+        assertEq(VSP.getFunc(1),methodId);//12
+        assertEq(VSP.getParam(1),param);//13
 
-        assertEq(VSP.getAgreeVotes(2),0);
-        assertEq(VSP.getDisagreeVotes(2),0);
-        assertEq(VSP.getAbstainVotes(2),0);
-        assertEq(VSP.getPassProportion(2),0);
-        assertEq(VSP.getStartTime(2),VSP.height());
-        assertEq(VSP.getDuration(2),0);
-        assertEq(uint(VSP.getStatus(2)),0);
-
-        assertEq(VSP.height(),0);
+        assertEq(VSP.height(),0);//18
         VSP.fly(20 days);
-        assertEq(VSP.height(),0);
+        assertEq(VSP.height(),0);//19
         VSP.updatePISVoteStatus(1);
-        assertEq(uint(VSP.getStatus(1)),0);
+        assertEq(uint(VSP.getStatus(1)),0);//20
         // VSP.invokeProposal(1);
         // methodId = bytes4(keccak256("invokeProposal(uint256)"));
         // param = abi.encode(1);
