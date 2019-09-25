@@ -10,6 +10,7 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
 
     enum VoteStatus {NOTSTARTED, ONGOING, APPROVED, REJECTED}
     enum VoteAttitude {AGREE,DISAGREE,ABSTAIN}
+    uint public startProportion = RAY / 20;
 
     // vote event
     event CreateVote(uint);
@@ -26,7 +27,7 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
     struct FuncData {
         uint passProportion;
         bytes4 func;
-        uint pisVotelastTime;
+        uint pisVoteDuration;
     }
 
     struct PISVote {
@@ -35,7 +36,7 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
         uint abstainVotes;
         uint passProportion; ///in RAY;
         uint startTime; /// vote start time, measured by block height
-        uint lastTime;  /// vote end time, measured by block height
+        uint duration;  /// vote end time, measured by block height
         VoteStatus status;
     }
    
@@ -47,7 +48,6 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
     uint public lastAssignedProposalId = 0;
     uint public lastFuncDataId = 0;
     uint96 public ASSET_PIS;
-    uint public startProportion = RAY / 20;
 
     constructor(address paiMainContract) {
         master = ACLMaster(paiMainContract);
@@ -57,19 +57,19 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
     function addNewVoteParam(
         uint _passProportion,
         bytes4 _func,
-        uint _pisVotelastTime
+        uint _pisVoteDuration
         ) public auth("PISVOTE") {
         lastFuncDataId = add(lastFuncDataId,1);
         voteFuncDatas[lastFuncDataId].passProportion = _passProportion;
         voteFuncDatas[lastFuncDataId].func = _func;
-        voteFuncDatas[lastFuncDataId].pisVotelastTime = _pisVotelastTime;
+        voteFuncDatas[lastFuncDataId].pisVoteDuration = _pisVoteDuration;
     }
 
-    function startPISVote(uint _passProportion,uint _startTime,uint _lastTime) internal returns(uint) {
+    function startPISVote(uint _passProportion,uint _startTime,uint _duration) internal returns(uint) {
         lastPISVoteId = add(lastPISVoteId,1);
         pisVotes[lastPISVoteId].passProportion = _passProportion;
         pisVotes[lastPISVoteId].startTime = _startTime;
-        pisVotes[lastPISVoteId].lastTime = _lastTime;
+        pisVotes[lastPISVoteId].duration = _duration;
         return lastPISVoteId;
     }
 
@@ -82,7 +82,7 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
             pv.status = VoteStatus.NOTSTARTED;
             return;
         }
-        if (height() > add(pv.startTime, pv.lastTime)) {
+        if (height() > add(pv.startTime, pv.duration)) {
             if(pv.agreeVotes > rmul(add(add(pv.agreeVotes,pv.disagreeVotes),pv.abstainVotes),pv.passProportion)) {
                 pv.status = VoteStatus.APPROVED;
                 return;
@@ -105,7 +105,7 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
         voteProposals[lastAssignedProposalId].target = _targetContract;
         voteProposals[lastAssignedProposalId].func = fd.func;
         voteProposals[lastAssignedProposalId].param = _param;
-        voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(fd.passProportion,startTime,fd.pisVotelastTime);
+        voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(fd.passProportion,startTime,fd.pisVoteDuration);
         msg.sender.transfer(msg.value,ASSET_PIS);
         return lastAssignedProposalId;
     }
@@ -132,10 +132,9 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
         Proposal storage prps = voteProposals[proposalId];
         updatePISVoteStatus(prps.pisVoteId);
         require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
-        if(false == prps.executed) {
-            execute(prps.target,abi.encodePacked(prps.func, prps.param));
-            prps.executed = true;
-        }
+        require(false == prps.executed);
+        execute(prps.target,abi.encodePacked(prps.func, prps.param));
+        prps.executed = true;
     }
 
     function height() public view returns (uint256) {

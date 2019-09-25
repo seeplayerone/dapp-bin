@@ -17,7 +17,7 @@ contract TestBase is Template, DSTest, DSMath {
     FakePAIIssuer internal paiIssuer;
     TimefliesElection internal election;
     TimefliesVoteSP internal VSP;
-    //vote2
+    TimefliesVoteST internal VST;
     //vote3
     TimefliesOracle internal pisOracle;
     Setting internal setting;
@@ -106,6 +106,8 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callSetCandidatesLimit(election,"FinanceSupervisor",1);
         VSP = new TimefliesVoteSP(paiDAO);
         admin.callAddMember(paiDAO,VSP,"PISVOTE");
+        VST = new TimefliesVoteST(paiDAO);
+        admin.callAddMember(paiDAO,VST,"PISVOTE");
         pisOracle = new TimefliesOracle("PISOracle", paiDAO, RAY * 100, ASSET_PIS);
         admin.callCreateNewRole(paiDAO,"PISOracle","PISVOTE",3);
         admin.callAddMember(paiDAO,oracle1,"PISOracle");
@@ -158,6 +160,7 @@ contract TestBase is Template, DSTest, DSMath {
 
         admin.callMint(paiDAO,3000000000000,this);
         //admin.callRemoveMember(paiDAO,admin,"PISVOTE");
+        //admin.callRemoveMember(paiDAO,admin,"DIRECTORVOTE");
     }
 
     function print() public {
@@ -305,5 +308,17 @@ contract TestVoteSP is TestBase {
         assertEq(flow.balance(p1,ASSET_PIS),100);
         tempBool = PISHolder1.execute(VSP,methodId,param);
         assertTrue(!tempBool);
+    }
+}
+
+contract TestVoteST is TestBase {
+    function VoteSTSetUp() public {
+        setup();
+        bytes4 func = bytes4(keccak256("mint(uint256,address)"));
+        admin.callAddNewVoteParam(VST,RAY/2,func,1 days / 5);
+    }
+
+    function testMintPIS() public {
+        
     }
 }
