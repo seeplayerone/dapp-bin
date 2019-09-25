@@ -356,6 +356,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         require(!settlement);
         require(msg.assettype == ASSET_PAI);
         require(msg.value > 0);
+        require(msg.sender == CDPRecords[record].owner);
         CDPRecord storage data = CDPRecords[record];
         //uint change;
         (uint principal,uint interest) = debtOfCDP(record);

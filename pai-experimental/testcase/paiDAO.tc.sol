@@ -105,6 +105,7 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callSetCandidatesLimit(election,"TechnicalSupervisor",1);
         admin.callSetCandidatesLimit(election,"FinanceSupervisor",1);
         VSP = new TimefliesVoteSP(paiDAO);
+        admin.callAddMember(paiDAO,VSP,"PISVOTE");
         pisOracle = new TimefliesOracle("PISOracle", paiDAO, RAY * 100, ASSET_PIS);
         admin.callCreateNewRole(paiDAO,"PISOracle","PISVOTE",3);
         admin.callAddMember(paiDAO,oracle1,"PISOracle");
@@ -175,6 +176,7 @@ contract TestBase is Template, DSTest, DSMath {
         emit printAddr("paiIssuer",paiIssuer);
         emit printAddr("pisOracle",pisOracle);
         emit printAddr("election",election);
+        emit printAddr("VSP",VSP);
         emit printAddr("setting",setting);
         emit printAddr("finance",finance);
         emit printAddr("PISseller",PISseller);
@@ -302,16 +304,18 @@ contract TestVoteSP is TestBase {
         assertEq(uint(VSP.getStatus(1)),0);//9
         assertEq(VSP.getVoteId(1),1);//10
         assertEq(VSP.getTarget(1),0x0);//11
-        assertEq(paiDAO,0x0);//11
-        assertEq4(VSP.getFunc(1),methodId);//12
-        assertEq0(VSP.getParam(1),param);//13
+        assertEq(paiDAO,0x0);//12
+        methodId = bytes4(keccak256("mint(uint256,address)"));
+        param = abi.encode(100,address(p1));
+        assertEq4(VSP.getFunc(1),methodId);//13
+        assertEq0(VSP.getParam(1),param);//14
 
         assertEq(VSP.height(),0);//18
         VSP.fly(20 days);
         assertEq(VSP.height(),0);//19
         VSP.updatePISVoteStatus(1);
         assertEq(uint(VSP.getStatus(1)),0);//20
-        // VSP.invokeProposal(1);
+        VSP.invokeProposal(1);
         // methodId = bytes4(keccak256("invokeProposal(uint256)"));
         // param = abi.encode(1);
         // tempBool = PISHolder1.execute(VSP,methodId,param);

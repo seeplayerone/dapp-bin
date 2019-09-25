@@ -110,7 +110,7 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
 
     /// @dev callback function to invoke organization contract
     function invokeProposal(uint proposalId) public {
-        require(proposalId <= lastAssignedProposalId, "proposal not exist");
+       // require(proposalId <= lastAssignedProposalId, "proposal not exist");
         Proposal storage prps = voteProposals[proposalId];
         // updatePISVoteStatus(prps.pisVoteId);
         // require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
