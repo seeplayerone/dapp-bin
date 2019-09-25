@@ -358,4 +358,30 @@ contract TestVoteDir is TestBase {
         bytes4 func = bytes4(keccak256("updateLendingRate(uint256)"));
         assertTrue(admin.callAddNewVoteParam(DV, 3,RAY / 20,func, 5 days / 5, 5 days / 5));
     }
+
+    function testUpdateLendingRate() public {
+        VoteDirSetUp();
+        FakePerson PISHolder1 = new FakePerson();
+        PISHolder1.transfer(1000000000000,ASSET_PIS);
+        assertEq(setting.lendingInterestRate(), RAY / 5);
+
+        bytes memory param = abi.encode(RAY * 21 /100);
+        bool tempBool = PISHolder1.callStartProposal(DV,1,0,paiDAO,param);
+        assertTrue(tempBool);
+
+        // bytes4 methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
+        // param = abi.encode(1,0);
+        // tempBool = PISHolder1.execute(VST,methodId,param,1000000000000,ASSET_PIS);
+        // assertTrue(tempBool);
+        // methodId = bytes4(keccak256("invokeProposal(uint256)"));
+        // param = abi.encode(1);
+        // tempBool = PISHolder1.execute(VST,methodId,param);
+        // assertTrue(!tempBool);
+        // VST.fly(5 days + 5);
+        // tempBool = PISHolder1.execute(VST,methodId,param);
+        // assertTrue(tempBool);//5
+        // assertEq(flow.balance(p1,ASSET_PIS),100);//6
+        // tempBool = PISHolder1.execute(VST,methodId,param);
+        // assertTrue(!tempBool);
+    }
 }
