@@ -18,7 +18,7 @@ contract TestBase is Template, DSTest, DSMath {
     TimefliesElection internal election;
     TimefliesVoteSP internal VSP;
     TimefliesVoteST internal VST;
-    //vote3
+    TimefliesVoteDir internal DV;
     TimefliesOracle internal pisOracle;
     Setting internal setting;
     Finance internal finance;
@@ -108,6 +108,8 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callAddMember(paiDAO,VSP,"PISVOTE");
         VST = new TimefliesVoteST(paiDAO);
         admin.callAddMember(paiDAO,VST,"PISVOTE");
+        DV = new TimefliesVoteDir(paiDAO);
+        admin.callAddMember(paiDAO,DV,"DIRECTOR");
         pisOracle = new TimefliesOracle("PISOracle", paiDAO, RAY * 100, ASSET_PIS);
         admin.callCreateNewRole(paiDAO,"PISOracle","PISVOTE",3);
         admin.callAddMember(paiDAO,oracle1,"PISOracle");
@@ -182,6 +184,7 @@ contract TestBase is Template, DSTest, DSMath {
         emit printAddr("election",election);
         emit printAddr("VSP",VSP);
         emit printAddr("VST",VST);
+        emit printAddr("DV",DV);
         emit printAddr("setting",setting);
         emit printAddr("finance",finance);
         emit printAddr("PISseller",PISseller);
@@ -334,18 +337,25 @@ contract TestVoteST is TestBase {
 
         bytes4 methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
         param = abi.encode(1,0);
-        tempBool = PISHolder1.execute(VSP,methodId,param,1000000000000,ASSET_PIS);
+        tempBool = PISHolder1.execute(VST,methodId,param,1000000000000,ASSET_PIS);
         assertTrue(tempBool);
         methodId = bytes4(keccak256("invokeProposal(uint256)"));
         param = abi.encode(1);
-        tempBool = PISHolder1.execute(VSP,methodId,param);
+        tempBool = PISHolder1.execute(VST,methodId,param);
         assertTrue(!tempBool);
-        VSP.fly(5 days + 5);
-        tempBool = PISHolder1.execute(VSP,methodId,param);
-        assertTrue(tempBool);
-        assertEq(flow.balance(p1,ASSET_PIS),100);
-        tempBool = PISHolder1.execute(VSP,methodId,param);
+        VST.fly(5 days + 5);
+        tempBool = PISHolder1.execute(VST,methodId,param);
+        assertTrue(tempBool);//5
+        assertEq(flow.balance(p1,ASSET_PIS),100);//6
+        tempBool = PISHolder1.execute(VST,methodId,param);
         assertTrue(!tempBool);
+    }
+}
 
+contract TestVoteST is TestBase {
+    function VoteDirSetUp() public {
+        setup();
+        bytes4 func = bytes4(keccak256("updateLendingRate(uint256)"));
+        assertTrue(admin.callAddNewVoteParam(DV, 3,RAY / 20,func, 5 days / 5, 5 days / 5));
     }
 }

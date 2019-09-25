@@ -28,8 +28,8 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
         uint passVotes;
         uint passProportion;
         bytes4 func;
-        uint directorVotelastTime;
-        uint pisVotelastTime;
+        uint directorVoteDuration;
+        uint pisVotelastDuration;
     }
 
     struct DirectorVote {
@@ -37,7 +37,7 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
         uint disagreeVotes;
         uint passVotes;
         uint startTime; /// vote start time, measured by block height
-        uint lastTime;  /// vote end time, measured by block height
+        uint duration;  /// vote end time, measured by block height
         address[] alreadyVoted;
         VoteStatus status;
     }
@@ -48,7 +48,7 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
         uint abstainVotes;
         uint passProportion; ///in RAY;
         uint startTime; /// vote start time, measured by block height
-        uint lastTime;  /// vote end time, measured by block height
+        uint duration;  /// vote end time, measured by block height
         VoteStatus status;
     }
    
@@ -72,22 +72,22 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
         uint _passVotes,
         uint _passProportion,
         bytes4 _func,
-        uint _directorVotelastTime,
-        uint _pisVotelastTime
+        uint _directorVoteDuration,
+        uint _pisVotelastDuration
         ) public auth("PISVOTE") {
         lastFuncDataId = add(lastFuncDataId,1);
         voteFuncDatas[lastFuncDataId].passVotes = _passVotes;
         voteFuncDatas[lastFuncDataId].passProportion = _passProportion;
         voteFuncDatas[lastFuncDataId].func = _func;
-        voteFuncDatas[lastFuncDataId].directorVotelastTime = _directorVotelastTime;
-        voteFuncDatas[lastFuncDataId].pisVotelastTime = _pisVotelastTime;
+        voteFuncDatas[lastFuncDataId].directorVoteDuration = _directorVoteDuration;
+        voteFuncDatas[lastFuncDataId].pisVotelastDuration = _pisVotelastDuration;
     }
 
-    function startDirectorVote(uint _passVotes,uint _startTime,uint _lastTime) internal returns(uint) {
+    function startDirectorVote(uint _passVotes,uint _startTime,uint _duration) internal returns(uint) {
         lastDirectorVoteId = add(lastDirectorVoteId,1);
         directorVotes[lastDirectorVoteId].passVotes = _passVotes;
         directorVotes[lastDirectorVoteId].startTime = _startTime;
-        directorVotes[lastDirectorVoteId].lastTime = _lastTime;
+        directorVotes[lastDirectorVoteId].duration = _duration;
         updateDirectorVoteStatus(lastDirectorVoteId);
         return lastDirectorVoteId;
     }
@@ -101,7 +101,7 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
             dv.status = VoteStatus.NOTSTARTED;
             return;
         }
-        if (height() > add(dv.startTime, dv.lastTime)) {
+        if (height() > add(dv.startTime, dv.duration)) {
             if (dv.agreeVotes >= dv.passVotes) {
                 dv.status = VoteStatus.APPROVED;
                 return;
@@ -112,11 +112,11 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
         dv.status = VoteStatus.ONGOING;
     }
 
-    function startPISVote(uint _passProportion,uint _startTime,uint _lastTime) internal returns(uint) {
+    function startPISVote(uint _passProportion,uint _startTime,uint _duration) internal returns(uint) {
         lastPISVoteId = add(lastPISVoteId,1);
         pisVotes[lastPISVoteId].passProportion = _passProportion;
         pisVotes[lastPISVoteId].startTime = _startTime;
-        pisVotes[lastPISVoteId].lastTime = _lastTime;
+        pisVotes[lastPISVoteId].duration = _duration;
         return lastPISVoteId;
     }
 
@@ -129,7 +129,7 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
             pv.status = VoteStatus.NOTSTARTED;
             return;
         }
-        if (height() > add(pv.startTime, pv.lastTime)) {
+        if (height() > add(pv.startTime, pv.duration)) {
             if(pv.agreeVotes > rmul(add(add(pv.agreeVotes,pv.disagreeVotes),pv.abstainVotes),pv.passProportion)) {
                 pv.status = VoteStatus.APPROVED;
                 return;
@@ -149,9 +149,9 @@ contract DirectorVote is DSMath, Execution, Template, ACLSlave {
         voteProposals[lastAssignedProposalId].target = _targetContract;
         voteProposals[lastAssignedProposalId].func = fd.func;
         voteProposals[lastAssignedProposalId].param = _param;
-        voteProposals[lastAssignedProposalId].directorVoteId = startDirectorVote(fd.passVotes,startTime,fd.directorVotelastTime);
-        if(fd.pisVotelastTime != 0)
-            voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(fd.passProportion,add(startTime,fd.directorVotelastTime),fd.pisVotelastTime);
+        voteProposals[lastAssignedProposalId].directorVoteId = startDirectorVote(fd.passVotes,startTime,fd.directorVoteDuration);
+        if(fd.pisVotelastDuration != 0)
+            voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(fd.passProportion,add(startTime,fd.directorVoteDuration),fd.pisVotelastDuration);
         return lastAssignedProposalId;
     }
 
