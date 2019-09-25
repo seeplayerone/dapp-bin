@@ -206,10 +206,10 @@ contract DirectorVoteContract is DSMath, Execution, Template, ACLSlave {
         require(proposalId <= lastAssignedProposalId, "proposal not exist");
         Proposal storage prps = voteProposals[proposalId];
         require(directorVotes[prps.directorVoteId].agreeVotes >= directorVotes[prps.directorVoteId].passVotes);
-        if(prps.pisVoteId != 0) {
-            updatePISVoteStatus(prps.pisVoteId);
-            require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
-        }
+        // if(prps.pisVoteId != 0) {
+        //     updatePISVoteStatus(prps.pisVoteId);
+        //     require(VoteStatus.APPROVED == pisVotes[prps.pisVoteId].status);
+        // }
         if(false == prps.executed) {
             execute(prps.target,abi.encodePacked(prps.func, prps.param));
             prps.executed = true;

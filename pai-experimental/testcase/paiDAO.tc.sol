@@ -361,7 +361,7 @@ contract TestVoteDir is TestBase {
     function VoteDirSetUp() public {
         setup();
         bytes4 func = bytes4(keccak256("updateLendingRate(uint256)"));
-        assertTrue(admin.callAddNewVoteParam(DV, 3,RAY / 20,func, 5 days / 5, 5 days / 5));
+        assertTrue(admin.callAddNewVoteParam(DV, 3, RAY / 5, func, 5 days / 5, 5 days / 5));
     }
 
     function testUpdateLendingRate() public {
@@ -388,15 +388,15 @@ contract TestVoteDir is TestBase {
 
         DV.advancePISVote(1);
 
-        bytes4 methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
+        methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
         param = abi.encode(1,0);
-        tempBool = PISHolder1.execute(VST,methodId,param,1000000000000,ASSET_PIS);
+        tempBool = PISHolder1.execute(DV,methodId,param,1000000000000,ASSET_PIS);
         assertTrue(tempBool);
         DV.fly(5 days + 5);
-        // methodId = bytes4(keccak256("invokeProposal(uint256)"));
-        // param = abi.encode(1);
-        // tempBool = PISHolder1.execute(VST,methodId,param);
-        // assertTrue(!tempBool);
+        methodId = bytes4(keccak256("invokeProposal(uint256)"));
+        param = abi.encode(1);
+        tempBool = PISHolder1.execute(DV,methodId,param);
+        assertTrue(tempBool);
         // VST.fly(5 days + 5);
         // tempBool = PISHolder1.execute(VST,methodId,param);
         // assertTrue(tempBool);//5
