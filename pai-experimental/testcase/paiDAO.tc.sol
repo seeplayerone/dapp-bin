@@ -181,6 +181,7 @@ contract TestBase is Template, DSTest, DSMath {
         emit printAddr("pisOracle",pisOracle);
         emit printAddr("election",election);
         emit printAddr("VSP",VSP);
+        emit printAddr("VST",VST);
         emit printAddr("setting",setting);
         emit printAddr("finance",finance);
         emit printAddr("PISseller",PISseller);
@@ -316,11 +317,35 @@ contract TestVoteST is TestBase {
     function VoteSTSetUp() public {
         setup();
         bytes4 func = bytes4(keccak256("mint(uint256,address)"));
-        admin.callAddNewVoteParam(VST,RAY/2,func,1 days / 5);
+        assertTrue(admin.callAddNewVoteParam(VST, RAY / 20,func, 5 days / 5));
+
     }
 
     function testMintPIS() public {
         VoteSTSetUp();
+        FakePerson PISHolder1 = new FakePerson();
+        FakePerson p1 = new FakePerson();
+        PISHolder1.transfer(1000000000000,ASSET_PIS);
+        assertEq(flow.balance(p1,ASSET_PIS),0);
+
+        bytes memory param = abi.encode(100,address(p1));
+        bool tempBool = PISHolder1.callStartProposal(VST,1,0,paiDAO,param,1000000000000,ASSET_PIS);
+        assertTrue(tempBool);
+
+        bytes4 methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
+        param = abi.encode(1,0);
+        tempBool = PISHolder1.execute(VSP,methodId,param,1000000000000,ASSET_PIS);
+        assertTrue(tempBool);
+        methodId = bytes4(keccak256("invokeProposal(uint256)"));
+        param = abi.encode(1);
+        tempBool = PISHolder1.execute(VSP,methodId,param);
+        assertTrue(!tempBool);
+        VSP.fly(5 days + 5);
+        tempBool = PISHolder1.execute(VSP,methodId,param);
+        assertTrue(tempBool);
+        assertEq(flow.balance(p1,ASSET_PIS),100);
+        tempBool = PISHolder1.execute(VSP,methodId,param);
+        assertTrue(!tempBool);
 
     }
 }
