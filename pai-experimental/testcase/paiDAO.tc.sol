@@ -352,7 +352,7 @@ contract TestVoteST is TestBase {
     }
 }
 
-contract TestVoteST is TestBase {
+contract TestVoteDir is TestBase {
     function VoteDirSetUp() public {
         setup();
         bytes4 func = bytes4(keccak256("updateLendingRate(uint256)"));

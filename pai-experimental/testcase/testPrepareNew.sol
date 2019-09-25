@@ -14,7 +14,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_election.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_special.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_standard.sol";
-// import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_director_vote.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_director_vote.sol";
 
 
 contract FakePerson is Template {
@@ -116,7 +116,7 @@ contract FakePerson is Template {
 
     function callAddNewVoteParam(address DV,uint _passVotes, uint _passProportion,bytes4 _func,uint _directorVoteDuration, uint _pisVoteDuration) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("addNewVoteParam(uint256,uint256,bytes4,uint256,uint256)"));
-        bool result = DirectorVote(DV).call(abi.encodeWithSelector(methodId,_passVotes,_passProportion,_func,_directorVoteDuration_pisVoteDuration));
+        bool result = DirectorVote(DV).call(abi.encodeWithSelector(methodId,_passVotes,_passProportion,_func,_directorVoteDuration,_pisVoteDuration));
         return result;
     }
 }
