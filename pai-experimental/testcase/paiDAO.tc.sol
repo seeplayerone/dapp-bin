@@ -303,8 +303,8 @@ contract TestVoteSP is TestBase {
         assertEq(VSP.getVoteId(1),1);//10
         assertEq(VSP.getTarget(1),0x0);//11
         assertEq(paiDAO,0x0);//11
-        assertEq(VSP.getFunc(1),methodId);//12
-        assertEq(VSP.getParam(1),param);//13
+        assertEq4(VSP.getFunc(1),methodId);//12
+        assertEq0(VSP.getParam(1),param);//13
 
         assertEq(VSP.height(),0);//18
         VSP.fly(20 days);
