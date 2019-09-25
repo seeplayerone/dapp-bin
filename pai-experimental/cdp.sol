@@ -355,6 +355,9 @@ contract CDP is MathPI, DSNote, Template {
         } else {
             debt = data.accumulatedDebt;
         }
+        if(debt < data.principal) {
+            return (data.principal, 0);
+        }
         uint interest = sub(debt,data.principal);
         return (data.principal,interest);
     }
