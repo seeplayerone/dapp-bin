@@ -496,7 +496,7 @@ contract FakePerson is Template {
 
     function callAddNewVoteParam(address VST, uint _passProportion,bytes4 _func,uint _pisVoteDuration) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("addNewVoteParam(uint256,bytes4,uint256)"));
-        bool result = PISVoteStandard(VST).call.value(amount,id)(abi.encodeWithSelector(methodId,_passProportion,_func,_pisVoteDuration));
+        bool result = PISVoteStandard(VST).call(abi.encodeWithSelector(methodId,_passProportion,_func,_pisVoteDuration));
         return result;
     }
 }
