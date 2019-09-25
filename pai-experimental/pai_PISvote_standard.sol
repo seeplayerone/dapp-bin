@@ -83,11 +83,11 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
             return;
         }
         if (height() > add(pv.startTime, pv.duration)) {
-            if(pv.agreeVotes > rmul(add(add(pv.agreeVotes,pv.disagreeVotes),pv.abstainVotes),pv.passProportion)) {
-                pv.status = VoteStatus.APPROVED;
+            if(0 == pv.agreeVotes || pv.agreeVotes < rmul(add(add(pv.agreeVotes,pv.disagreeVotes),pv.abstainVotes),pv.passProportion)) {
+                pv.status = VoteStatus.REJECTED;
                 return;
             }
-            pv.status = VoteStatus.REJECTED;
+            pv.status = VoteStatus.APPROVED;
             return;
         }
         pv.status = VoteStatus.ONGOING;

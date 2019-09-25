@@ -130,7 +130,9 @@ contract DirectorVoteContract is DSMath, Execution, Template, ACLSlave {
             return;
         }
         if (height() > add(pv.startTime, pv.duration)) {
-            if(pv.agreeVotes > rmul(add(add(pv.agreeVotes,pv.disagreeVotes),pv.abstainVotes),pv.passProportion)) {
+            //there is a big difference between normal voting and announce voting. When nobody participates, the result of normal voting is rejected but the
+            //result of announce voting is approved.
+            if(pv.agreeVotes >= rmul(add(add(pv.agreeVotes,pv.disagreeVotes),pv.abstainVotes),pv.passProportion)) {
                 pv.status = VoteStatus.APPROVED;
                 return;
             }
@@ -203,7 +205,7 @@ contract DirectorVoteContract is DSMath, Execution, Template, ACLSlave {
     function invokeProposal(uint proposalId) public {
         require(proposalId <= lastAssignedProposalId, "proposal not exist");
         Proposal storage prps = voteProposals[proposalId];
-        require(directorVotes[prps.directorVoteId].agreeVotes > directorVotes[prps.directorVoteId].passVotes);
+        require(directorVotes[prps.directorVoteId].agreeVotes >= directorVotes[prps.directorVoteId].passVotes);
         if(prps.pisVoteId != 0) {
             updatePISVoteStatus(prps.pisVoteId);
             require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
@@ -217,7 +219,7 @@ contract DirectorVoteContract is DSMath, Execution, Template, ACLSlave {
     function advancePISVote(uint proposalId) public {
         require(proposalId <= lastAssignedProposalId, "proposal not exist");
         Proposal storage prps = voteProposals[proposalId];
-        require(directorVotes[prps.directorVoteId].agreeVotes > directorVotes[prps.directorVoteId].passVotes);
+        require(directorVotes[prps.directorVoteId].agreeVotes >= directorVotes[prps.directorVoteId].passVotes);
         if(prps.pisVoteId != 0) {
            pisVotes[prps.pisVoteId].startTime = height();
         }

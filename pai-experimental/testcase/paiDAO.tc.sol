@@ -373,12 +373,26 @@ contract TestVoteDir is TestBase {
         bool tempBool = PISHolder1.callStartProposal(DV,1,0,paiDAO,param);
         assertTrue(!tempBool);
         tempBool = director1.callStartProposal(DV,1,0,paiDAO,param);
-        assertTrue(!tempBool);
+        assertTrue(tempBool);
 
-        // bytes4 methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
-        // param = abi.encode(1,0);
-        // tempBool = PISHolder1.execute(VST,methodId,param,1000000000000,ASSET_PIS);
-        // assertTrue(tempBool);
+        bytes4 methodId = bytes4(keccak256("directorVote(uint256,uint8)"));
+        param = abi.encode(1,0);
+        tempBool = PISHolder1.execute(DV,methodId,param);
+        assertTrue(!tempBool);
+        tempBool = director1.execute(DV,methodId,param);
+        assertTrue(tempBool);
+        tempBool = director2.execute(DV,methodId,param);
+        assertTrue(tempBool);
+        tempBool = director3.execute(DV,methodId,param);
+        assertTrue(tempBool);
+
+        DV.advancePISVote(1);
+
+        bytes4 methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
+        param = abi.encode(1,0);
+        tempBool = PISHolder1.execute(VST,methodId,param,1000000000000,ASSET_PIS);
+        assertTrue(tempBool);
+        DV.fly(5 days + 5);
         // methodId = bytes4(keccak256("invokeProposal(uint256)"));
         // param = abi.encode(1);
         // tempBool = PISHolder1.execute(VST,methodId,param);
