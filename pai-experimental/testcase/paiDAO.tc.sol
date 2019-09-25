@@ -370,9 +370,9 @@ contract TestVoteDir is TestBase {
         PISHolder1.transfer(1000000000000,ASSET_PIS);
         assertEq(setting.lendingInterestRate(), RAY / 5);
         bytes memory param = abi.encode(RAY * 21 / 100);
-        bool tempBool = PISHolder1.callStartProposal(DV,1,0,paiDAO,param);
+        bool tempBool = PISHolder1.callStartProposal(DV,1,0,setting,param);
         assertTrue(!tempBool);
-        tempBool = director1.callStartProposal(DV,1,0,paiDAO,param);
+        tempBool = director1.callStartProposal(DV,1,0,setting,param);
         assertTrue(tempBool);
 
         bytes4 methodId = bytes4(keccak256("directorVote(uint256,uint8)"));
@@ -397,11 +397,6 @@ contract TestVoteDir is TestBase {
         param = abi.encode(1);
         tempBool = PISHolder1.execute(DV,methodId,param);
         assertTrue(tempBool);
-        // VST.fly(5 days + 5);
-        // tempBool = PISHolder1.execute(VST,methodId,param);
-        // assertTrue(tempBool);//5
-        // assertEq(flow.balance(p1,ASSET_PIS),100);//6
-        // tempBool = PISHolder1.execute(VST,methodId,param);
-        // assertTrue(!tempBool);
+        assertEq(setting.lendingInterestRate(), RAY * 21 / 100);
     }
 }
