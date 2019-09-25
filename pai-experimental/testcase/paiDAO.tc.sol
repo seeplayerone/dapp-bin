@@ -302,12 +302,20 @@ contract TestVoteSP is TestBase {
         assertEq(uint(VSP.getStatus(1)),0);
         assertEq(VSP.getVoteId(1),1);
 
+        assertEq(VSP.getAgreeVotes(2),0);
+        assertEq(VSP.getDisagreeVotes(2),0);
+        assertEq(VSP.getAbstainVotes(2),0);
+        assertEq(VSP.getPassProportion(2),0);
+        assertEq(VSP.getStartTime(2),VSP.height());
+        assertEq(VSP.getDuration(2),0);
+        assertEq(uint(VSP.getStatus(2)),0);
+
         assertEq(VSP.height(),0);
         VSP.fly(20 days);
         assertEq(VSP.height(),0);
         VSP.updatePISVoteStatus(1);
         assertEq(uint(VSP.getStatus(1)),0);
-        //VSP.invokeProposal(1);
+        // VSP.invokeProposal(1);
         // methodId = bytes4(keccak256("invokeProposal(uint256)"));
         // param = abi.encode(1);
         // tempBool = PISHolder1.execute(VSP,methodId,param);
