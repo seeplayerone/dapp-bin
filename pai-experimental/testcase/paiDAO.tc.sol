@@ -6,7 +6,7 @@ contract TestBase is Template, DSTest, DSMath {
     event printString(string);
     event printDoubleString(string,string);
     event printAddr(string,address);
-    event printNumber(uint);
+    event printNumber(string,uint);
     event printAddrs(string,address[]);
     //others
     FakeBTCIssuer internal btcIssuer;
@@ -172,6 +172,7 @@ contract TestBase is Template, DSTest, DSMath {
             emit printString("===================================================");
             emit printDoubleString("Role:",string(paiDAO.roles(i)));
             emit printDoubleString("Superior:",string(paiDAO.getSuperior(paiDAO.roles(i))));
+            emit printNumber("memberLimit:",uint(paiDAO.getMemberLimit(paiDAO.roles(i))));
             emit printAddrs("members:",paiDAO.getMembers(paiDAO.roles(i)));
         }
         emit printString("===================================================");
@@ -319,6 +320,7 @@ contract TestVoteST is TestBase {
     }
 
     function testMintPIS() public {
-        
+        VoteSTSetUp();
+
     }
 }
