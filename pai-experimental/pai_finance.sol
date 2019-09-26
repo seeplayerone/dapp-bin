@@ -13,7 +13,6 @@ contract Finance is Template,ACLSlave,DSMath {
     Setting public setting;
     PriceOracle public priceOracle;
     address public tdc;
-    bool private initTdc;
     uint96 public ASSET_PAI;
     uint96 public ASSET_PIS;
     uint public operationCashLimit;
@@ -34,12 +33,6 @@ contract Finance is Template,ACLSlave,DSMath {
         ASSET_PAI = issuer.PAIGlobalId();
         priceOracle = PriceOracle(_oracle);
         ASSET_PIS = priceOracle.ASSET_COLLATERAL();
-    }
-
-    function init(address _tdc) public {
-        require(!initTdc);
-        initTdc = true;
-        tdc = _tdc;
     }
 
     function() public payable {
