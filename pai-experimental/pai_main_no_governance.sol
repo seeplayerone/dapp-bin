@@ -3,7 +3,7 @@ pragma solidity 0.4.25;
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 
 
-contract FakePaiDao is PAIDAO {
+contract PaiDaoNoGovernance is PAIDAO {
     constructor(string _organizationName)
         PAIDAO(_organizationName)
         public
