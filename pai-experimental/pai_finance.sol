@@ -49,7 +49,7 @@ contract Finance is Template,ACLSlave,DSMath {
         require(flow.balance(this,ASSET_PAI) < safePad);
         require(0 != PISmintRate);
         uint amount = rmul(safePad,PISmintRate);
-        amount = rdiv(amount,priceOracle.getPrice())
+        amount = rdiv(amount,priceOracle.getPrice());
         PAIDAO(master).autoMint(amount,PISseller);
     }
 
