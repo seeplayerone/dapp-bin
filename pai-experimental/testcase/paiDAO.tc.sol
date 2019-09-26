@@ -171,8 +171,8 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callAddMember(paiDAO,tdc,"TDCContract");
 
         admin.callMint(paiDAO,3000000000000,this);
-        //admin.callRemoveMember(paiDAO,admin,"PISVOTE");
         //admin.callRemoveMember(paiDAO,admin,"DIRECTORVOTE");
+        //admin.callRemoveMember(paiDAO,admin,"PISVOTE");
     }
 
     function print() public {
