@@ -125,9 +125,9 @@ contract SettingTest is TestBase {
         setup();
         assertEq(finance.priceOracle(),PISOracle);
         TimefliesOracle oracle2 = new TimefliesOracle("BTCOracle",paiDAO,RAY,uint96(123));
-        bool tempBool = p1.callSetAssetPIS(finance,oracle2);
+        bool tempBool = p1.callSetOracle(finance,oracle2);
         assertTrue(!tempBool);
-        tempBool = admin.callSetAssetPIS(finance,oracle2);
+        tempBool = admin.callSetOracle(finance,oracle2);
         assertTrue(tempBool);
         assertEq(finance.priceOracle(),oracle2);
     }
