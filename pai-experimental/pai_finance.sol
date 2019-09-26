@@ -7,6 +7,7 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
+import "github.com/evilcc2018/dapp-bin/pai-experimental/liquidator.sol";
 
 contract Finance is Template,ACLSlave,DSMath {
     PAIIssuer public issuer;
@@ -49,6 +50,7 @@ contract Finance is Template,ACLSlave,DSMath {
         require(flow.balance(this,ASSET_PAI) < safePad);
         require(0 != PISmintValue);
         uint amount = rdiv(PISmintValue,priceOracle.getPrice());
+        amount =rdiv(amount,Liquidator(liquidator).discount2());
         PAIDAO(master).autoMint(amount,PISseller);
     }
 

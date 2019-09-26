@@ -356,7 +356,8 @@ contract FunctionTest is TestBase {
         assertTrue(!tempBool);
         tempBool = admin.callSetPISseller(finance,p2);
         assertTrue(tempBool);
-        tempBool = admin.callSetPISmintValue(finance,1000);
+        tempBool = admin.callSetPISmintValue(finance,990);
+        admin.callSetPISseller(finance,p2);
         assertTrue(tempBool);
         tempBool = p1.callMintPIS(finance);
         assertTrue(!tempBool);
