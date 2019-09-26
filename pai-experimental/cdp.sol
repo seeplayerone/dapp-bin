@@ -39,6 +39,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     uint256 public CDPIndex = 0; /// how many CDPs have been created
     uint256 private liquidatedCDPIndex = 0; /// how many CDPs have been liquidated, only happens when the business is in settlement process
 
+    uint public baseInterestRate;
     uint public annualizedInterestRate;
     uint public secondInterestRate; //  actually, it represents 1 + secondInterestRate
 
@@ -124,13 +125,16 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         priceOracle = PriceOracle(_oracle);
         liquidator = Liquidator(_liquidator);
         setting = Setting(_setting);
-        annualizedInterestRate = setting.lendingInterestRate();
-        secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
+        baseInterestRate = setting.lendingInterestRate();
+
         finance = _finance;
         ASSET_COLLATERAL = priceOracle.ASSET_COLLATERAL();
         debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
         debtCeiling = _debtCeiling;
 
+        cutDown[uint8(CDPType.CURRENT)] = RAY * 2 / 1000;
+        annualizedInterestRate = sub(baseInterestRate,cutDown[uint8(CDPType.CURRENT)]);
+        secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
         cutDown[uint8(CDPType._30DAYS)] = RAY * 4 / 1000;
         cutDown[uint8(CDPType._60DAYS)] = RAY * 6 / 1000;
         cutDown[uint8(CDPType._90DAYS)] = RAY * 8 / 1000;
@@ -166,16 +170,24 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
 
     function updateBaseInterestRate() public note {
         updateRates();
-        annualizedInterestRate = setting.lendingInterestRate();
+        baseInterestRate = setting.lendingInterestRate();
+        emit SetParam(10, baseInterestRate);
+        annualizedInterestRate = sub(baseInterestRate,cutDown[uint8(CDPType.CURRENT)]);
         secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
         emit SetParam(2, annualizedInterestRate);
         emit SetParam(8, secondInterestRate);
     }
 
     function updateCutDown(CDPType _type, uint _newCutDown) public note auth("DIRECTORVOTE") {
-        require(_type != CDPType.CURRENT);
         cutDown[uint8(_type)] = _newCutDown;
         emit SetCutDown(_type,_newCutDown);
+        if(CDPType.CURRENT == _type) {
+            annualizedInterestRate = sub(baseInterestRate,cutDown[uint8(CDPType.CURRENT)]);
+            secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
+            emit SetParam(2, annualizedInterestRate);
+            emit SetParam(8, secondInterestRate);
+        }
+        
     }
 
     function updateTerm(CDPType _type, uint _newTerm) public note auth("DIRECTORVOTE") {
@@ -460,10 +472,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit SetContract(3,setting);
         debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
         emit SetParam(9,debtRateCeiling);
-        annualizedInterestRate = setting.lendingInterestRate();
-        emit SetParam(2, annualizedInterestRate);
-        secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
-        emit SetParam(8, secondInterestRate);
+        updateBaseInterestRate();
     }
 
     function setFinance(address _finance) public note auth("DIRECTORVOTE") {
@@ -547,7 +556,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
 
     function getInterestRate(CDPType _type) public view returns (uint) {
         require(_type != CDPType.CURRENT);
-        return sub(annualizedInterestRate,cutDown[uint8(_type)]);
+        return sub(baseInterestRate,cutDown[uint8(_type)]);
     }
 
     function terminate() public note auth("SettlementContract") {
