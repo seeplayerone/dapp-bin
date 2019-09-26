@@ -442,7 +442,7 @@ contract FakePerson is Template {
 
     function callSetOracle(address finance, address newPriceOracle) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("setOracle(address)"));
-        bool result = imefliesFinance(finance).call(abi.encodeWithSelector(methodId,newPriceOracle));
+        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,newPriceOracle));
         return result;
     }
 
