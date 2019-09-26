@@ -14,7 +14,7 @@ contract Setting is Template, DSMath, ACLSlave {
         master = ACLMaster(paiMainContract);
         globalOpen = true;
         lendingInterestRate = RAY / 5;
-        depositInterestRate = RAY *19 / 100;
+        depositInterestRate = RAY * 19 / 100;
         currentDepositFloatUp = RAY * 1 / 100;
     }
 

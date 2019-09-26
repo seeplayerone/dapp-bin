@@ -68,6 +68,8 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
         admin.callAddMember(paiDAO,cdp,"PAIMINTER");
         admin.callAddMember(paiDAO,cdp,"BTCCDP");
+        admin.callUpdateLendingRate(setting, RAY * 202 / 1000);
+        cdp.updateBaseInterestRate();
 
         btcIssuer.mint(200000000000, p1);
         p1.callCreateDepositBorrow(cdp,10000000000,0,20000000000,ASSET_BTC);

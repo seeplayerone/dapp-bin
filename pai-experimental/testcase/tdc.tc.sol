@@ -67,6 +67,8 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callMint(paiIssuer,100000000000,p1);
         admin.callMint(paiIssuer,100000000000,p2);
         admin.callMint(paiIssuer,100000000000,this);
+        admin.callUpdateDepositRate(setting, RAY / 5);
+        p1.callUpdateBaseInterestRate(tdc);
     }
 }
 
