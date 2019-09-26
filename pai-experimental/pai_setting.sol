@@ -7,13 +7,15 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 contract Setting is Template, DSMath, ACLSlave {
     uint public lendingInterestRate; // in RAY
     uint public depositInterestRate; // in RAY
+    uint public currentDepositFloatUp; // in RAY
     mapping(uint96 => uint) public mintPaiRatioLimit; //in RAY
     bool public globalOpen;
     constructor(address paiMainContract) public {
         master = ACLMaster(paiMainContract);
         globalOpen = true;
         lendingInterestRate = RAY / 5;
-        depositInterestRate = RAY / 5;
+        depositInterestRate = RAY *19 / 100;
+        currentDepositFloatUp = RAY * 1 / 100;
     }
 
     function updateLendingRate(uint newRate) public auth("DIRECTORVOTE") {
@@ -22,6 +24,10 @@ contract Setting is Template, DSMath, ACLSlave {
 
     function updateDepositRate(uint newRate) public auth("DIRECTORVOTE") {
         depositInterestRate = newRate;
+    }
+
+    function updateCurrentDepositFloatUp(uint newRate) public auth("DIRECTORVOTE") {
+        currentDepositFloatUp = newRate;
     }
 
     function updateRatioLimit(uint96 assetGlobalId, uint ratio) public auth("DIRECTORVOTE") {

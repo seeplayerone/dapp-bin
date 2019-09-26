@@ -99,12 +99,12 @@ contract SettingTest is TestBase {
 
     function testUpdateBaseInterestRate() public {
         setup();
-        admin.callUpdateLendingRate(setting, RAY * 102 / 1000);
+        admin.callUpdateLendingRate(setting, RAY * 202 / 1000);
         cdp.updateBaseInterestRate();
         assertEq(cdp.annualizedInterestRate(),RAY / 5);
         assertEq(cdp.secondInterestRate(),1000000005781378656804591713);
         //exp(log(1.2)/365/86400)*10^27 = 1000000005781378662058164224
-        admin.callUpdateLendingRate(setting, RAY / 10);
+        admin.callUpdateLendingRate(setting, RAY * 102 / 1000);
         assertEq(cdp.annualizedInterestRate(),RAY / 5);
         assertEq(cdp.secondInterestRate(),1000000005781378656804591713);
         cdp.updateBaseInterestRate();
@@ -115,6 +115,7 @@ contract SettingTest is TestBase {
 
     function testUpdateCutDown() public {
         setup();
+        assertEq(cdp.cutDown(0), RAY * 2 / 1000);
         assertEq(cdp.cutDown(1), RAY * 4 / 1000);
         assertEq(cdp.cutDown(2), RAY * 6 / 1000);
         assertEq(cdp.cutDown(3), RAY * 8 / 1000);
@@ -127,12 +128,10 @@ contract SettingTest is TestBase {
         assertEq(cdp.cutDown(10), 0);
         bool tempBool = p1.callUpdateCutDown(cdp,1,RAY * 2 / 1000);
         assertTrue(!tempBool);
-        for(uint8 i = 1 ; i <= 10; i++) {
-            admin.callUpdateCutDown(cdp,i,RAY * 2 / 1000);
-            assertEq(cdp.cutDown(i), RAY * 2 / 1000);
+        for(uint8 i = 0 ; i <= 10; i++) {
+            admin.callUpdateCutDown(cdp,i,RAY * 1 / 1000);
+            assertEq(cdp.cutDown(i), RAY * 1 / 1000);
         }
-        tempBool = admin.callUpdateCutDown(cdp,0,RAY * 2 / 1000);
-        assertTrue(!tempBool);
         tempBool = admin.callUpdateCutDown(cdp,11,RAY * 2 / 1000);
         assertTrue(!tempBool);
     }
@@ -323,7 +322,7 @@ contract SettingTest is TestBase {
         assertEq(cdp.setting(), setting);
         Setting setting2 = new Setting(paiDAO);
         admin.callUpdateRatioLimit(setting2, ASSET_BTC, RAY * 3);
-        admin.callUpdateLendingRate(setting2, RAY / 10);
+        admin.callUpdateLendingRate(setting2, RAY * 102 / 1000);
 
         bool tempBool = p1.callSetSetting(cdp, setting2);
         assertTrue(!tempBool);
@@ -654,7 +653,7 @@ contract FunctionTest2 is TestBase {
 
     function testRepayCalculation() public {
         setup();
-        admin.callUpdateLendingRate(setting, RAY * 102 / 1000);
+        admin.callUpdateLendingRate(setting, RAY * 202 / 1000);
         cdp.updateBaseInterestRate();
         p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
         admin.callAddMember(paiDAO,admin,"PAIMINTER");
@@ -701,6 +700,8 @@ contract FunctionTest2 is TestBase {
         assertEq(flow.balance(finance,ASSET_PAI),5000000 + 6600873 + 5777190 + 5798123);
 
         //test tolorance won't work
+        admin.callUpdateLendingRate(setting, RAY * 2 / 10);
+        cdp.updateBaseInterestRate();
         p1.callCreateDepositBorrow(cdp,1000000000,1,2000000000,ASSET_BTC);
         (principal, interest) = cdp.debtOfCDP(4);
         assertEq(principal,1000000000);
