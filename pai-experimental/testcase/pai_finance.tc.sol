@@ -167,17 +167,17 @@ contract SettingTest is TestBase {
         assertEq(finance.safePad(),1500);
     }
 
-    function testSetPISmintValue() public {
+    function testSetPISmintRate() public {
         setup();
-        assertEq(finance.PISmintValue(),0);
-        bool tempBool = p1.callSetPISmintValue(finance,1000);
+        assertEq(finance.PISmintRate(),0);
+        bool tempBool = p1.callSetPISmintRate(finance,1000);
         assertTrue(!tempBool);
-        tempBool = admin.callSetPISmintValue(finance,1000);
+        tempBool = admin.callSetPISmintRate(finance,1000);
         assertTrue(tempBool);
-        assertEq(finance.PISmintValue(),1000);
-        tempBool = admin.callSetPISmintValue(finance,1500);
+        assertEq(finance.PISmintRate(),1000);
+        tempBool = admin.callSetPISmintRate(finance,1500);
         assertTrue(tempBool);
-        assertEq(finance.PISmintValue(),1500);
+        assertEq(finance.PISmintRate(),1500);
     }
 
 
@@ -356,7 +356,7 @@ contract FunctionTest is TestBase {
         assertTrue(!tempBool);
         tempBool = admin.callSetPISseller(finance,p2);
         assertTrue(tempBool);
-        tempBool = admin.callSetPISmintValue(finance,990);
+        tempBool = admin.callSetPISmintRate(finance,RAY * 2);
         admin.callSetPISseller(finance,p2);
         assertTrue(tempBool);
         tempBool = p1.callMintPIS(finance);
@@ -368,6 +368,6 @@ contract FunctionTest is TestBase {
         admin.callAddMember(paiDAO,finance,"FinanceContract");
         tempBool = p1.callMintPIS(finance);
         assertTrue(tempBool);
-        assertEq(flow.balance(p2,ASSET_PIS),100);
+        assertEq(flow.balance(p2,ASSET_PIS),8800000002);
     }
 }

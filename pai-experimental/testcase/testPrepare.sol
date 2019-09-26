@@ -501,9 +501,9 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callSetPISmintValue(address finance, uint amount) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("setPISmintValue(uint256)"));
-        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,amount));
+    function callSetPISmintRate(address finance, uint newRate) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("setPISmintRate(uint256)"));
+        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,newRate));
         return result;
     }
 

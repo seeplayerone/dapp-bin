@@ -7,7 +7,6 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/liquidator.sol";
 
 contract Finance is Template,ACLSlave,DSMath {
     PAIIssuer public issuer;
@@ -18,7 +17,7 @@ contract Finance is Template,ACLSlave,DSMath {
     uint96 public ASSET_PIS;
     uint public operationCashLimit;
     uint public safePad;
-    uint public PISmintValue;  // in PAI
+    uint public PISmintRate;  // in PAI,in RAY
     uint public lastAirDropCashOut;
     uint public applyAmount;
     uint public applyNonce;
@@ -48,9 +47,9 @@ contract Finance is Template,ACLSlave,DSMath {
         require(0x0 != PISseller);
         require(flow.balance(PISseller,ASSET_PIS) == 0);
         require(flow.balance(this,ASSET_PAI) < safePad);
-        require(0 != PISmintValue);
-        uint amount = rdiv(PISmintValue,priceOracle.getPrice());
-        amount =rdiv(amount,Liquidator(liquidator).discount2());
+        require(0 != PISmintRate);
+        uint amount = rmul(safePad,PISmintRate);
+        amount = rdiv(amount,priceOracle.getPrice())
         PAIDAO(master).autoMint(amount,PISseller);
     }
 
@@ -144,8 +143,8 @@ contract Finance is Template,ACLSlave,DSMath {
         safePad = amount;
     }
 
-    function setPISmintValue(uint amount) public auth("PISVOTE") {
-        PISmintValue = amount;
+    function setPISmintRate(uint newRate) public auth("PISVOTE") {
+        PISmintRate = newRate;
     }
 
     function cashOut(uint amount, address dest) public auth("PISVOTE") {
