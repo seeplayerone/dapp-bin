@@ -128,6 +128,8 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callAddMember(paiDAO,CFO,"CFO");
         admin.callCreateNewRole(paiDAO,"FinanceContract","PISVOTE",0);
         admin.callAddMember(paiDAO,finance,"FinanceContract");
+        admin.callCreateNewRole(paiDAO,"LiqudatorContract","PISVOTE",0);
+        admin.callCreateNewRole(paiDAO,"TDCContract","PISVOTE",0);
         PISseller = new Liquidator(paiDAO,pisOracle, paiIssuer,"ADMIN",finance,setting);
         admin.callSetPISseller(finance,PISseller);
         btcOracle = new TimefliesOracle("BTCOracle", paiDAO, RAY * 70000, ASSET_PIS);
@@ -136,6 +138,7 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callAddMember(paiDAO,oracle2,"BTCOracle");
         admin.callAddMember(paiDAO,oracle3,"BTCOracle");
         btcLiquidator = new Liquidator(paiDAO,btcOracle, paiIssuer,"BTCCDP",finance,setting);
+        admin.callAddMember(paiDAO,btcLiquidator,"LiqudatorContract");
         btcCDP = new TimefliesCDP(paiDAO,paiIssuer,btcOracle,btcLiquidator,setting,finance,100000000000);
         admin.callCreateNewRole(paiDAO,"PAIMINTER","PISVOTE",0);
         admin.callAddMember(paiDAO,btcCDP,"PAIMINTER");
@@ -154,6 +157,7 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callAddMember(paiDAO,oracle2,"ETHOracle");
         admin.callAddMember(paiDAO,oracle3,"ETHOracle");
         ethLiquidator = new Liquidator(paiDAO,ethOracle,paiIssuer,"ETHCDP",finance,setting);
+        admin.callAddMember(paiDAO,ethLiquidator,"LiqudatorContract");
         ethCDP = new TimefliesCDP(paiDAO,paiIssuer,ethOracle,ethLiquidator,setting,finance,30000000000);
         admin.callAddMember(paiDAO,ethCDP,"PAIMINTER");
         admin.callCreateNewRole(paiDAO,"ETHCDP","PISVOTE",0);
@@ -164,6 +168,7 @@ contract TestBase is Template, DSTest, DSMath {
 
         tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance);
         admin.callSetTDC(finance, tdc);
+        admin.callAddMember(paiDAO,tdc,"TDCContract");
 
         admin.callMint(paiDAO,3000000000000,this);
         //admin.callRemoveMember(paiDAO,admin,"PISVOTE");

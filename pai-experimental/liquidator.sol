@@ -59,6 +59,10 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
         ASSET_PAI = issuer.PAIGlobalId();
     }
 
+    function setFinance(address _finance) public note auth("DIRECTORVOTE") {
+        finance = Finance(_finance);
+    }
+
     function setAssetCollateral(address newPriceOracle) public note auth("DIRECTORVOTE") {
         priceOracle = PriceOracle(newPriceOracle);
         ASSET_COLLATERAL = priceOracle.ASSET_COLLATERAL();
