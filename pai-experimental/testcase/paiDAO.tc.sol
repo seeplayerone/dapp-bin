@@ -156,6 +156,7 @@ contract TestBase is Template, DSTest, DSMath {
         ethLiquidator = new Liquidator(paiDAO,ethOracle,paiIssuer,"ETHCDP",finance,setting);
         ethCDP = new TimefliesCDP(paiDAO,paiIssuer,ethOracle,ethLiquidator,setting,finance,30000000000);
         admin.callAddMember(paiDAO,ethCDP,"PAIMINTER");
+        admin.callCreateNewRole(paiDAO,"ETHCDP","PISVOTE",0);
         admin.callAddMember(paiDAO,ethCDP,"ETHCDP");
         admin.callUpdateRatioLimit(setting, ASSET_ETH, RAY * 3 / 10);
         ethSettlement = new Settlement(paiDAO,ethOracle,ethCDP,ethLiquidator);
@@ -171,8 +172,8 @@ contract TestBase is Template, DSTest, DSMath {
 
     function print() public {
         setup();
-        admin.callRemoveMember(paiDAO,admin,"PISVOTE");
         admin.callRemoveMember(paiDAO,admin,"DIRECTORVOTE");
+        admin.callRemoveMember(paiDAO,admin,"PISVOTE");
         uint groupNumber = paiDAO.indexOfACL();
         for (uint i = 1; i <= groupNumber; i++) {
             emit printString("===================================================");
