@@ -182,6 +182,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         cutDown[uint8(_type)] = _newCutDown;
         emit SetCutDown(_type,_newCutDown);
         if(CDPType.CURRENT == _type) {
+            updateRates();
             annualizedInterestRate = sub(baseInterestRate,cutDown[uint8(CDPType.CURRENT)]);
             secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
             emit SetParam(2, annualizedInterestRate);

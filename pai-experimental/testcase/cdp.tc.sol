@@ -99,6 +99,8 @@ contract SettingTest is TestBase {
 
     function testUpdateBaseInterestRate() public {
         setup();
+        admin.callUpdateLendingRate(setting, RAY * 102 / 1000);
+        cdp.updateBaseInterestRate();
         assertEq(cdp.annualizedInterestRate(),RAY / 5);
         assertEq(cdp.secondInterestRate(),1000000005781378656804591713);
         //exp(log(1.2)/365/86400)*10^27 = 1000000005781378662058164224
@@ -652,6 +654,8 @@ contract FunctionTest2 is TestBase {
 
     function testRepayCalculation() public {
         setup();
+        admin.callUpdateLendingRate(setting, RAY * 102 / 1000);
+        cdp.updateBaseInterestRate();
         p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
         admin.callAddMember(paiDAO,admin,"PAIMINTER");
         admin.callMint(paiIssuer,5000000000,p1);
