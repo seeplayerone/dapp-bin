@@ -62,7 +62,7 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callAddMember(paiDAO,admin,"PAIMINTER");
 
         tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance);
-        finance.init(tdc);
+        admin.callSetTDC(finance, tdc);
 
         cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,100000000000);
         admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);

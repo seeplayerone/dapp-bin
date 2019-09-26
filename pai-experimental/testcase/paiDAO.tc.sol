@@ -174,7 +174,8 @@ contract TestBase is Template, DSTest, DSMath {
         //admin.callRemoveMember(paiDAO,admin,"DIRECTORVOTE");
         //admin.callRemoveMember(paiDAO,admin,"PISVOTE");
     }
-
+}
+contract Print is TestBase {
     function print() public {
         setup();
         admin.callRemoveMember(paiDAO,admin,"DIRECTORVOTE");
