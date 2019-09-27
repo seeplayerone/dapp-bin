@@ -48,6 +48,12 @@ contract Tutorial is Template {
     /// total supply 
     uint private totalSupply = 0;
 
+    string organizationName;
+
+    constructor(string _name) public {
+        organizationName = _name;
+    }
+
     /**
         @dev mint assets with given amount
      */
@@ -59,7 +65,7 @@ contract Tutorial is Template {
             /// register the organization (contract) before issuing assets
             Registry reg = Registry(registry);
             /// template name is given when submitting a TEMPLATE using IDE tool
-            orgnizationID = reg.registerOrganization("Tutorial", templateName);
+            orgnizationID = reg.registerOrganization(organizationName, templateName);
 
             registered = true;
 
