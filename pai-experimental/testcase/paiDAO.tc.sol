@@ -309,15 +309,15 @@ contract TestVoteSP is TestBase {
 
         bytes32 ahash = keccak256("mintToP1");
         bytes4 methodId = bytes4(keccak256("mint(uint256,address)"));
-        bytes[] memory param = new bytes[](3);
-        param[0] = abi.encode(100,address(p1));
-        param[1] = abi.encode(200,address(p1));
-        param[2] = abi.encode(300,address(p1));
+        bytes[] memory params = new bytes[](3);
+        params[0] = abi.encode(100,address(p1));
+        params[1] = abi.encode(200,address(p1));
+        params[2] = abi.encode(300,address(p1));
         bool tempBool = PISHolder1.callStartProposal(VSP,ahash,0,paiDAO,methodId,param,1000000000000,ASSET_PIS);
         assertTrue(tempBool);
 
         methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
-        param = abi.encode(1,0);
+        bytes memory param = abi.encode(1,0);
         tempBool = PISHolder1.execute(VSP,methodId,param,1000000000000,ASSET_PIS);
         assertTrue(tempBool);
         methodId = bytes4(keccak256("invokeProposal(uint256)"));
