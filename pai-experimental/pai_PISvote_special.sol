@@ -20,7 +20,7 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
     event ConductVote(uint, uint, VoteStatus);
 
     struct Proposal {
-        bytes32 attachmentHash 
+        bytes32 attachmentHash;
         address target; /// call contract of vote result
         bytes4 func; /// functionHash of the callback function
         bytes[] param; /// parameters for the callback function
@@ -79,13 +79,14 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
     }
 
     /// @dev start a vote
-    function startProposal(uint _startTime,address _targetContract,bytes4 _func,bytes[] _param) public payable returns(uint) {
+    function startProposal(bytes32 _attachmentHash,uint _startTime,address _targetContract,bytes4 _func,bytes[] _param) public payable returns(uint) {
         require(msg.assettype == ASSET_PIS);
         require(0 == _startTime || _startTime >= height());
         (,,,,,uint totalPISSupply) = PAIDAO(master).getAssetInfo(0);
         require(msg.value > rmul(startProportion,totalPISSupply));
         lastAssignedProposalId = add(lastAssignedProposalId,1);
         uint startTime = 0 == _startTime ? height():_startTime;
+        voteProposals[lastAssignedProposalId].attachmentHash = _attachmentHash;
         voteProposals[lastAssignedProposalId].target = _targetContract;
         voteProposals[lastAssignedProposalId].func = _func;
         voteProposals[lastAssignedProposalId].param = _param;
