@@ -1,4 +1,5 @@
 pragma solidity 0.4.25;
+pragma experimental ABIEncoderV2;
 
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepareNew.sol";
 
@@ -307,7 +308,10 @@ contract TestVoteSP is TestBase {
         assertEq(flow.balance(p1,ASSET_PIS),0);
 
         bytes4 methodId = bytes4(keccak256("mint(uint256,address)"));
-        bytes memory param = abi.encode(100,address(p1));
+        bytes[] memory param = new bytes[](3);
+        param[0] = abi.encode(100,address(p1));
+        param[1] = abi.encode(200,address(p1));
+        param[2] = abi.encode(300,address(p1));
         bool tempBool = PISHolder1.callStartProposal(VSP,0,paiDAO,methodId,param,1000000000000,ASSET_PIS);
         assertTrue(tempBool);
 

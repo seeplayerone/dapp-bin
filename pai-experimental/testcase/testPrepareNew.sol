@@ -1,4 +1,5 @@
 pragma solidity 0.4.25;
+pragma experimental ABIEncoderV2;
 
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
@@ -96,8 +97,8 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callStartProposal(address VSP, uint _startTime,address _targetContract,bytes4 _func,bytes _param,uint amount,uint96 id) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("startProposal(uint256,address,bytes4,bytes)"));
+    function callStartProposal(address VSP, uint _startTime,address _targetContract,bytes4 _func,bytes[] _param,uint amount,uint96 id) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("startProposal(uint256,address,bytes4,bytes[])"));
         bool result = PISVoteSpecial(VSP).call.value(amount,id)(abi.encodeWithSelector(methodId,_startTime,_targetContract,_func,_param));
         return result;
     }

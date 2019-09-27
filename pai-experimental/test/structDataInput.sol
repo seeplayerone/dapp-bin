@@ -105,7 +105,8 @@ contract InputTest is Template,DSTest {
         list[1] = temp;
         temp = hex"952700800000000000000000000000000000000000000000000000000000000000000005";
         list[2] = temp;
-        exec.newOrders2(list);
+        bytes[] memory list2 = list;
+        exec.newOrders2(list2);
         exec.exec1(3);
         assertEq(business.state(),12);
     }

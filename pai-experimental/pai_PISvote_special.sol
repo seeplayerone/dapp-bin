@@ -1,4 +1,5 @@
 pragma solidity 0.4.25;
+pragma experimental ABIEncoderV2;
 
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
@@ -19,9 +20,10 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
     event ConductVote(uint, uint, VoteStatus);
 
     struct Proposal {
+        bytes32 attachmentHash 
         address target; /// call contract of vote result
         bytes4 func; /// functionHash of the callback function
-        bytes param; /// parameters for the callback function
+        bytes[] param; /// parameters for the callback function
         bool executed; /// whether vote result is executed
         uint pisVoteId;
     }
@@ -77,7 +79,7 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
     }
 
     /// @dev start a vote
-    function startProposal(uint _startTime,address _targetContract,bytes4 _func,bytes _param) public payable returns(uint) {
+    function startProposal(uint _startTime,address _targetContract,bytes4 _func,bytes[] _param) public payable returns(uint) {
         require(msg.assettype == ASSET_PIS);
         require(0 == _startTime || _startTime >= height());
         (,,,,,uint totalPISSupply) = PAIDAO(master).getAssetInfo(0);
@@ -115,7 +117,10 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
         updatePISVoteStatus(prps.pisVoteId);
         require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
         require(false == prps.executed);
-        execute(prps.target,abi.encodePacked(prps.func, prps.param));
+        uint len = prps.param.length;
+        for(uint i = 0; i < len; i++) {
+            execute(prps.target,abi.encodePacked(prps.func, prps.param[i]));
+        }
         prps.executed = true;
     }
 
