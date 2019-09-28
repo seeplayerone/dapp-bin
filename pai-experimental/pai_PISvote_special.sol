@@ -85,17 +85,17 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
     /// @dev start a vote
     function startProposal(bytes32 _attachmentHash, uint _startTime, Order[] memory _orders) public returns(uint) {
         //require(msg.assettype == ASSET_PIS);
-        require(0 == _startTime || _startTime >= height());
-        (,,,,,uint totalPISSupply) = PAIDAO(master).getAssetInfo(0);
+        //require(0 == _startTime || _startTime >= height());
+        //(,,,,,uint totalPISSupply) = PAIDAO(master).getAssetInfo(0);
         //require(msg.value > rmul(startProportion,totalPISSupply));
         lastAssignedProposalId = add(lastAssignedProposalId,1);
-        uint startTime = 0 == _startTime ? height():_startTime;
+        //uint startTime = 0 == _startTime ? height():_startTime;
         voteProposals[lastAssignedProposalId].attachmentHash = _attachmentHash;
         uint len = _orders.length;
         for(uint i = 0; i < len; i++) {
             voteProposals[lastAssignedProposalId].orders[i] = _orders[i];
         }
-        voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(passProportion,startTime,pisVoteDuration);
+        //voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(passProportion,startTime,pisVoteDuration);
         //msg.sender.transfer(msg.value,ASSET_PIS);
         return lastAssignedProposalId;
     }
