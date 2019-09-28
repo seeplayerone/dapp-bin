@@ -306,13 +306,13 @@ contract TestVoteSP is TestBase {
         bytes32 ahash = keccak256("mintToP1");
         bytes4 methodId = bytes4(keccak256("mint(uint256,address)"));
         PISVoteSpecial.Order[] memory orders = new PISVoteSpecial.Order[](3);
-        orders[0].target = paiDAO;
+        orders[0].target = address(paiDAO);
         orders[0].func = methodId;
         orders[0].param = abi.encode(100,address(p1));
-        orders[1].target = paiDAO;
+        orders[1].target = address(paiDAO);
         orders[1].func = methodId;
         orders[1].param = abi.encode(200,address(p1));
-        orders[2].target = paiDAO;
+        orders[2].target = address(paiDAO);
         orders[2].func = methodId;
         orders[2].param = abi.encode(300,address(p1));
         VSP.startProposal(ahash,0,orders);
