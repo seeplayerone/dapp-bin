@@ -125,7 +125,7 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
         require(false == prps.executed);
         uint len = prps.orders.length;
         for(uint i = 0; i < len; i++) {
-            execute(prps.orders[i].target,abi.encodePacked(prps.orders[i].func, prps.orders[i].param[i]));
+            execute(prps.orders[i].target,abi.encodePacked(prps.orders[i].func, prps.orders[i].param));
         }
         prps.executed = true;
     }
