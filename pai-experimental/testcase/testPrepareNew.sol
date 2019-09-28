@@ -98,7 +98,7 @@ contract FakePerson is Template {
     }
 
     function callStartProposal(address VSP, bytes32 _attachmentHash,uint _startTime, PISVoteSpecial.Order[] memory orders,uint amount,uint96 id) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("startProposal(bytes32,uint256,Order[],bytes[])"));
+        bytes4 methodId = bytes4(keccak256("startProposal(bytes32,uint256,Order[])"));
         bool result = PISVoteSpecial(VSP).call.value(amount,id)(abi.encodeWithSelector(methodId,_attachmentHash,_startTime,orders));
         return result;
     }
