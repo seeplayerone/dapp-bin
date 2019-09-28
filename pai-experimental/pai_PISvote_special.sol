@@ -91,7 +91,10 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
         lastAssignedProposalId = add(lastAssignedProposalId,1);
         uint startTime = 0 == _startTime ? height():_startTime;
         voteProposals[lastAssignedProposalId].attachmentHash = _attachmentHash;
-        voteProposals[lastAssignedProposalId].orders = _orders;
+        uint len = _orders.length;
+        for(uint i = 0; i < len; i++) {
+            voteProposals[lastAssignedProposalId].orders[i] = _orders[i];
+        }
         voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(passProportion,startTime,pisVoteDuration);
         msg.sender.transfer(msg.value,ASSET_PIS);
         return lastAssignedProposalId;
