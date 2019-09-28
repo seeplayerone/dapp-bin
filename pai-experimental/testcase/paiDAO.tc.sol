@@ -315,8 +315,7 @@ contract TestVoteSP is TestBase {
         orders[2].target = address(paiDAO);
         orders[2].func = methodId;
         orders[2].param = abi.encode(300,address(p1));
-        VSP.startProposal(ahash,0,orders);
-        //VSP.startProposal.value(1000000000000,ASSET_PIS)(ahash,0,orders);
+        VSP.startProposal.value(1000000000000,ASSET_PIS)(ahash,0,orders);
 
         // methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
         // bytes memory param = abi.encode(1,0);
