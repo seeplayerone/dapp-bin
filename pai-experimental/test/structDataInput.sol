@@ -105,8 +105,46 @@ contract InputTest is Template,DSTest {
         list[1] = temp;
         temp = hex"952700800000000000000000000000000000000000000000000000000000000000000005";
         list[2] = temp;
-        bytes[] memory list2 = list;
-        exec.newOrders2(list2);
+        //bytes[] memory list2 = list;
+        exec.newOrders2(list);
+        exec.exec1(3);
+        assertEq(business.state(),12);
+    }
+
+    function testMethodId() public {
+        Business business = new Business();
+        EXEC exec = new EXEC();
+        bytes[] memory list = new bytes[](3);
+        bytes memory temp;
+        exec.setAddr(business);
+        temp = hex"952700800000000000000000000000000000000000000000000000000000000000000003";
+        list[0] = temp;
+        temp = hex"952700800000000000000000000000000000000000000000000000000000000000000004";
+        list[1] = temp;
+        temp = hex"952700800000000000000000000000000000000000000000000000000000000000000005";
+        list[2] = temp;
+        bytes4 methodId = bytes4(keccak256("newOrders2(bytes[])"));
+        //bytes memory param = abi.encode(list);
+        exec.call(abi.encodeWithSelector(methodId,list));
+        exec.exec1(3);
+        assertEq(business.state(),12);
+    }
+
+    function testMethodId2() public {
+        Business business = new Business();
+        EXEC exec = new EXEC();
+        //plus(uint num) num = 3
+        EXEC.inputBytes[] memory list = new EXEC.inputBytes[](3);
+        EXEC.inputBytes temp;
+        exec.setAddr(business);
+        temp.param = hex"952700800000000000000000000000000000000000000000000000000000000000000003";
+        list[0] = temp;
+        temp.param = hex"952700800000000000000000000000000000000000000000000000000000000000000004";
+        list[1] = temp;
+        temp.param = hex"952700800000000000000000000000000000000000000000000000000000000000000005";
+        list[2] = temp;
+        bytes4 methodId = bytes4(keccak256("newOrders(inputBytes[])"));
+        exec.call(abi.encodeWithSelector(methodId,list));
         exec.exec1(3);
         assertEq(business.state(),12);
     }

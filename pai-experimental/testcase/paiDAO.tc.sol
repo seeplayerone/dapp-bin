@@ -298,13 +298,9 @@ contract TestElection is TestBase {
 contract TestVoteSP is TestBase {
     function testMintPIS() public {
         setup();
-        FakePerson PISHolder1 = new FakePerson();
-        FakePerson PISHolder2 = new FakePerson();
-        FakePerson PISHolder3 = new FakePerson();
         FakePerson p1 = new FakePerson();
+        FakePerson PISHolder1 = new FakePerson();
         PISHolder1.transfer(1000000000000,ASSET_PIS);
-        PISHolder2.transfer(1000000000000,ASSET_PIS);
-        PISHolder3.transfer(1000000000000,ASSET_PIS);
         assertEq(flow.balance(p1,ASSET_PIS),0);
 
         bytes32 ahash = keccak256("mintToP1");
@@ -319,23 +315,23 @@ contract TestVoteSP is TestBase {
         orders[2].target = paiDAO;
         orders[2].func = methodId;
         orders[2].param = abi.encode(300,address(p1));
-        bool tempBool = PISHolder1.callStartProposal(VSP,ahash,0,orders,1000000000000,ASSET_PIS);
-        assertTrue(tempBool);
+        VSP.startProposal(ahash,0,orders);
+        //VSP.startProposal.value(1000000000000,ASSET_PIS)(ahash,0,orders);
 
-        methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
-        bytes memory param = abi.encode(1,0);
-        tempBool = PISHolder1.execute(VSP,methodId,param,1000000000000,ASSET_PIS);
-        assertTrue(tempBool);
-        methodId = bytes4(keccak256("invokeProposal(uint256)"));
-        param = abi.encode(1);
-        tempBool = PISHolder1.execute(VSP,methodId,param);
-        assertTrue(!tempBool);
-        VSP.fly(10 days + 5);
-        tempBool = PISHolder1.execute(VSP,methodId,param);
-        assertTrue(tempBool);
-        assertEq(flow.balance(p1,ASSET_PIS),100);
-        tempBool = PISHolder1.execute(VSP,methodId,param);
-        assertTrue(!tempBool);
+        // methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
+        // bytes memory param = abi.encode(1,0);
+        // bool tempBool = PISHolder1.execute(VSP,methodId,param,1000000000000,ASSET_PIS);
+        // assertTrue(tempBool);
+        // methodId = bytes4(keccak256("invokeProposal(uint256)"));
+        // param = abi.encode(1);
+        // tempBool = PISHolder1.execute(VSP,methodId,param);
+        // assertTrue(!tempBool);
+        // VSP.fly(10 days + 5);
+        // tempBool = PISHolder1.execute(VSP,methodId,param);
+        // assertTrue(tempBool);
+        // assertEq(flow.balance(p1,ASSET_PIS),100);
+        // tempBool = PISHolder1.execute(VSP,methodId,param);
+        // assertTrue(!tempBool);
     }
 }
 
