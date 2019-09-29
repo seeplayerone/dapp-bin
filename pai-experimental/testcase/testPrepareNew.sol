@@ -109,9 +109,9 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callStartProposal(address DV,uint FuncDataId, uint _startTime,address _targetContract,bytes _param) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("startProposal(uint256,uint256,address,bytes)"));
-        bool result = DirectorVoteContract(DV).call(abi.encodeWithSelector(methodId,FuncDataId,_startTime,_targetContract,_param));
+    function callStartProposal(address DV,uint FuncDataId, uint _startTime,address _targetContract,bytes[] params) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("startProposal(uint256,uint256,address,bytes[])"));
+        bool result = DirectorVoteContract(DV).call(abi.encodeWithSelector(methodId,FuncDataId,_startTime,_targetContract,params));
         return result;
     }
 

@@ -367,7 +367,7 @@ contract TestVoteST is TestBase {
         VST.fly(5 days + 5);
         tempBool = PISHolder1.execute(VST,methodId,param);
         assertTrue(tempBool);//5
-        assertEq(flow.balance(p1,ASSET_PIS),100);//6
+        assertEq(flow.balance(p1,ASSET_PIS),600);//6
         tempBool = PISHolder1.execute(VST,methodId,param);
         assertTrue(!tempBool);
     }
@@ -376,23 +376,26 @@ contract TestVoteST is TestBase {
 contract TestVoteDir is TestBase {
     function VoteDirSetUp() public {
         setup();
-        bytes4 func = bytes4(keccak256("updateLendingRate(uint256)"));
-        assertTrue(admin.callAddNewVoteParam(DV, 3, RAY / 5, func, 5 days / 5, 5 days / 5));
+        bytes4 func = bytes4(keccak256("increaseOperationCashLimit(uint256)"));
+        assertTrue(admin.callAddNewVoteParam(finance, 3, RAY / 5, func, 5 days / 5, 5 days / 5));
     }
 
-    function testUpdateLendingRate() public {
+    function testIncreaseOperationCashLimit() public {
         VoteDirSetUp();
         FakePerson PISHolder1 = new FakePerson();
         PISHolder1.transfer(1000000000000,ASSET_PIS);
-        assertEq(setting.lendingInterestRate(), RAY / 5);
-        bytes memory param = abi.encode(RAY * 21 / 100);
-        bool tempBool = PISHolder1.callStartProposal(DV,1,0,setting,param);
+        assertEq(finance.operationCashLimit(), 0);
+        bytes[] memory params = new bytes[](3);
+        params[0] = abi.encode(RAY);
+        params[1] = abi.encode(RAY * 2);
+        params[1] = abi.encode(RAY * 3);
+        bool tempBool = PISHolder1.callStartProposal(DV,1,0,setting,params);
         assertTrue(!tempBool);
-        tempBool = director1.callStartProposal(DV,1,0,setting,param);
+        tempBool = director1.callStartProposal(DV,1,0,setting,params);
         assertTrue(tempBool);
 
         bytes4 methodId = bytes4(keccak256("directorVote(uint256,uint8)"));
-        param = abi.encode(1,0);
+        bytes memory param = abi.encode(1,0);
         tempBool = PISHolder1.execute(DV,methodId,param);
         assertTrue(!tempBool);
         tempBool = director1.execute(DV,methodId,param);
@@ -413,6 +416,6 @@ contract TestVoteDir is TestBase {
         param = abi.encode(1);
         tempBool = PISHolder1.execute(DV,methodId,param);
         assertTrue(tempBool);
-        assertEq(setting.lendingInterestRate(), RAY * 21 / 100);
+        assertEq(finance.operationCashLimit(), RAY * 6);
     }
 }

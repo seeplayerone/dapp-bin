@@ -4,14 +4,6 @@ pragma experimental ABIEncoderV2;
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/library/execution.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/test.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-
-
-contract FakePAIIssuer is PAIIssuer {
-    constructor() public {
-        templateName = "Fake-Template-Name-For-Test";
-    }
-}
 
 contract EXEC is Template, Execution {
     function() public payable {}
@@ -143,11 +135,10 @@ contract InputTest is Template,DSTest {
         list[1] = temp;
         temp.param = hex"952700800000000000000000000000000000000000000000000000000000000000000005";
         list[2] = temp;
-        bytes4 methodId = bytes4(keccak256("newOrders(inputBytes[])"));
-        exec.call(abi.encodeWithSelector(methodId,list));
+        //bytes4 methodId = bytes4(keccak256("newOrders(inputBytes[])"));
+        //bytes memory params = abi.encode(list);
+        exec.call(abi.encodeWithSelector(business.newOrders.selector,list));
         exec.exec1(3);
         assertEq(business.state(),12);
     }
-
-   
 }

@@ -143,14 +143,14 @@ contract DirectorVoteContract is DSMath, Execution, Template, ACLSlave {
     }
 
     /// @dev start a vote
-    function startProposal(uint FuncDataId,uint _startTime,address _targetContract,bytes _param) public auth("DIRECTOR") returns(uint) {
+    function startProposal(uint FuncDataId,uint _startTime,address _targetContract,bytes[] _params) public auth("DIRECTOR") returns(uint) {
         require(0 == _startTime || _startTime >= height());
         lastAssignedProposalId = add(lastAssignedProposalId,1);
         FuncData storage fd = voteFuncDatas[FuncDataId];
         uint startTime = 0 == _startTime ? height():_startTime;
         voteProposals[lastAssignedProposalId].target = _targetContract;
         voteProposals[lastAssignedProposalId].func = fd.func;
-        voteProposals[lastAssignedProposalId].param = _param;
+        voteProposals[lastAssignedProposalId].params = _params;
         voteProposals[lastAssignedProposalId].directorVoteId = startDirectorVote(fd.passVotes,startTime,fd.directorVoteDuration);
         if(fd.pisVotelastDuration != 0)
             voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(fd.passProportion,add(startTime,fd.directorVoteDuration),fd.pisVotelastDuration);
@@ -210,10 +210,12 @@ contract DirectorVoteContract is DSMath, Execution, Template, ACLSlave {
             updatePISVoteStatus(prps.pisVoteId);
             require(VoteStatus.APPROVED == pisVotes[prps.pisVoteId].status);
         }
-        if(false == prps.executed) {
-            execute(prps.target,abi.encodePacked(prps.func, prps.param));
-            prps.executed = true;
+        require(false == prps.executed);
+        uint len = prps.params.length;
+        for(uint i = 0; i < len; i++) {
+           execute(prps.target,abi.encodePacked(prps.func, prps.params[i]));
         }
+        prps.executed = true;
     }
 
     function advancePISVote(uint proposalId) public {
