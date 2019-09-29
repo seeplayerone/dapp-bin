@@ -376,22 +376,24 @@ contract TestVoteST is TestBase {
 contract TestVoteDir is TestBase {
     function VoteDirSetUp() public {
         setup();
-        bytes4 func = bytes4(keccak256("increaseOperationCashLimit(uint256)"));
-        assertTrue(admin.callAddNewVoteParam(finance, 3, RAY / 5, func, 5 days / 5, 5 days / 5));
+        bytes4 func = bytes4(keccak256("changeState(uint8,bool)"));
+        assertTrue(admin.callAddNewVoteParam(DV, 3, RAY / 5, func, 5 days / 5, 5 days / 5));//0
     }
 
     function testIncreaseOperationCashLimit() public {
         VoteDirSetUp();
         FakePerson PISHolder1 = new FakePerson();
         PISHolder1.transfer(1000000000000,ASSET_PIS);
-        assertEq(finance.operationCashLimit(), 0);
+        assertTrue(cdp.enable(0));
+        assertTrue(cdp.enable(1));
+        assertTrue(cdp.enable(2));
         bytes[] memory params = new bytes[](3);
-        params[0] = abi.encode(RAY);
-        params[1] = abi.encode(RAY * 2);
-        params[1] = abi.encode(RAY * 3);
-        bool tempBool = PISHolder1.callStartProposal(DV,1,0,setting,params);
+        params[0] = abi.encode(0,false);
+        params[1] = abi.encode(1,false);
+        params[1] = abi.encode(2,false);
+        bool tempBool = PISHolder1.callStartProposal(DV,1,0,cdp,params);
         assertTrue(!tempBool);
-        tempBool = director1.callStartProposal(DV,1,0,setting,params);
+        tempBool = director1.callStartProposal(DV,1,0,cdp,params);
         assertTrue(tempBool);
 
         bytes4 methodId = bytes4(keccak256("directorVote(uint256,uint8)"));
@@ -410,12 +412,14 @@ contract TestVoteDir is TestBase {
         methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
         param = abi.encode(1,0);
         tempBool = PISHolder1.execute(DV,methodId,param,1000000000000,ASSET_PIS);
-        assertTrue(tempBool);
+        assertTrue(tempBool);//8
         DV.fly(5 days + 5);
         methodId = bytes4(keccak256("invokeProposal(uint256)"));
         param = abi.encode(1);
         tempBool = PISHolder1.execute(DV,methodId,param);
-        assertTrue(tempBool);
-        assertEq(finance.operationCashLimit(), RAY * 6);
+        assertTrue(tempBool);//9
+        assertTrue(!cdp.enable(0));
+        assertTrue(!cdp.enable(1));
+        assertTrue(!cdp.enable(2));
     }
 }
