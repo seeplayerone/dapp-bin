@@ -382,18 +382,19 @@ contract TestVoteDir is TestBase {
 
     function testIncreaseOperationCashLimit() public {
         VoteDirSetUp();
+        admin.callAddMember(paiDAO,DV,"PISVOTE");
         FakePerson PISHolder1 = new FakePerson();
         PISHolder1.transfer(1000000000000,ASSET_PIS);
-        assertTrue(cdp.enable(0));
-        assertTrue(cdp.enable(1));
-        assertTrue(cdp.enable(2));
+        assertTrue(btcCDP.enable(0));
+        assertTrue(btcCDP.enable(1));
+        assertTrue(btcCDP.enable(2));
         bytes[] memory params = new bytes[](3);
-        params[0] = abi.encode(0,false);
-        params[1] = abi.encode(1,false);
-        params[1] = abi.encode(2,false);
-        bool tempBool = PISHolder1.callStartProposal(DV,1,0,cdp,params);
+        params[0] = abi.encode(uint8(0),false);
+        params[1] = abi.encode(uint8(1),false);
+        params[2] = abi.encode(uint8(2),false);
+        bool tempBool = PISHolder1.callStartProposal(DV,1,0,btcCDP,params);
         assertTrue(!tempBool);
-        tempBool = director1.callStartProposal(DV,1,0,cdp,params);
+        tempBool = director1.callStartProposal(DV,1,0,btcCDP,params);
         assertTrue(tempBool);
 
         bytes4 methodId = bytes4(keccak256("directorVote(uint256,uint8)"));
@@ -418,8 +419,8 @@ contract TestVoteDir is TestBase {
         param = abi.encode(1);
         tempBool = PISHolder1.execute(DV,methodId,param);
         assertTrue(tempBool);//9
-        assertTrue(!cdp.enable(0));
-        assertTrue(!cdp.enable(1));
-        assertTrue(!cdp.enable(2));
+        assertTrue(!btcCDP.enable(0));
+        assertTrue(!btcCDP.enable(1));
+        assertTrue(!btcCDP.enable(2));
     }
 }
