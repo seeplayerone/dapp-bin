@@ -137,7 +137,7 @@ contract InputTest is Template,DSTest {
         list[2] = temp;
         //bytes4 methodId = bytes4(keccak256("newOrders(inputBytes[])"));
         //bytes memory params = abi.encode(list);
-        exec.call(abi.encodeWithSelector(business.newOrders.selector,list));
+        exec.call(abi.encodeWithSelector(exec.newOrders.selector,list));
         exec.exec1(3);
         assertEq(business.state(),12);
     }
