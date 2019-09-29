@@ -184,6 +184,7 @@ contract DirectorVoteContract is DSMath, Execution, Template, ACLSlave {
         } else {
             dv.disagreeVotes = add(dv.disagreeVotes,1);
         }
+        dv.alreadyVoted.push(msg.sender);
     }
 
     function pisVote(uint voteId, VoteAttitude attitude) public payable{
