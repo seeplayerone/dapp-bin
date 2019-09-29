@@ -34,7 +34,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
     event BorrowPAI(uint collateral, uint principal, uint debt, uint _index, uint borrowAmount, uint endTime);
     event RepayPAI(uint collateral, uint principal, uint debt, uint _index, uint repayAmount, uint repayAmount1, uint repayAmount2);
     event CloseCDP(uint _index);
-    event Liquidate(uint _index, uint principalOfCollateral, uint interestOfCollateral, uint penaltyOfCollateral, uint collateralLeft);
+    event Liquidate(uint _index, uint principalOfCollateral, uint interestOfCollateral, uint penaltyOfCollateral, uint collateralLeft, uint price);
 
     uint256 public CDPIndex = 0; /// how many CDPs have been created
     uint256 private liquidatedCDPIndex = 0; /// how many CDPs have been liquidated, only happens when the business is in settlement process
@@ -552,7 +552,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         delete CDPRecords[record];
         emit CloseCDP(record);
         liquidator.transfer(collateralToLiquidator, ASSET_COLLATERAL);
-        emit Liquidate(record, principalOfCollateral, interestOfCollateral, penaltyOfCollateral, collateralLeft);
+        emit Liquidate(record, principalOfCollateral, interestOfCollateral, penaltyOfCollateral, collateralLeft, price);
     }
 
     function getInterestRate(CDPType _type) public view returns (uint) {
