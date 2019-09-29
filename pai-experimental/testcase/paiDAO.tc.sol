@@ -328,7 +328,7 @@ contract TestVoteSP is TestBase {
         VSP.fly(10 days + 5);
         tempBool = PISHolder1.execute(VSP,methodId,param);
         assertTrue(tempBool);
-        assertEq(flow.balance(p1,ASSET_PIS),100);
+        assertEq(flow.balance(p1,ASSET_PIS),600);
         tempBool = PISHolder1.execute(VSP,methodId,param);
         assertTrue(!tempBool);
     }
@@ -349,12 +349,15 @@ contract TestVoteST is TestBase {
         PISHolder1.transfer(1000000000000,ASSET_PIS);
         assertEq(flow.balance(p1,ASSET_PIS),0);
 
-        bytes memory param = abi.encode(100,address(p1));
-        bool tempBool = PISHolder1.callStartProposal(VST,1,0,paiDAO,param,1000000000000,ASSET_PIS);
+        bytes[] memory params = new bytes[](3);
+        params[0] = abi.encode(100,address(p1));
+        params[1] = abi.encode(200,address(p1));
+        params[2] = abi.encode(300,address(p1));
+        bool tempBool = PISHolder1.callStartProposal(VST,1,0,paiDAO,params,1000000000000,ASSET_PIS);
         assertTrue(tempBool);
 
         bytes4 methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
-        param = abi.encode(1,0);
+        bytes memory param = abi.encode(1,0);
         tempBool = PISHolder1.execute(VST,methodId,param,1000000000000,ASSET_PIS);
         assertTrue(tempBool);
         methodId = bytes4(keccak256("invokeProposal(uint256)"));

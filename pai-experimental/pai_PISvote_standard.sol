@@ -1,4 +1,5 @@
 pragma solidity 0.4.25;
+pragma experimental ABIEncoderV2;
 
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
@@ -19,7 +20,7 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
     struct Proposal {
         address target; /// call contract of vote result
         bytes4 func; /// functionHash of the callback function
-        bytes param; /// parameters for the callback function
+        bytes[] params; /// parameters for the callback function
         bool executed; /// whether vote result is executed
         uint pisVoteId;
     }
@@ -94,7 +95,7 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
     }
 
     /// @dev start a vote
-    function startProposal(uint FuncDataId,uint _startTime,address _targetContract,bytes _param) public payable returns(uint) {
+    function startProposal(uint FuncDataId,uint _startTime,address _targetContract,bytes[] _params) public payable returns(uint) {
         require(msg.assettype == ASSET_PIS);
         require(0 == _startTime || _startTime >= height());
         (,,,,,uint totalPISSupply) = PAIDAO(master).getAssetInfo(0);
@@ -104,7 +105,7 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
         uint startTime = 0 == _startTime ? height():_startTime;
         voteProposals[lastAssignedProposalId].target = _targetContract;
         voteProposals[lastAssignedProposalId].func = fd.func;
-        voteProposals[lastAssignedProposalId].param = _param;
+        voteProposals[lastAssignedProposalId].params = _params;
         voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(fd.passProportion,startTime,fd.pisVoteDuration);
         msg.sender.transfer(msg.value,ASSET_PIS);
         return lastAssignedProposalId;
@@ -133,7 +134,10 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
         updatePISVoteStatus(prps.pisVoteId);
         require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
         require(false == prps.executed);
-        execute(prps.target,abi.encodePacked(prps.func, prps.param));
+        uint len = prps.orders.length;
+        for(uint i = 0; i < len; i++) {
+           execute(prps.target,abi.encodePacked(prps.func, prps.params[i]));
+        }
         prps.executed = true;
     }
 
