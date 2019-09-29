@@ -17,7 +17,7 @@ contract DirectorVoteContract is DSMath, Execution, Template, ACLSlave {
     event ConductVote(uint, uint, VoteStatus);
 
     struct Proposal {
-        bytes32 _attachmentHash;
+        bytes32 attachmentHash;
         address target; /// call contract of vote result
         bytes4 func; /// functionHash of the callback function
         bytes[] params; /// parameters for the callback function
