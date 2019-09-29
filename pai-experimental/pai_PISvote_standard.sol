@@ -134,7 +134,7 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
         updatePISVoteStatus(prps.pisVoteId);
         require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
         require(false == prps.executed);
-        uint len = prps.orders.length;
+        uint len = prps.params.length;
         for(uint i = 0; i < len; i++) {
            execute(prps.target,abi.encodePacked(prps.func, prps.params[i]));
         }
