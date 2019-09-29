@@ -17,6 +17,7 @@ contract DirectorVoteContract is DSMath, Execution, Template, ACLSlave {
     event ConductVote(uint, uint, VoteStatus);
 
     struct Proposal {
+        bytes32 _attachmentHash;
         address target; /// call contract of vote result
         bytes4 func; /// functionHash of the callback function
         bytes[] params; /// parameters for the callback function
@@ -144,11 +145,12 @@ contract DirectorVoteContract is DSMath, Execution, Template, ACLSlave {
     }
 
     /// @dev start a vote
-    function startProposal(uint FuncDataId,uint _startTime,address _targetContract,bytes[] _params) public auth("DIRECTOR") returns(uint) {
+    function startProposal(bytes32 _attachmentHash,uint FuncDataId,uint _startTime,address _targetContract,bytes[] _params) public auth("DIRECTOR") returns(uint) {
         require(0 == _startTime || _startTime >= height());
         lastAssignedProposalId = add(lastAssignedProposalId,1);
         FuncData storage fd = voteFuncDatas[FuncDataId];
         uint startTime = 0 == _startTime ? height():_startTime;
+        voteProposals[lastAssignedProposalId].attachmentHash = _attachmentHash;
         voteProposals[lastAssignedProposalId].target = _targetContract;
         voteProposals[lastAssignedProposalId].func = fd.func;
         voteProposals[lastAssignedProposalId].params = _params;

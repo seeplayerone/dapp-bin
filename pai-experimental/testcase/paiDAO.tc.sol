@@ -349,11 +349,12 @@ contract TestVoteST is TestBase {
         PISHolder1.transfer(1000000000000,ASSET_PIS);
         assertEq(flow.balance(p1,ASSET_PIS),0);
 
+        bytes32 ahash = keccak256("mintToP1");
         bytes[] memory params = new bytes[](3);
         params[0] = abi.encode(100,address(p1));
         params[1] = abi.encode(200,address(p1));
         params[2] = abi.encode(300,address(p1));
-        bool tempBool = PISHolder1.callStartProposal(VST,1,0,paiDAO,params,1000000000000,ASSET_PIS);
+        bool tempBool = PISHolder1.callStartProposal(VST,ahash,1,0,paiDAO,params,1000000000000,ASSET_PIS);
         assertTrue(tempBool);
 
         bytes4 methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
@@ -388,13 +389,15 @@ contract TestVoteDir is TestBase {
         assertTrue(btcCDP.enable(0));
         assertTrue(btcCDP.enable(1));
         assertTrue(btcCDP.enable(2));
+
+        bytes32 ahash = keccak256("changeTerm");
         bytes[] memory params = new bytes[](3);
         params[0] = abi.encode(uint8(0),false);
         params[1] = abi.encode(uint8(1),false);
         params[2] = abi.encode(uint8(2),false);
-        bool tempBool = PISHolder1.callStartProposal(DV,1,0,btcCDP,params);
+        bool tempBool = PISHolder1.callStartProposal(DV,ahash,1,0,btcCDP,params);
         assertTrue(!tempBool);
-        tempBool = director1.callStartProposal(DV,1,0,btcCDP,params);
+        tempBool = director1.callStartProposal(DV,ahash,1,0,btcCDP,params);
         assertTrue(tempBool);
 
         bytes4 methodId = bytes4(keccak256("directorVote(uint256,uint8)"));
