@@ -1,4 +1,5 @@
 pragma solidity 0.4.25;
+pragma experimental ABIEncoderV2;
 
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
@@ -18,7 +19,7 @@ contract DirectorVoteContract is DSMath, Execution, Template, ACLSlave {
     struct Proposal {
         address target; /// call contract of vote result
         bytes4 func; /// functionHash of the callback function
-        bytes param; /// parameters for the callback function
+        bytes[] params; /// parameters for the callback function
         bool executed; /// whether vote result is executed
         uint directorVoteId;
         uint pisVoteId;
