@@ -40,7 +40,7 @@ contract PISelection is Election,ACLSlave,DSMath {
 
     function startElectionInternal(bytes electionRole) internal {
         require(electionStates[electionRole].exist);
-        require(0 == electionStates[electionRole].electionId || nowBlock() > add(electionRecords[electionStates[electionRole].electionId].executionStartBlock, 1 days / ONE_BLOCK_Time))
+        require(0 == electionStates[electionRole].electionId || nowBlock() > add(electionRecords[electionStates[electionRole].electionId].executionStartBlock, 1 days / ONE_BLOCK_Time));
         uint electionId = startElection(nominateLength, electionLength, qualification);
         electionRecords[electionId].electionRole = electionRole;
         electionStates[electionRole].electionId = electionId;
@@ -74,8 +74,9 @@ contract PISelection is Election,ACLSlave,DSMath {
                 if(master.addressExist(electionRole[i], candidate)) {
                     return;
                 }
-                if(electionStates[electionRole[i]].electionId != 0 && 
+                if(electionStates[electionRole[i]].electionId != 0 &&
                    false == electionStates[electionRole[i]].electionId.executed &&
+                   nowBlock() < add(electionRecords[electionStates[electionRole[i]].electionId].executionStartBlock, 1 days / ONE_BLOCK_Time) &&
                    electionRecords[electionStates[electionRole[i]].electionId].candidates.contains(candidate)
                     ) {
                     return;
@@ -139,16 +140,17 @@ contract PISelection is Election,ACLSlave,DSMath {
             processElectionResult(electionIndex);
         }
         uint len = master.getMemberLimit(electionRoles[electionIndex]);
-        if (0 == election.candidates.length) {
+        address[] memory tempAddr = getNoneZeroElectionCandidates();
+        if (0 == tempAddr.length) {
             return;
         }
-        if (0 == len || len > election.candidates.length) {
-            len = election.candidates.length;
+        if (0 < len && len < tempAddr.length) {
+            tempAddr.length = len;
         }
-        address[] memory tempAddr = new address[](len);
-        for(uint i = 0; i < len; i++) {
-            tempAddr[i] = election.candidates[i];
-        }
+        
+        // for(uint i = 0; i < len; i++) {
+        //     tempAddr[i] = election.candidates[i];
+        // }
         master.resetMembers(tempAddr,electionRoles[electionIndex]);
         executed[electionIndex] = true;
     }

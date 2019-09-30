@@ -28,7 +28,7 @@ contract Election is Template {
         /// @dev rates will be recorded in 10**8
         address[] candidates;
         uint[] candidateSupportRates;
-        mapping[address => bool] quit;
+        mapping(address => bool) quit;
 
         bool created;
         bool sorted;
