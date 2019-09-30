@@ -406,10 +406,23 @@ contract TestVoteDir is TestBase {
         assertTrue(!tempBool);
         tempBool = director1.execute(DV,methodId,param);
         assertTrue(tempBool);
+        tempBool = director1.execute(DV,methodId,param);
+        assertTrue(!tempBool);
         tempBool = director2.execute(DV,methodId,param);
         assertTrue(tempBool);
+        tempBool = director1.execute(DV,methodId,param);
+        assertTrue(!tempBool);
+        tempBool = director2.execute(DV,methodId,param);
+        assertTrue(!tempBool);
         tempBool = director3.execute(DV,methodId,param);
         assertTrue(tempBool);
+        tempBool = director1.execute(DV,methodId,param);
+        assertTrue(!tempBool);
+        tempBool = director2.execute(DV,methodId,param);
+        assertTrue(!tempBool);
+        tempBool = director3.execute(DV,methodId,param);
+        assertTrue(!tempBool);
+
 
         DV.advancePISVote(1);
 

@@ -6,53 +6,129 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 
 contract PISelection is Election,ACLSlave,DSMath {
-    mapping (uint => bool) public executed;
-    mapping (uint => bytes) public electionRoles;
-    mapping (bytes => uint) candidatesNumberLimit;
+    struct ElectionState {
+        bool exist;
+        bool executed;
+        uint electionId;
+        uint candidatesNumberLimit;
+    }
+    mapping(bytes => ElectionState) electionStates;
 
-    uint public nominateLength = 7 days / 5;
-    uint public electionLength = 7 days / 5;
+    uint electionStateId;
+    mapping(uint => bytes) electionRole;
+
+    uint constant public ONE_BLOCK_Time = 5;
+    uint public nominateLength = 7 days / ONE_BLOCK_Time;
+    uint public electionLength = 7 days / ONE_BLOCK_Time;
     uint public qualification = RAY / 20;
     constructor(address paiMainContract) {
         master = ACLMaster(paiMainContract);
         assettype = PAIDAO(master).PISGlobalId();
     }
 
-    function setCandidatesLimit(bytes role, uint limits) public auth("PISVOTE") {
-        candidatesNumberLimit[role] = limits;
+    function createNewElectionType(bytes role, uint limit) public auth("PISVOTE") {
+        require(!electionStates[role].exist);
+        electionStateId = add(electionStateId,1);
+        electionRole[electionStateId] = role;
+        electionStates[role].exist = true;
+        electionStates[role].candidatesNumberLimit = limit;
     }
 
     function updateTotalSupply() public {
         (,,,,, totalSupply) = PAIDAO(master).getAssetInfo(0);
     }
 
-    function startElectionByDirector(bytes electionRole) public auth("DIRECTOR") {
-        updateTotalSupply();
+    function startElectionInternal(bytes electionRole) internal {
+        require(electionStates[electionRole].exist);
+        require(0 == electionStates[electionRole].electionId || nowBlock() > add(electionRecords[electionStates[electionRole].electionId].executionStartBlock, 1 days / ONE_BLOCK_Time))
         uint electionId = startElection(nominateLength, electionLength, qualification);
-        electionRoles[electionId] = electionRole;
+        electionRecords[electionId].electionRole = electionRole;
+        electionStates[electionRole].electionId = electionId;
+        nominateCandidates(electionId,master.getMembers(electionRole));
+    }
+
+
+    function startElectionByDirector(bytes electionRole) public auth("DIRECTOR") {
+        startElectionInternal(electionRole);
     }
 
     function startElectionByPISHolder(bytes electionRole) public payable {
         updateTotalSupply();
         require(percent(msg.value, totalSupply) >= qualification);
-        uint electionId = startElection(nominateLength, electionLength, qualification);
-        electionRoles[electionId] = electionRole;
+        startElectionInternal(electionRole);
+    }
+
+    function nominateCandidate(uint electionIndex, address candidate) internal {
+        ElectionRecord storage election = electionRecords[electionIndex];
+        require(election.created);
+        if(candidate == 0x0){
+            return;
+        }
+        if(election.candidates.contains(candidate)) {
+            return;
+        }
+        require(nowBlock() >= election.nominateStartBlock);
+        require(nowBlock() < election.electionStartBlock);
+        for(uint i = 1; i < electionStateId; i++) {
+            if(electionRole[i] != election.electionRole) {
+                if(master.addressExist(electionRole[i], candidate)) {
+                    return;
+                }
+                if(electionStates[electionRole[i]].electionId != 0 && 
+                   false == electionStates[electionRole[i]].electionId.executed &&
+                   electionRecords[electionStates[electionRole[i]].electionId].candidates.contains(candidate)
+                    ) {
+                    return;
+                }
+            }
+        }
+        election.candidates.push(candidate);
+        election.candidateSupportRates.push(0);
+        msg.sender.transfer(msg.value,assettype);
+    }
+
+    function nominateCandidates(uint electionIndex, address[] candidates) internal {
+        for(uint i = 0; i < candidates.length; i++) {
+            nominateCandidate(electionIndex,candidates[i]);
+        }
+    }
+
+    function nominateCandidateByPIS(uint electionIndex, address candidate) public payable {
+        ElectionRecord storage election = electionRecords[electionIndex];
+        require(election.created);
+        updateTotalSupply();
+        require(msg.assettype == assettype);
+        require(percent(msg.value, totalSupply) >= election.nominateQualification);
+        nominateCandidate(electionIndex,candidate);
+        msg.sender.transfer(msg.value,assettype);
+    }
+
+    function nominateCandidatesByPIS(bytes electionRole, address[] candidates) public payable {
+        require(0 != electionStates[electionRole].electionId);
+        ElectionRecord storage election = electionRecords[electionStates[electionRole].electionId];
+        require(election.created);
+        uint length = candidates.length;
+        require(length > 0);
+        require(percent(msg.value, totalSupply) >= election.nominateQualification.mul(length));
+        require(msg.assettype == assettype);
+        nominateCandidates(electionIndex,candidates);
         msg.sender.transfer(msg.value,assettype);
     }
 
     function nominateByDirectors(uint electionIndex, address[] candidates) public auth("DIRECTORVOTE") {
         ElectionRecord storage election = electionRecords[electionIndex];
-        require(add(candidates.length, election.candidates.length) <= candidatesNumberLimit[electionRoles[electionIndex]]);
-        nominateCandidatesByAuthroity(electionIndex,candidates);
+        require(nowBlock() >= election.electionStartBlock);
+        require(nowBlock() < election.executionStartBlock);
+        require(add(candidates.length, election.candidates.length) <= electionStates[electionRecords.electionRole].candidatesNumberLimit);
+        nominateCandidates(electionIndex,candidates);
     }
 
-    function becomeCandidates(uint electionIndex) public auth(string(electionRoles[electionIndex])){
+    function quit(uint electionIndex) public {
         ElectionRecord storage election = electionRecords[electionIndex];
         require(nowBlock() >= election.nominateStartBlock);
         require(nowBlock() < election.electionStartBlock);
-        require(!election.candidates.contains(msg.sender));
-        election.candidates.push(msg.sender);
-        election.candidateSupportRates.push(0);
+        require(election.candidates.contains(msg.sender));
+        election.quit[msg.sender] = true;
     }
 
     function executeResult(uint electionIndex) public {
