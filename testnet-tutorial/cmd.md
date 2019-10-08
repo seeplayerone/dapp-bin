@@ -6,39 +6,39 @@ This document shows how to use the Asimov blockchain cmd tool.
 
 ```npm install -g @asimovdev/asimov-cli```
 
-After successfully installed asimov cmd tool, type ```asi -h```
+After successfully install asimov cmd tool, try ```asi -h```
 
 ![](./img/cmd-asi-h.png)
 
 ## Config
 
-You can set configuration parameters for the cmd tool. Currently, there is only one parameter which is the url to provide rpc services. Type ```asi config -h```
+You can set configuration parameters for the cmd tool. Currently, there is only one parameter which is the url to provide rpc services. ```asi config -h```
 
 ![](./img/cmd-asi-config-h.png)
 
-if not set, it defaults ```http://127.0.0.1:8545```. 
+if not set, it defaults to ```http://127.0.0.1:8545```. 
 
 > Note that the asimov cmd tool needs to run against a local/remote asimov node.
 
 ## Account
 
-You need to setup accounts for the cmd tool before interacting with asimov blockchain. Type ```asi account -h```
+You need to setup accounts for the cmd tool before interacting with asimov blockchain. ```asi account -h```
 
 ![](./img/cmd-asi-account-h.png)
 
-Type ```asi account create``` and import a private key to create an account
+Try ```asi account create``` and import a private key to create an account
 
 ![](./img/cmd-asi-account-create.png)
 
-Type ```asi account use``` to set a default account
+Try ```asi account use``` to set a default account
 
 ![](./img/cmd-asi-account-use.png)
 
-Type ```asi account list```, ```asi account balance``` and ```asi account utxo``` to view list of accounts, balances and utxo sets.
+Try ```asi account list```, ```asi account balance``` and ```asi account utxo``` to view list of accounts, balances and utxo sets.
 
 ## RPC
 
-You can construct an RPC call to interact with asimov node by using the rpc cmd. Type ```asi rpc -h```
+You can construct an RPC call to interact with asimov node by using the rpc cmd. ```asi rpc -h```
 
 ![](./img/cmd-asi-rpc-h.png)
 
@@ -46,11 +46,11 @@ You can construct an RPC call to interact with asimov node by using the rpc cmd.
 
 ![](./img/cmd-asi-rpc-sample.png)
 
-Note you can do everything against the Asimov blockchain through the rpc cmd. The below **template**, **call**, **tx** cmd are shortcuts for specific rpc calls.
+Note you can do everything against the Asimov blockchain through the rpc cmd. The below **template**, **call**, **tx** cmd are shortcuts for corresponding rpc calls.
 
 ## Template
 
-You can use the template cmd to submit a template and deploy contract instance from template id. Type ```asi template -h```
+You can use the template cmd to submit template and deploy contract instance. ```asi template -h```
 
 ![](./img/cmd-asi-template-h.png)
 
@@ -68,11 +68,11 @@ Or, you can combine create/deploy together by ```asi template -s /Users/xxd/gitf
 
 ## Call
 
-You can interact with a contract deployed on asimov by the call cmd. Type ```asi call -h```
+You can interact with a contract deployed on asimov by the call cmd. ```asi call -h```
 
 ![](./img/cmd-asi-call-h.png)
 
-Try ```asi call -c 0x6398444ae8c81285b1fe0571c1d1e1d6908d22729c -m 'mint(uint256)' -a '[10000000000]'``` to call a write function in a contract.
+Try ```asi call -c 0x6398444ae8c81285b1fe0571c1d1e1d6908d22729c -m 'mint(uint256)' -a '[10000000000]'``` to call a public function in a contract.
 
 ![](./img/cmd-asi-call-sample-2.png)
 
@@ -82,7 +82,7 @@ Try ```asi call -c 0x6398444ae8c81285b1fe0571c1d1e1d6908d22729c -m 'checkTotalSu
 
 ## Tx
 
-You can send send a transaction or fetch detail of a transaction by the tx cmd. Type ```asi tx -h```
+You can send a transaction or fetch detail of a transaction by the tx cmd. ```asi tx -h```
 
 ![](./img/cmd-asi-tx-h.png)
 
