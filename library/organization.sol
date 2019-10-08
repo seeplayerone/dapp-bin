@@ -9,6 +9,7 @@ import "./asset.sol";
 interface Registry {
      function registerOrganization(string organizationName, string templateName) external returns(uint32);
      function renameOrganization(string organizationName) external;
+     function updateOrganizationStatus(bool status) external;
 }
 
 /// @title basic organization which inherits Template, ACL and Asset, it has capabilities to:
@@ -120,6 +121,11 @@ contract Organization is Template, ACL, Asset {
     function rename(string newOrganizationName) internal {
         organizationName = newOrganizationName;
         registry.renameOrganization(newOrganizationName);
+    }
+
+    /// @dev update organization status
+    function updateStatus(bool status) internal {
+        registry.updateOrganizationStatus(status);
     }
     
     /// @dev create an asset

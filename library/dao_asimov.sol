@@ -15,9 +15,11 @@ contract Association is Organization {
     ///  there is only one president for the organization
     ///  array is used to support the authAddresses() modifier
     address[] presidents;
+    address[] candidatePresidents;
     
     /// members of the organization
     address[] members;
+    address[] invitees;
     
     /// whether the organization is registered
     bool hasRegistered;
@@ -28,6 +30,10 @@ contract Association is Organization {
     
     /// map for quick reference
     mapping(address => bool) existingMembers;
+    /// map for quick reference
+    mapping(address => bool) existingInvitees;
+    /// map for quick reference
+    mapping(address => bool) existingCandidatePresidents;
     
     /// @dev EVENTS
     /// update members of the organization, including transferring the president role
@@ -40,6 +46,16 @@ contract Association is Organization {
     event TransferSuccessEvent(bool);
     /// create vote contract
     event CreateVoteContract(address);
+    /// invite new president
+    event InviteNewPresident(address);
+    /// confirm new president
+    event ConfirmNewPresident(address);
+    /// invite new member
+    event InviteNewMember(address);
+    /// join new member
+    event JoinNewMember(address);
+    /// close the organization
+    event CloseOrganization(bool);
     
     /// @dev fallback function, which is set to payable to accept various Asimov assets
     ///  if you want to restrict the asset type, this is the place to call asi.asset instruction
@@ -175,6 +191,8 @@ contract Association is Organization {
     
     /**
      * @dev Transfer president role
+     * if the new president is one of the existing members, confirm directly.
+     * else start an invite for new president to confirm
      * 
      * @param newPresident address of the new president
      */
@@ -182,35 +200,70 @@ contract Association is Organization {
         public 
         authAddresses(presidents)
     {
+        if (existingMembers[newPresident] || presidents[0] == newPresident) {
+            delete presidents[0];
+            presidents.length--;
+            presidents.push(newPresident);
+            emit ConfirmNewPresident(newPresident);
+        } else {
+            require(!existingCandidatePresidents[newPresident], "you have invited the president");
+            candidatePresidents.push(newPresident);
+            existingCandidatePresidents[newPresident] = true;
+            emit InviteNewPresident(newPresident);
+        }
+    }
+
+    /**
+     * @dev new president confirm
+     */
+    function confirmPresident() public authAddresses(candidatePresidents) {
         delete presidents[0];
         presidents.length--;
-        presidents.push(newPresident);
-        
-        emit UpdateMemberEvent(true);
+        presidents.push(msg.sender);
+        for (uint i = 0; i < candidatePresidents.length; i++) {
+            existingCandidatePresidents[candidatePresidents[i]] = false;
+        }
+        delete candidatePresidents;
+        emit ConfirmNewPresident(msg.sender);
     }
     
     /**
      * @dev add members
      * 
-     * @param newMembers addresses of new members
+     * @param newMember address of new member
      */
-    function addNewMembers(address[] newMembers)
+    function inviteNewMember(address newMember)
         public 
         authAddresses(presidents)
     {
-        uint length = newMembers.length;
-        require(length > 0, "no addresses provided");
-        
+        require(!existingMembers[newMember] && existingInvitees[newMember], "member has existed!");
+
+        existingInvitees[newMember] = true;
+        invitees.push(newMember);
+
+        emit InviteNewMember(newMember);
+    }
+    
+    /**
+     * @dev join the organization
+     */
+    function join() internal authAddresses(invitees) {
+        existingInvitees[msg.sender] = false;
+        uint length = invitees.length;
         for (uint i = 0; i < length; i++) {
-            if (!existingMembers[newMembers[i]]) {
-                members.push(newMembers[i]);
-                configureFunctionAddress(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),START_VOTE_FUNCTION), newMembers[i], OpMode.Add);
-                configureFunctionAddress(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),VOTE_FUNCTION), newMembers[i], OpMode.Add);
-                existingMembers[newMembers[i]] = true;
+            if (msg.sender == invitees[i]) {
+                if (i != length-1) {
+                    invitees[i] = invitees[length-1];
+                }
+                invitees.length--;
+                break;
             }
         }
-        
-        emit UpdateMemberEvent(true);
+        members.push(msg.sender);
+        existingMembers[msg.sender] = true;
+        configureFunctionAddress(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),START_VOTE_FUNCTION), msg.sender, OpMode.Add);
+        configureFunctionAddress(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),VOTE_FUNCTION), msg.sender, OpMode.Add);
+        emit JoinNewMember(msg.sender);
     }
     
     /**
@@ -231,7 +284,6 @@ contract Association is Organization {
                     if (i != length-1) {
                         members[i] = members[length-1];
                     }
-                    delete members[length-1];
                     members.length--;
                     existingMembers[member] = false;
                     break;
@@ -240,4 +292,14 @@ contract Association is Organization {
         }
         emit UpdateMemberEvent(true);
     }    
+
+    /**
+     * @dev close the organization
+     */
+    function close() public authAddresses(presidents) {
+        updateStatus(true);
+        emit CloseOrganization(true);
+        selfdestruct(this);
+    }
+
 }
