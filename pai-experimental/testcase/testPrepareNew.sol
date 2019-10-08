@@ -91,8 +91,8 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callSetCandidatesLimit(address election, bytes role, uint limits) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("setCandidatesLimit(bytes,uint256)"));
+    function callCreateNewElectionType(address election, bytes role, uint limits) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("createNewElectionType(bytes,uint256)"));
         bool result = PISelection(election).call(abi.encodeWithSelector(methodId,role,limits));
         return result;
     }
