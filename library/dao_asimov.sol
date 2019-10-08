@@ -47,9 +47,9 @@ contract Association is Organization {
     /// create vote contract
     event CreateVoteContract(address);
     /// invite new president
-    event InviteNewPresident(address);
+    event InviteNewPresident(uint, address);
     /// confirm new president
-    event ConfirmNewPresident(address);
+    event ConfirmNewPresident(uint, address);
     /// invite new member
     event InviteNewMember(address);
     /// join new member
@@ -204,12 +204,12 @@ contract Association is Organization {
             delete presidents[0];
             presidents.length--;
             presidents.push(newPresident);
-            emit ConfirmNewPresident(newPresident);
+            emit ConfirmNewPresident(1, newPresident);
         } else {
             require(!existingCandidatePresidents[newPresident], "you have invited the president");
             candidatePresidents.push(newPresident);
             existingCandidatePresidents[newPresident] = true;
-            emit InviteNewPresident(newPresident);
+            emit InviteNewPresident(2, newPresident);
         }
     }
 
@@ -224,7 +224,7 @@ contract Association is Organization {
             existingCandidatePresidents[candidatePresidents[i]] = false;
         }
         delete candidatePresidents;
-        emit ConfirmNewPresident(msg.sender);
+        emit ConfirmNewPresident(1, msg.sender);
     }
     
     /**
