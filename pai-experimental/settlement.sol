@@ -11,14 +11,16 @@ import "github.com/seeplayerone/dapp-bin/library/template.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/cdp.sol";
+import "github.com/seeplayerone/dapp-bin/library/acl_slave.sol";
 
-contract Settlement is Template, DSNote {
+contract Settlement is Template, DSNote, ACLSlave {
 
     CDP private cdp;
     Liquidator private liquidator;
     PriceOracle private oracle;
 
-    constructor(address _po, address _cdp, address _lq) public {
+    constructor(address paiMainContract,address _po, address _cdp, address _lq) public {
+        master = ACLMaster(paiMainContract);
         oracle = PriceOracle(_po);
         cdp = CDP(_cdp);
         liquidator = Liquidator(_lq);
@@ -30,22 +32,17 @@ contract Settlement is Template, DSNote {
     ///        Liquidator can not sell collateral at this phase.
     ///     2. All CDPs are liquidated, withdraw operation is still allowed if more collaterals are left in CDPs.
     ///        A final collateral price is calculated for users to redeem PAI for collateral from Liquidator.
-    function terminatePhaseOne() public note {
-        require(!cdp.inSettlement());
-
+    function terminatePhaseOne() public note auth("PISVOTE") {
+        require(!cdp.settlement());
         oracle.terminate();
-
         cdp.updateRates();
         cdp.terminate();
-
         liquidator.cancelDebt();
         liquidator.terminatePhaseOne();
     }
 
-    function terminatePhaseTwo() public note {
+    function terminatePhaseTwo() public note auth("DIRECTORVOTE") {
         require(cdp.readyForPhaseTwo());
-
         liquidator.terminatePhaseTwo();
     }
-    
 }

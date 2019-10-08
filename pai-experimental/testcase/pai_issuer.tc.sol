@@ -1,52 +1,86 @@
 pragma solidity 0.4.25;
 
-// import "../../library/template.sol";
-// import "../pai_issuer.sol";
-// import "../3rd/test.sol";
-
 import "github.com/seeplayerone/dapp-bin/library/template.sol";
 import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/testPI.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_main.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/testcase/testPrepare.sol";
 
-contract FakePAIIssuer is PAIIssuer {
-    constructor() public {
-        templateName = "Fake-Template-Name-For-Test";
-    }
-}
 
-contract PAIIssuerTest is Template, DSTest {
-    FakePAIIssuer private issuer;
-    address private dest = 0x668eb397ce8ccc9caec9fec1b019a31f931725ca94;
-    address private hole = 0x660000000000000000000000000000000000000000;
-
+contract TestPaiIssuer is Template, DSTest {
+    uint96 ASSET_PIS;
+    uint96 ASSET_PAI;
     function() public payable {}
 
-    function setup() public {
-        issuer = new FakePAIIssuer();
-        issuer.init("sb");
+    function testInit() public {
+        FakePaiDaoNoGovernance paiDAO = new FakePaiDaoNoGovernance("PAIDAO");
+        paiDAO.init();
+        FakePAIIssuer issuer = new FakePAIIssuer("PAIISSUER",paiDAO);
+        issuer.init();
+
+        FakePerson p1 = new FakePerson();
+
+        ASSET_PIS = paiDAO.PISGlobalId();
+        ASSET_PAI = issuer.PAIGlobalId();
+
+        paiDAO.mint(100000000,p1);
+        assertEq(100000000,flow.balance(p1,ASSET_PIS));//0
+
+        issuer.mint(200000000,p1);
+        assertEq(200000000,flow.balance(p1,ASSET_PAI));//1
     }
 
-    function testCreate() public {
-        setup();
-        issuer.mint(100000000, dest);
-        assertEq(100000000, flow.balance(dest, issuer.getAssetType()));
+    function testAssetRelated() public {
+        FakePaiDaoNoGovernance paiDAO = new FakePaiDaoNoGovernance("PAIDAO");
+        paiDAO.init();
+        ASSET_PIS = paiDAO.PISGlobalId();
+        FakePAIIssuer issuer = new FakePAIIssuer("PAIISSUER",paiDAO);
+        issuer.init();
+        ASSET_PAI = issuer.PAIGlobalId();
+
+        FakePerson p1 = new FakePerson();
+        p1.callMint(issuer,100000000,p1);
+        (bool exist, string memory name, string memory symbol, string memory description, uint32 assetType, uint totalSupply) =
+            issuer.getAssetInfo(0);
+        assertTrue(exist);//0
+        assertEq(name,"PAI");//1
+        assertEq(symbol,"PAI");//2
+        assertEq(description,"PAI Stable Coin");//3
+        assertEq(uint(assetType),0);//4
+        assertEq(totalSupply,100000000);//5
+
+        issuer.mint(100000000,p1);
+        (,,,,,totalSupply) = issuer.getAssetInfo(0);
+        assertEq(totalSupply,200000000);//6
+        bool tempBool = p1.callBurn(issuer,50000000,ASSET_PAI);
+        assertTrue(tempBool);//7
+        (,,,,,totalSupply) = issuer.getAssetInfo(0);
+        assertEq(totalSupply,150000000);//8
     }
 
-    function testCreateAndMint() public {
-        setup();
-        issuer.mint(100000000, dest);
-        issuer.mint(100000000, dest);
-        assertEq(200000000, flow.balance(dest,issuer.getAssetType()));
-    }
-    
-    function testCreateBurn() public {
-        setup();
-        issuer.mint(200000000, this);
+    function testGovernance() public {
+        FakePaiDao paiDAO;
+        FakePerson p1 = new FakePerson();
+        FakePerson p2 = new FakePerson();
 
-        assertEq(200000000, flow.balance(this, issuer.getAssetType()));
-        issuer.burn.value(100000000, issuer.getAssetType())();
+        paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
+        paiDAO.init();
+        ASSET_PIS = paiDAO.PISGlobalId();
+        FakePAIIssuer issuer = new FakePAIIssuer("PAIISSUER",paiDAO);
+        issuer.init();
+        ASSET_PAI = issuer.PAIGlobalId();
 
-        assertEq(100000000, flow.balance(this, issuer.getAssetType()));
-        assertEq(100000000, flow.balance(hole, issuer.getAssetType()));
+        bool tempBool = p1.callMint(issuer,100000000,p1);
+        assertTrue(!tempBool);//0
+        tempBool = p2.callMint(issuer,100000000,p1);
+        assertTrue(!tempBool);//1
+        tempBool = p1.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
+        assertTrue(tempBool);//2
+        tempBool = p1.callAddMember(paiDAO,p2,"PAIMINTER");
+        assertTrue(tempBool);//3
+        tempBool = p1.callMint(issuer,100000000,p1);
+        assertTrue(!tempBool);//4
+        tempBool = p2.callMint(issuer,100000000,p1);
+        assertTrue(tempBool);//5
     }
 }

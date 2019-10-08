@@ -1,16 +1,11 @@
 pragma solidity 0.4.25;
 
 import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
-
-// import "../pai-experimental/3rd/math.sol";   ///never tested
-// import "./template.sol";                     ///never tested
-
+import "github.com/seeplayerone/dapp-bin/library/execution.sol";
 
 /// @title This is a vote base contract, so it is not necessary to check permissions
 /// @dev Every template contract needs to inherit Template contract directly or indirectly
-contract BasicVote is Template, DSMath {
-    using StringLib for string;
+contract BasicVote is DSMath, Execution {
 
     enum VoteStatus {NOTSTARTED, ONGOING, APPROVED, REJECTED}
     uint lastAssignedVoteId = 0;
@@ -173,7 +168,7 @@ contract BasicVote is Template, DSMath {
         require(voteId <= lastAssignedVoteId, "vote not exist");
         Vote storage va = votes[voteId];
         if(VoteStatus.APPROVED == va.status && false == va.executed) {
-            invokeOrganizationContract(va.func, va.param, va.target);
+            execute(va.target,abi.encodePacked(va.func, va.param));
             va.executed = true;
         }
     }
@@ -181,36 +176,6 @@ contract BasicVote is Template, DSMath {
     function timeNow() public view returns (uint256) {
         return block.timestamp;
     }
-
-    /// @dev callback function to invoke organization contract   
-    /// @param _func functionHash
-    /// @param _param bytecode parameter
-    function invokeOrganizationContract(bytes4 _func, bytes _param, address _addr) internal {
-        address tempAddress = _addr;
-        uint paramLength = _param.length;
-        uint totalLength = 4 + paramLength;
-
-        assembly {
-            let p := mload(0x40)
-            mstore(p, _func)
-            for { let i := 0 } lt(i, paramLength) { i := add(i, 32) } {
-                mstore(add(p, add(4,i)), mload(add(add(_param, 0x20), i)))
-            }
-
-            let success := call(not(0), tempAddress, 0, 0, p, totalLength, 0, 0)
-
-            let size := returndatasize
-            returndatacopy(p, 0, size)
-
-            switch success
-            case 0 {
-                revert(p, size)
-            }
-            default {
-                return(p, size)
-            }
-        }
-    } 
 }
 
 

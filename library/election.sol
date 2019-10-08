@@ -8,11 +8,6 @@ import "github.com/seeplayerone/dapp-bin/library/template.sol";
 import "github.com/seeplayerone/dapp-bin/library/array_utils.sol";
 import "github.com/seeplayerone/dapp-bin/library/SafeMath.sol";
 
-interface Issuer {
-    function getAssetType() public view returns (uint);
-    function getAssetInfo(uint32 index) public view returns (bool, string, string, string, uint32, uint);
-}
-
 contract Election is Template {
 
     using AddressArrayUtils for address[];
@@ -22,24 +17,27 @@ contract Election is Template {
         /// @dev there are three stages in an election
         ///       nominate stage ~ a qulified address starts an election, all quilified addresses nominate candidates
         ///       election stage ~ all stake holders vote for their heros
-        ///       execution stage ~ election starter triggers the contract to process the election result 
+        ///       execution stage ~ election starter triggers the contract to process the election result
         uint nominateStartBlock;
         uint electionStartBlock;
         uint executionStartBlock;
 
-        /// @dev every election is conducted under a native asset issued on Asimov blockchain
-        uint assettype;
-        uint totalSupply;
         /// @dev will be recorded in 10**8
         uint nominateQualification;
 
         /// @dev rates will be recorded in 10**8
         address[] candidates;
         uint[] candidateSupportRates;
+        mapping(address => bool) quit;
 
         bool created;
         bool sorted;
+        bytes electionRole;
     }
+
+    /// @dev every election is conducted under a native asset issued on Asimov blockchain
+    uint assettype;
+    uint totalSupply;
 
     /// @dev auto incremental index to record all elections
     uint currentElectionIndex = 1;
@@ -49,10 +47,10 @@ contract Election is Template {
     uint constant public ONE_DAY_BLOCKS = 12 * 60 * 24;
 
     /// @dev before election
-    function startElection(uint nominateLength, uint electionLength, address issuerAddress, uint qualification) public returns (uint) {
+    function startElection(uint nominateLength, uint electionLength, uint qualification) internal returns (uint) {
         ElectionRecord storage election = electionRecords[currentElectionIndex];
         require(!election.created);
-        election.nominateStartBlock = block.number;
+        election.nominateStartBlock = nowBlock();
 
         require(nominateLength >= ONE_DAY_BLOCKS);
         require(electionLength >= ONE_DAY_BLOCKS);
@@ -61,69 +59,68 @@ contract Election is Template {
 
         election.nominateQualification = qualification;
 
-        require(issuerAddress != 0x0);
-        election.assettype = Issuer(issuerAddress).getAssetType();
-        (, , , , , election.totalSupply) = Issuer(issuerAddress).getAssetInfo(1);
-
         currentElectionIndex = currentElectionIndex.add(1);
         election.created = true;
         
         return currentElectionIndex.sub(1);
-    } 
+    }
 
-    /// @dev nominate stage
-    function nominateCandidate(uint electionIndex, address candidate) public payable {
-        ElectionRecord storage election = electionRecords[electionIndex];
-        require(election.created);
-        require(percent(msg.value, election.totalSupply) >= election.nominateQualification);
-        require(msg.assettype == election.assettype);
+    // /// @dev nominate stage
+    // function nominateCandidate(uint electionIndex, address candidate) public payable {
+    //     ElectionRecord storage election = electionRecords[electionIndex];
+    //     require(election.created);
+    //     require(percent(msg.value, totalSupply) >= election.nominateQualification);
+    //     require(msg.assettype == assettype);
 
-        require(candidate != 0x0);
-        require(!election.candidates.contains(candidate));
+    //     require(candidate != 0x0);
+    //     require(!election.candidates.contains(candidate));
 
-        require(nowBlock() >= election.nominateStartBlock);
-        require(nowBlock() < election.electionStartBlock);
+    //     require(nowBlock() >= election.nominateStartBlock);
+    //     require(nowBlock() < election.electionStartBlock);
 
-        election.candidates.push(candidate);
-        election.candidateSupportRates.push(0);
-    } 
+    //     election.candidates.push(candidate);
+    //     election.candidateSupportRates.push(0);
+    //     msg.sender.transfer(msg.value,assettype);
+    // }
 
-    function nominateCandidates(uint electionIndex, address[] candidates) public payable {
-        ElectionRecord storage election = electionRecords[electionIndex];
-        require(election.created);
-        uint length = candidates.length;
-        require(length > 0);
-        require(percent(msg.value, election.totalSupply) >= election.nominateQualification.mul(length));
-        require(msg.assettype == election.assettype);
+    // function nominateCandidates(uint electionIndex, address[] candidates) public payable {
+    //     ElectionRecord storage election = electionRecords[electionIndex];
+    //     require(election.created);
+    //     uint length = candidates.length;
+    //     require(length > 0);
+    //     require(percent(msg.value, totalSupply) >= election.nominateQualification.mul(length));
+    //     require(msg.assettype == assettype);
         
-        for(uint i = 0; i < length; i ++) {
-            nominateCandidate(electionIndex, candidates[i]);
-        }
-    }
+    //     for(uint i = 0; i < length; i ++) {
+    //         nominateCandidate(electionIndex, candidates[i]);
+    //     }
+    //     msg.sender.transfer(msg.value,assettype);
+    // }
 
-    /// @dev election stage
-    function nominateCandidatesByAuthroity(uint electionIndex, address[] candidates) public {
-        ElectionRecord storage election = electionRecords[electionIndex];
-        require(election.created);
+    // /// @dev election stage
+    // function nominateCandidatesByAuthroity(uint electionIndex, address[] candidates) internal {
+    //     ElectionRecord storage election = electionRecords[electionIndex];
+    //     require(election.created);
 
-        require(nowBlock() >= election.electionStartBlock);
-        require(nowBlock() < election.executionStartBlock);
+    //     require(nowBlock() >= election.electionStartBlock);
+    //     require(nowBlock() < election.executionStartBlock);
 
-        uint length = candidates.length;
-        require(length > 0);
+    //     uint length = candidates.length;
+    //     require(length > 0);
 
-        for(uint i = 0; i < length; i ++) {
-            address candidate = candidates[i];
-            require(candidate != 0x0);
-            require(!election.candidates.contains(candidate));
+    //     for(uint i = 0; i < length; i ++) {
+    //         address candidate = candidates[i];
+    //         require(candidate != 0x0);
+    //         require(!election.candidates.contains(candidate));
 
-            election.candidates.push(candidate);
-            election.candidateSupportRates.push(0);
-        }
-    }
+    //         election.candidates.push(candidate);
+    //         election.candidateSupportRates.push(0);
+    //     }
+    // }
 
     function voteForCandidate(uint electionIndex, address candidate) public payable {
         ElectionRecord storage election = electionRecords[electionIndex];
+        require(!election.quit[candidate]);
         require(election.created);
 
         require(candidate != 0x0);
@@ -132,10 +129,10 @@ contract Election is Template {
         require(nowBlock() >= election.electionStartBlock);
         require(nowBlock() < election.executionStartBlock);
 
-        require(msg.assettype == election.assettype);
+        require(msg.assettype == assettype);
 
         (uint index,) = election.candidates.indexOf(candidate);
-        election.candidateSupportRates[index] = election.candidateSupportRates[index].add(percent(msg.value, election.totalSupply));
+        election.candidateSupportRates[index] = election.candidateSupportRates[index].add(percent(msg.value, totalSupply));
     }
 
     /// @dev execution stage
@@ -160,16 +157,14 @@ contract Election is Template {
         return block.number;
     }
 
-    /// @dev percent in 10**8
+    /// @dev percent in 10**27
     function percent(uint own, uint total) public pure returns (uint){
-        return own.mul(10**8).div(total);
-    } 
+        return own.mul(10**27).div(total);
+    }
 
     /// @dev should test gas comsumptions
     function bubbleSort(uint[] memory values, address[] memory addresses) internal returns (uint[], address[]){
         uint length = values.length;
-        uint tempValue;
-        address tempAddress;
         for (uint i = 0; i < length - 1; i ++) {
             for (uint j = 0; j < length - i - 1; j ++) {
                 if(values[j] < values[j+1]) {
@@ -207,7 +202,7 @@ contract Election is Template {
 
     /// @dev readonly functions
     function getElectionRecord(uint index) public view returns (uint, uint, uint) {
-        return (electionRecords[index].assettype, electionRecords[index].totalSupply, electionRecords[index].nominateQualification);
+        return (assettype, totalSupply, electionRecords[index].nominateQualification);
     }
 
     function getElectionCandidates(uint index) public view returns (address[]) {
@@ -216,5 +211,16 @@ contract Election is Template {
 
     function getElectionCandidateSupportRates(uint index) public view returns (uint[]) {
         return electionRecords[index].candidateSupportRates;
+    }
+
+    function getNoneZeroElectionCandidates(uint index) public view returns (address[]) {
+        address[] results;
+        for(uint i = 0; i < electionRecords[index].candidateSupportRates.length; i++) {
+            if (0 == electionRecords[index].candidateSupportRates[i]) {
+                return results;
+            }
+            results.push(electionRecords[index].candidates[i]);
+        }
+        return results;
     }
 }
