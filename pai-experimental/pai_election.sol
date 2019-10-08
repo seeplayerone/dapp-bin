@@ -85,7 +85,6 @@ contract PISelection is Election,ACLSlave,DSMath {
         }
         election.candidates.push(candidate);
         election.candidateSupportRates.push(0);
-        msg.sender.transfer(msg.value,assettype);
     }
 
     function nominateCandidates(uint electionIndex, address[] candidates) internal {
@@ -101,7 +100,7 @@ contract PISelection is Election,ACLSlave,DSMath {
         require(msg.assettype == assettype);
         require(percent(msg.value, totalSupply) >= election.nominateQualification);
         nominateCandidate(electionIndex,candidate);
-        //msg.sender.transfer(msg.value,assettype);
+        msg.sender.transfer(msg.value,assettype);
     }
 
     function nominateCandidatesByPIS(uint electionIndex, address[] candidates) public payable {

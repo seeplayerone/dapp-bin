@@ -8,6 +8,7 @@ contract AcceptMoney {
 
     function updateMoney() public payable {
         money = msg.value;
+        msg.sender.transfer(msg.value,msg.assettype);
     }    
 }
 

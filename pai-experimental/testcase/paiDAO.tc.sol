@@ -253,19 +253,19 @@ contract TestElection is TestBase {
         tempBool = director1.execute(election,methodId,param);
         assertTrue(tempBool);
 
-        // address[] list;
-        // list.push(PISHolder2);
-        // list.push(PISHolder3);
-        // list.push(p1);
-        // methodId = bytes4(keccak256("nominateByDirectors(uint256,address[])"));
-        // param = abi.encode(1,list);
+        address[] list;
+        list.push(PISHolder2);
+        list.push(PISHolder3);
+        list.push(p1);
+        methodId = bytes4(keccak256("nominateByDirectors(uint256,address[])"));
+        param = abi.encode(1,list);
 
-        // tempBool = admin.execute(election,methodId,param);
-        // assertTrue(!tempBool);
+        tempBool = admin.execute(election,methodId,param);
+        assertTrue(!tempBool);
 
-        // election.fly(7 days);
-        // tempBool = admin.execute(election,methodId,param);
-        // assertTrue(tempBool);
+        election.fly(7 days);
+        tempBool = admin.execute(election,methodId,param);
+        assertTrue(tempBool);
 
         // methodId = bytes4(keccak256("voteForCandidate(uint256,address)"));
         // param = abi.encode(1,address(PISHolder1));
