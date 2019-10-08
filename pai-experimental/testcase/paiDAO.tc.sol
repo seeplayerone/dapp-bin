@@ -359,20 +359,20 @@ contract TestVoteST is TestBase {
         VST.startProposal.value(1000000000000,ASSET_PIS)(ahash,0,0,items);
 
 
-        // bytes4 methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
-        // bytes memory param = abi.encode(1,0);
-        // tempBool = PISHolder1.execute(VST,methodId,param,1000000000000,ASSET_PIS);
-        // assertTrue(tempBool);
-        // methodId = bytes4(keccak256("invokeProposal(uint256)"));
-        // param = abi.encode(1);
-        // tempBool = PISHolder1.execute(VST,methodId,param);
-        // assertTrue(!tempBool);
-        // VST.fly(5 days + 5);
-        // tempBool = PISHolder1.execute(VST,methodId,param);
-        // assertTrue(tempBool);//5
-        // assertEq(flow.balance(p1,ASSET_PIS),600);//6
-        // tempBool = PISHolder1.execute(VST,methodId,param);
-        // assertTrue(!tempBool);
+        bytes4 methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
+        bytes memory param = abi.encode(1,0);
+        bool tempBool = PISHolder1.execute(VST,methodId,param,1000000000000,ASSET_PIS);
+        assertTrue(tempBool);
+        methodId = bytes4(keccak256("invokeProposal(uint256)"));
+        param = abi.encode(1);
+        tempBool = PISHolder1.execute(VST,methodId,param);
+        assertTrue(!tempBool);
+        VST.fly(5 days + 5);
+        tempBool = PISHolder1.execute(VST,methodId,param);
+        assertTrue(tempBool);//5
+        assertEq(flow.balance(p1,ASSET_PIS),600);//6
+        tempBool = PISHolder1.execute(VST,methodId,param);
+        assertTrue(!tempBool);
     }
 }
 
