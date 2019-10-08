@@ -286,8 +286,8 @@ contract TestElection is TestBase {
         param = abi.encode(1,address(director2));
         tempBool = PISHolder1.execute(election,methodId,param,500,ASSET_PIS);
         assertTrue(tempBool);
-        // election.fly(7 days);
-        // election.executeResult(1);
+        election.fly(7 days);
+        election.executeResult(1);
         // assertTrue(!paiDAO.addressExist(bytes(DIRECTOR),director1));
         // assertTrue(paiDAO.addressExist(bytes(DIRECTOR),director2));
         // assertTrue(!paiDAO.addressExist(bytes(DIRECTOR),director3));

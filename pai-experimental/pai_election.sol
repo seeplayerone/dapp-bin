@@ -45,6 +45,7 @@ contract PISelection is Election,ACLSlave,DSMath {
         electionRecords[electionId].electionRole = electionRole;
         electionStates[electionRole].electionId = electionId;
         nominateCandidates(electionId,master.getMembers(electionRole));
+        electionStates[election.electionRole].executed = false;
     }
 
 
@@ -135,7 +136,7 @@ contract PISelection is Election,ACLSlave,DSMath {
     function executeResult(uint electionIndex) public {
         ElectionRecord storage election = electionRecords[electionIndex];
         require(nowBlock() >= election.executionStartBlock);
-        require(!electionStates[election.electionRole].exist);
+        require(!electionStates[election.electionRole].executed);
         if(!election.sorted) {
             processElectionResult(electionIndex);
         }
@@ -148,7 +149,7 @@ contract PISelection is Election,ACLSlave,DSMath {
             tempAddr.push(electionRecords[electionIndex].candidates[i]);
         }
         master.resetMembers(tempAddr,election.electionRole);
-        electionStates[election.electionRole].exist = true;
+        electionStates[election.electionRole].executed = true;
     }
 }
 
