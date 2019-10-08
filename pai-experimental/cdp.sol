@@ -7,14 +7,14 @@ pragma solidity 0.4.25;
 // import "./price_oracle.sol";
 // import "./pai_issuer.sol";
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/mathPI.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/liquidator.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
-import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/mathPI.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/note.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/liquidator.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_setting.sol";
+import "github.com/seeplayerone/dapp-bin/library/acl_slave.sol";
 
 contract CDP is MathPI, DSNote, Template, ACLSlave {
 

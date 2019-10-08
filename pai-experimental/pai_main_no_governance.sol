@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_main.sol";
 
 
 contract PaiDaoNoGovernance is PAIDAO {

@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 pragma experimental ABIEncoderV2;
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepareNew.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/testcase/testPrepareNew.sol";
 
 contract TestBase is Template, DSTest, DSMath {
     event printString(string);

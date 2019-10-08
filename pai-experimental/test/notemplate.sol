@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/test/balanceof2.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/test/balanceof2.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
 
 //import "./balanceof2.sol";
 

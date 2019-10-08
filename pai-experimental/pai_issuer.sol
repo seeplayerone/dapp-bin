@@ -1,10 +1,10 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/library/asset.sol";
-import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/registry.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/library/asset.sol";
+import "github.com/seeplayerone/dapp-bin/library/acl_slave.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/registry.sol";
 
 contract PAIIssuer is Template, Asset, DSMath, ACLSlave {
     ///params for organization

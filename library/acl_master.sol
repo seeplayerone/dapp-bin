@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
 
 contract ACLMaster is DSMath {
     mapping(uint => bytes) public roles;

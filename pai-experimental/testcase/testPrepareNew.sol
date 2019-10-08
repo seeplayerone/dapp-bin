@@ -1,21 +1,21 @@
 pragma solidity 0.4.25;
 pragma experimental ABIEncoderV2;
 
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_finance.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/tdc.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_election.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_special.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_standard.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_director_vote.sol";
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/testPI.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_main.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_setting.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_finance.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/cdp.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/tdc.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/settlement.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/fake_btc_issuer.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_election.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_PISvote_special.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_PISvote_standard.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_director_vote.sol";
 
 
 contract FakePerson is Template {
