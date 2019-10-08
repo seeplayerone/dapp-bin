@@ -67,8 +67,6 @@ contract PISelection is Election,ACLSlave,DSMath {
         if(election.candidates.contains(candidate)) {
             return;
         }
-        require(nowBlock() >= election.nominateStartBlock);
-        require(nowBlock() < election.electionStartBlock);
         for(uint i = 1; i < electionStateId; i++) {
             if(keccak256(electionRole[i]) != keccak256(election.electionRole)) {
                 if(master.addressExist(electionRole[i], candidate)) {
@@ -96,6 +94,8 @@ contract PISelection is Election,ACLSlave,DSMath {
     function nominateCandidateByPIS(uint electionIndex, address candidate) public payable {
         ElectionRecord storage election = electionRecords[electionIndex];
         require(election.created);
+        require(nowBlock() >= election.nominateStartBlock);
+        require(nowBlock() < election.electionStartBlock);
         updateTotalSupply();
         require(msg.assettype == assettype);
         require(percent(msg.value, totalSupply) >= election.nominateQualification);
@@ -106,6 +106,8 @@ contract PISelection is Election,ACLSlave,DSMath {
     function nominateCandidatesByPIS(uint electionIndex, address[] candidates) public payable {
         ElectionRecord storage election = electionRecords[electionIndex];
         require(election.created);
+        require(nowBlock() >= election.nominateStartBlock);
+        require(nowBlock() < election.electionStartBlock);
         uint length = candidates.length;
         require(length > 0);
         require(percent(msg.value, totalSupply) >= election.nominateQualification.mul(length));
@@ -119,7 +121,7 @@ contract PISelection is Election,ACLSlave,DSMath {
         require(nowBlock() >= election.electionStartBlock);
         require(nowBlock() < election.executionStartBlock);
         require(add(candidates.length, election.candidates.length) <= electionStates[election.electionRole].candidatesNumberLimit);
-        //nominateCandidates(electionIndex,candidates);
+        nominateCandidates(electionIndex,candidates);
     }
 
     function quit(uint electionIndex) public {
