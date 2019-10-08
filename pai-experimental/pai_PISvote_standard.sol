@@ -19,16 +19,28 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
 
     struct Proposal {
         bytes32 attachmentHash;
-        address target; /// call contract of vote result
-        bytes4 func; /// functionHash of the callback function
-        bytes[] params; /// parameters for the callback function
+        ProposalItem[] items;
         bool executed; /// whether vote result is executed
         uint pisVoteId;
     }
 
+    struct ProposalItem {
+        address target; /// call contract of vote result
+        bytes4 func; /// functionHash of the callback function
+        bytes param; /// parameters for the callback function
+    }
+    
+    struct StructForStartVote {
+        address target; /// call contract of vote result
+        uint funcId; /// funcId of the callback function
+        bytes param; /// parameters for the callback function
+
+    }
+
+
     struct FuncData {
+        mapping(uint => bytes4) func;
         uint passProportion;
-        bytes4 func;
         uint pisVoteDuration;
     }
 
@@ -54,17 +66,9 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
     constructor(address paiMainContract) {
         master = ACLMaster(paiMainContract);
         ASSET_PIS = PAIDAO(master).PISGlobalId();
-    }
-
-    function addNewVoteParam(
-        uint _passProportion,
-        bytes4 _func,
-        uint _pisVoteDuration
-        ) public auth("PISVOTE") {
-        lastFuncDataId = add(lastFuncDataId,1);
-        voteFuncDatas[lastFuncDataId].passProportion = _passProportion;
-        voteFuncDatas[lastFuncDataId].func = _func;
-        voteFuncDatas[lastFuncDataId].pisVoteDuration = _pisVoteDuration;
+        voteFuncDatas[0].func[0] = bytes4(keccak256("mint(uint256,address)"));
+        voteFuncDatas[0].passProportion = RAY / 5;
+        voteFuncDatas[0].pisVoteDuration = 1 days / 5;
     }
 
     function startPISVote(uint _passProportion,uint _startTime,uint _duration) internal returns(uint) {
@@ -96,7 +100,7 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
     }
 
     /// @dev start a vote
-    function startProposal(bytes32 _attachmentHash, uint FuncDataId,uint _startTime,address _targetContract,bytes[] _params) public payable returns(uint) {
+    function startProposal(bytes32 _attachmentHash, uint FuncDataId,uint _startTime, StructForStartVote[] SFSV) public payable returns(uint) {
         require(msg.assettype == ASSET_PIS);
         require(0 == _startTime || _startTime >= height());
         (,,,,,uint totalPISSupply) = PAIDAO(master).getAssetInfo(0);
@@ -105,9 +109,14 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
         FuncData storage fd = voteFuncDatas[FuncDataId];
         uint startTime = 0 == _startTime ? height():_startTime;
         voteProposals[lastAssignedProposalId].attachmentHash = _attachmentHash;
-        voteProposals[lastAssignedProposalId].target = _targetContract;
-        voteProposals[lastAssignedProposalId].func = fd.func;
-        voteProposals[lastAssignedProposalId].params = _params;
+        uint len = SFSV.length;
+        ProposalItem memory _item;
+        for(uint i = 0; i < len; i++) {
+            _item.target = SFSV[i].target;
+            _item.func = fd.func[SFSV[i].funcId];
+            _item.param = SFSV[i].param;
+            voteProposals[lastAssignedProposalId].items.push(_item);
+        }
         voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(fd.passProportion,startTime,fd.pisVoteDuration);
         msg.sender.transfer(msg.value,ASSET_PIS);
         return lastAssignedProposalId;
@@ -136,9 +145,9 @@ contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
         updatePISVoteStatus(prps.pisVoteId);
         require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
         require(false == prps.executed);
-        uint len = prps.params.length;
+        uint len = prps.items.length;
         for(uint i = 0; i < len; i++) {
-           execute(prps.target,abi.encodePacked(prps.func, prps.params[i]));
+            execute(prps.items[i].target,abi.encodePacked(prps.items[i].func, prps.items[i].param));
         }
         prps.executed = true;
     }
