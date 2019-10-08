@@ -21,12 +21,12 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
 
     struct Proposal {
         bytes32 attachmentHash;
-        Order[] orders;
+        ProposalItem[] items;
         bool executed; /// whether vote result is executed
         uint pisVoteId;
     }
 
-    struct Order {
+    struct ProposalItem {
         address target; /// call contract of vote result
         bytes4 func; /// functionHash of the callback function
         bytes param; /// parameters for the callback function
@@ -83,7 +83,7 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
     }
 
     /// @dev start a vote
-    function startProposal(bytes32 _attachmentHash, uint _startTime, Order[] memory _orders) public payable returns(uint) {
+    function startProposal(bytes32 _attachmentHash, uint _startTime, ProposalItem[] memory _items) public payable returns(uint) {
         require(msg.assettype == ASSET_PIS);
         require(0 == _startTime || _startTime >= height());
         (,,,,,uint totalPISSupply) = PAIDAO(master).getAssetInfo(0);
@@ -91,9 +91,9 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
         lastAssignedProposalId = add(lastAssignedProposalId,1);
         uint startTime = 0 == _startTime ? height():_startTime;
         voteProposals[lastAssignedProposalId].attachmentHash = _attachmentHash;
-        uint len = _orders.length;
+        uint len = _items.length;
         for(uint i = 0; i < len; i++) {
-            voteProposals[lastAssignedProposalId].orders.push(_orders[i]);
+            voteProposals[lastAssignedProposalId].items.push(_items[i]);
         }
         voteProposals[lastAssignedProposalId].pisVoteId = startPISVote(passProportion,startTime,pisVoteDuration);
         msg.sender.transfer(msg.value,ASSET_PIS);
@@ -123,9 +123,9 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
         updatePISVoteStatus(prps.pisVoteId);
         require(pisVotes[prps.pisVoteId].status == VoteStatus.APPROVED);
         require(false == prps.executed);
-        uint len = prps.orders.length;
+        uint len = prps.items.length;
         for(uint i = 0; i < len; i++) {
-            execute(prps.orders[i].target,abi.encodePacked(prps.orders[i].func, prps.orders[i].param));
+            execute(prps.items[i].target,abi.encodePacked(prps.items[i].func, prps.items[i].param));
         }
         prps.executed = true;
     }

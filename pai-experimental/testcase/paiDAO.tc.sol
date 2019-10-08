@@ -288,13 +288,13 @@ contract TestElection is TestBase {
         assertTrue(tempBool);
         election.fly(7 days);
         election.executeResult(1);
-        // assertTrue(!paiDAO.addressExist(bytes(DIRECTOR),director1));
-        // assertTrue(paiDAO.addressExist(bytes(DIRECTOR),director2));
-        // assertTrue(!paiDAO.addressExist(bytes(DIRECTOR),director3));
-        // assertTrue(!paiDAO.addressExist(bytes(DIRECTOR),PISHolder1));
-        // assertTrue(!paiDAO.addressExist(bytes(DIRECTOR),PISHolder2));
-        // assertTrue(paiDAO.addressExist(bytes(DIRECTOR),PISHolder3));
-        // assertTrue(paiDAO.addressExist(bytes(DIRECTOR),p1));
+        assertTrue(!paiDAO.addressExist(bytes(DIRECTOR),director1));
+        assertTrue(paiDAO.addressExist(bytes(DIRECTOR),director2));
+        assertTrue(!paiDAO.addressExist(bytes(DIRECTOR),director3));
+        assertTrue(!paiDAO.addressExist(bytes(DIRECTOR),PISHolder1));
+        assertTrue(!paiDAO.addressExist(bytes(DIRECTOR),PISHolder2));
+        assertTrue(paiDAO.addressExist(bytes(DIRECTOR),PISHolder3));
+        assertTrue(paiDAO.addressExist(bytes(DIRECTOR),p1));
     }
 }
 
@@ -308,17 +308,17 @@ contract TestVoteSP is TestBase {
 
         bytes32 ahash = keccak256("mintToP1");
         bytes4 methodId = bytes4(keccak256("mint(uint256,address)"));
-        PISVoteSpecial.Order[] memory orders = new PISVoteSpecial.Order[](3);
-        orders[0].target = address(paiDAO);
-        orders[0].func = methodId;
-        orders[0].param = abi.encode(100,address(p1));
-        orders[1].target = address(paiDAO);
-        orders[1].func = methodId;
-        orders[1].param = abi.encode(200,address(p1));
-        orders[2].target = address(paiDAO);
-        orders[2].func = methodId;
-        orders[2].param = abi.encode(300,address(p1));
-        VSP.startProposal.value(1000000000000,ASSET_PIS)(ahash,0,orders);
+        PISVoteSpecial.ProposalItem[] memory items = new PISVoteSpecial.ProposalItem[](3);
+        items[0].target = address(paiDAO);
+        items[0].func = methodId;
+        items[0].param = abi.encode(100,address(p1));
+        items[1].target = address(paiDAO);
+        items[1].func = methodId;
+        items[1].param = abi.encode(200,address(p1));
+        items[2].target = address(paiDAO);
+        items[2].func = methodId;
+        items[2].param = abi.encode(300,address(p1));
+        VSP.startProposal.value(1000000000000,ASSET_PIS)(ahash,0,items);
 
         methodId = bytes4(keccak256("pisVote(uint256,uint8)"));
         bytes memory param = abi.encode(1,0);
