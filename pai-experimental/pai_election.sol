@@ -40,7 +40,7 @@ contract PISelection is Election,ACLSlave,DSMath {
 
     function startElectionInternal(bytes electionRole) internal {
         require(electionStates[electionRole].exist);
-        require(0 == electionStates[electionRole].electionId || nowBlock() > add(electionRecords[electionStates[electionRole].electionId].executionStartBlock, 1 days / ONE_BLOCK_Time));
+        require(0 == electionStates[electionRole].electionId || nowBlock() > add(electionRecords[electionStates[electionRole].electionId].executionStartBlock, 1 days / ONE_BLOCK_TIME));
         uint electionId = startElection(nominateLength, electionLength, qualification);
         electionRecords[electionId].electionRole = electionRole;
         electionStates[electionRole].electionId = electionId;
@@ -76,7 +76,7 @@ contract PISelection is Election,ACLSlave,DSMath {
                 }
                 if(electionStates[electionRole[i]].electionId != 0 &&
                    false == electionStates[electionRole[i]].executed &&
-                   nowBlock() < add(electionRecords[electionStates[electionRole[i]].electionId].executionStartBlock, 1 days / ONE_BLOCK_Time) &&
+                   nowBlock() < add(electionRecords[electionStates[electionRole[i]].electionId].executionStartBlock, 1 days / ONE_BLOCK_TIME) &&
                    electionRecords[electionStates[electionRole[i]].electionId].candidates.contains(candidate)
                     ) {
                     return;
