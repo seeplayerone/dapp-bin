@@ -97,8 +97,8 @@ contract PISelection is Election,ACLSlave,DSMath {
     function nominateCandidateByPIS(uint electionIndex, address candidate) public payable {
         ElectionRecord storage election = electionRecords[electionIndex];
         require(election.created);
-        //updateTotalSupply();
-        //require(msg.assettype == assettype);
+        updateTotalSupply();
+        require(msg.assettype == assettype);
         //require(percent(msg.value, totalSupply) >= election.nominateQualification);
         nominateCandidate(electionIndex,candidate);
         //msg.sender.transfer(msg.value,assettype);
