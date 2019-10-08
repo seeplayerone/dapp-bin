@@ -44,8 +44,8 @@ contract PISelection is Election,ACLSlave,DSMath {
         uint electionId = startElection(nominateLength, electionLength, qualification);
         electionRecords[electionId].electionRole = electionRole;
         electionStates[electionRole].electionId = electionId;
+        electionStates[electionRole].executed = false;
         nominateCandidates(electionId,master.getMembers(electionRole));
-        electionStates[election.electionRole].executed = false;
     }
 
 
