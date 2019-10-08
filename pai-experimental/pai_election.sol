@@ -119,7 +119,7 @@ contract PISelection is Election,ACLSlave,DSMath {
     function nominateByDirectors(uint electionIndex, address[] candidates) public auth("DIRECTORVOTE") {
         ElectionRecord storage election = electionRecords[electionIndex];
         require(nowBlock() >= election.electionStartBlock);
-        require(nowBlock() < add(election.electionStartBlock,1 hours / ONE_BLOCK_TIME);
+        require(nowBlock() < add(election.electionStartBlock,1 hours / ONE_BLOCK_TIME));
         require(add(candidates.length, election.candidates.length) <= electionStates[election.electionRole].candidatesNumberLimit);
         nominateCandidates(electionIndex,candidates);
     }
