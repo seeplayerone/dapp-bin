@@ -17,9 +17,9 @@ contract PISelection is Election,ACLSlave,DSMath {
     uint electionStateId;
     mapping(uint => bytes) electionRole;
 
-    uint constant public ONE_BLOCK_Time = 5;
-    uint public nominateLength = 7 days / ONE_BLOCK_Time;
-    uint public electionLength = 7 days / ONE_BLOCK_Time;
+    uint constant public ONE_BLOCK_TIME = 5;
+    uint public nominateLength = 7 days / ONE_BLOCK_TIME;
+    uint public electionLength = 7 days / ONE_BLOCK_TIME;
     uint public qualification = RAY / 20;
     constructor(address paiMainContract) {
         master = ACLMaster(paiMainContract);
@@ -119,7 +119,7 @@ contract PISelection is Election,ACLSlave,DSMath {
         require(nowBlock() >= election.electionStartBlock);
         require(nowBlock() < election.executionStartBlock);
         require(add(candidates.length, election.candidates.length) <= electionStates[election.electionRole].candidatesNumberLimit);
-        nominateCandidates(electionIndex,candidates);
+        //nominateCandidates(electionIndex,candidates);
     }
 
     function quit(uint electionIndex) public {
