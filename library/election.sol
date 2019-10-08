@@ -120,7 +120,7 @@ contract Election is Template {
 
     function voteForCandidate(uint electionIndex, address candidate) public payable {
         ElectionRecord storage election = electionRecords[electionIndex];
-        require(!election.quit[msg.sender]);
+        require(!election.quit[candidate]);
         require(election.created);
 
         require(candidate != 0x0);
