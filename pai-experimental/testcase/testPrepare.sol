@@ -537,7 +537,15 @@ contract FakePAIIssuer is PAIIssuer {
     constructor(string _organizationName, address paiMainContract)
         PAIIssuer(_organizationName,paiMainContract)
     public {
-        templateName = "Fake-Template-Name-For-Test-pai_issuer";
+        templateName = "Fake-Template-Name-For-Test-Pai-Issuer";
+    }
+}
+
+contract FakeBankIssuer is BankIssuer {
+    constructor(string _organizationName, address paiMainContract)
+        BankIssuer(_organizationName,paiMainContract)
+    public {
+        templateName = "Fake-Template-Name-For-Test-Bank-Issuer";
     }
 }
 
@@ -546,7 +554,7 @@ contract FakePaiDao is PAIDAO {
         PAIDAO(_organizationName)
         public
     {
-        templateName = "Fake-Template-Name-For-Test-pai_main";
+        templateName = "Fake-Template-Name-For-Test-Pai-Main";
     }
 }
 

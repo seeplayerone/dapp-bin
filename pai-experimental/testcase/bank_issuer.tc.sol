@@ -9,8 +9,6 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol
 
 
 contract TestBankIssuer is Template, DSTest {
-    uint96 ASSET_PIS;
-    uint96 ASSET_PAI;
     function() public payable {}
 
     function testInit() public {
