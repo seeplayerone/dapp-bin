@@ -48,8 +48,8 @@ contract BankIssuer is Template, Asset, DSMath, ACLSlave {
         require(bytes(symbol).length > 0, "asset requires a symbol");
         assetIndex = assetIndex + 1;
         require(assetIndex != 0, "assetIndex has overflowed");
-        // newAsset(name, symbol, description, 0, assetIndex, 1000);
-        // flow.createAsset(0, assetIndex, 1000);
+        newAsset(name, symbol, description, 0, assetIndex, 1000);
+        flow.createAsset(0, assetIndex, 1000);
         // zeroAddr.transfer(1000, AssetGlobalId[assetIndex]);
         // issuedAssets[assetIndex].totalIssued = 0;
         // uint64 assetId = uint64(0) << 32 | uint64(organizationId);

@@ -17,7 +17,7 @@ contract TestBankIssuer is Template, DSTest {
         FakeBankIssuer issuer = new FakeBankIssuer("BANKISSUER",paiDAO);
         issuer.init();
 
-        //issuer.createAsset("aa","bb","cc");
+        issuer.createAsset("aa","bb","cc");
         //issuer.createAsset("bb","cc","dd");
 
         // bool exist;
