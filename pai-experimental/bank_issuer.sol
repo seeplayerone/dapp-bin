@@ -41,8 +41,7 @@ contract BankIssuer is Template, Asset, DSMath, ACLSlave {
      * @param symbol asset symbol
      * @param description asset description
      */
-    function createAsset(string name, string symbol, string description) public 
-    //auth("DirectorVote@Bank")
+    function createAsset(string name, string symbol, string description) public auth("DirectorVote@Bank")
     {
         require(bytes(name).length > 0, "asset requires a name");
         require(bytes(symbol).length > 0, "asset requires a symbol");
