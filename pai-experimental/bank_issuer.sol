@@ -12,7 +12,7 @@ contract BankIssuer is Template, Asset, DSMath, ACLSlave {
     uint32 public organizationId;
     bool private registed = false;
 
-    mapping(uint => uint96) AssetGlobalId;
+    mapping(uint => uint96) public AssetGlobalId;
     uint32 public assetIndex = 0; //asset index in the organization
 
     /// crate asset
