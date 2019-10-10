@@ -29,11 +29,11 @@ contract Association is Organization {
     uint32 organizationId;
     
     /// map for quick reference
-    mapping(address => bool) existingMembers;
+    mapping(address => bool) public existingMembers;
     /// map for quick reference
-    mapping(address => bool) existingInvitees;
+    mapping(address => bool) public existingInvitees;
     /// map for quick reference
-    mapping(address => bool) existingCandidatePresidents;
+    mapping(address => bool) public existingCandidatePresidents;
     
     /// @dev EVENTS
     /// update members of the organization, including transferring the president role
@@ -247,7 +247,7 @@ contract Association is Organization {
     /**
      * @dev join the organization
      */
-    function join() internal authAddresses(invitees) {
+    function join() public authAddresses(invitees) {
         existingInvitees[msg.sender] = false;
         uint length = invitees.length;
         for (uint i = 0; i < length; i++) {
