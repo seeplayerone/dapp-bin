@@ -247,7 +247,7 @@ contract Association is Organization {
     /**
      * @dev join the organization
      */
-    function join() public authAddresses(invitees) {
+    function joinNewMember() public authAddresses(invitees) {
         existingInvitees[msg.sender] = false;
         uint length = invitees.length;
         for (uint i = 0; i < length; i++) {
