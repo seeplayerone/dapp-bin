@@ -236,7 +236,7 @@ contract Association is Organization {
         public 
         authAddresses(presidents)
     {
-        require(!existingMembers[newMember] && existingInvitees[newMember], "member has existed!");
+        require(!existingMembers[newMember] && !existingInvitees[newMember], "member has existed!");
 
         existingInvitees[newMember] = true;
         invitees.push(newMember);
