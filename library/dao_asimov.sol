@@ -81,7 +81,7 @@ contract Association is Organization {
         presidents.push(msg.sender);
 
         /// deploy a vote contract for asset creation
-        assetVoteContractAddress =  flow.deployContract(1, voteTemplateName, "");
+        assetVoteContractAddress = flow.deployContract(1, voteTemplateName, "");
         assetVoteContract = SimpleVote(assetVoteContractAddress); 
         assetVoteContract.setOrganization(this);
 
@@ -201,9 +201,11 @@ contract Association is Organization {
         authAddresses(presidents)
     {
         if (existingMembers[newPresident] || presidents[0] == newPresident) {
+            configureAddressRoleInternal(presidents[0], SUPER_ADMIN, OpMode.Remove);
             delete presidents[0];
             presidents.length--;
             presidents.push(newPresident);
+            configureAddressRoleInternal(newPresident, SUPER_ADMIN, OpMode.Add);
             emit ConfirmNewPresident(1, newPresident);
         } else {
             require(!existingCandidatePresidents[newPresident], "you have invited the president");
@@ -217,9 +219,11 @@ contract Association is Organization {
      * @dev new president confirm
      */
     function confirmPresident() public authAddresses(candidatePresidents) {
+        configureAddressRoleInternal(presidents[0], SUPER_ADMIN, OpMode.Remove);
         delete presidents[0];
         presidents.length--;
         presidents.push(msg.sender);
+        configureAddressRoleInternal(msg.sender, SUPER_ADMIN, OpMode.Add);
         for (uint i = 0; i < candidatePresidents.length; i++) {
             existingCandidatePresidents[candidatePresidents[i]] = false;
         }
@@ -243,6 +247,11 @@ contract Association is Organization {
 
         emit InviteNewMember(newMember);
     }
+
+    /// 测试方法
+    function getInvitees() public view returns(address[]) {
+        return invitees;
+    }
     
     /**
      * @dev join the organization
@@ -261,8 +270,8 @@ contract Association is Organization {
         }
         members.push(msg.sender);
         existingMembers[msg.sender] = true;
-        configureFunctionAddress(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),START_VOTE_FUNCTION), msg.sender, OpMode.Add);
-        configureFunctionAddress(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),VOTE_FUNCTION), msg.sender, OpMode.Add);
+        configureFunctionAddressInternal(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),START_VOTE_FUNCTION), msg.sender, OpMode.Add);
+        configureFunctionAddressInternal(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),VOTE_FUNCTION), msg.sender, OpMode.Add);
         emit JoinNewMember(msg.sender);
     }
     
