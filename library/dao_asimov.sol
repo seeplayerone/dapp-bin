@@ -216,7 +216,8 @@ contract Association is Organization {
     }
 
     /**
-     * @dev new president confirm
+     * @dev new president confirms to take office
+     * transfer role of SUPER_ADMIN to new president
      */
     function confirmPresident() public authAddresses(candidatePresidents) {
         configureAddressRoleInternal(presidents[0], SUPER_ADMIN, OpMode.Remove);
@@ -232,9 +233,9 @@ contract Association is Organization {
     }
     
     /**
-     * @dev add members
+     * @dev invitem a new member
      * 
-     * @param newMember address of new member
+     * @param invited member address
      */
     function inviteNewMember(address newMember)
         public 
@@ -247,14 +248,9 @@ contract Association is Organization {
 
         emit InviteNewMember(newMember);
     }
-
-    /// 测试方法
-    function getInvitees() public view returns(address[]) {
-        return invitees;
-    }
     
     /**
-     * @dev join the organization
+     * @dev invited member joins the organization
      */
     function joinNewMember() public authAddresses(invitees) {
         existingInvitees[msg.sender] = false;
@@ -304,6 +300,7 @@ contract Association is Organization {
 
     /**
      * @dev close the organization
+     * when closed, the asset organization created can not transfer
      */
     function close() public authAddresses(presidents) {
         updateStatus(true);
