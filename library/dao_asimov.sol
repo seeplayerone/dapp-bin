@@ -29,11 +29,11 @@ contract Association is Organization {
     uint32 organizationId;
     
     /// map for quick reference
-    mapping(address => bool) public existingMembers;
+    mapping(address => bool) existingMembers;
     /// map for quick reference
-    mapping(address => bool) public existingInvitees;
+    mapping(address => bool) existingInvitees;
     /// map for quick reference
-    mapping(address => bool) public existingCandidatePresidents;
+    mapping(address => bool) existingCandidatePresidents;
     
     /// @dev EVENTS
     /// update members of the organization, including transferring the president role
