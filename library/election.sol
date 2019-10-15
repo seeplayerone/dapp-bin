@@ -1,12 +1,8 @@
 pragma solidity 0.4.25;
 
-// import "./template.sol";
-// import "./array_utils.sol";
-// import "./SafeMath.sol";
-
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/library/array_utils.sol";
-import "github.com/seeplayerone/dapp-bin/library/SafeMath.sol";
+import "./template.sol";
+import "./array_utils.sol";
+import "./SafeMath.sol";
 
 contract Election is Template {
 

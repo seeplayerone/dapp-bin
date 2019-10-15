@@ -1,8 +1,8 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/library/acl_slave.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
+import "../library/template.sol";
+import "../library/acl_slave.sol";
+import "./3rd/math.sol";
 
 contract Setting is Template, DSMath, ACLSlave {
     uint public lendingInterestRate; // in RAY

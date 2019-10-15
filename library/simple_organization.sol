@@ -1,6 +1,6 @@
 pragma solidity ^0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/library/organization.sol";
+import "./organization.sol";
 
 /// @dev this is a sample to demostrate how to create a simple organization contract on Asimov
 ///  it is recommended to inherit Oragnization contract which is provided by Asimov Tech Team

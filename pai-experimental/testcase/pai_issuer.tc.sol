@@ -1,10 +1,10 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/testPI.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_main.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/testcase/testPrepare.sol";
+import "../../library/template.sol";
+import "../pai_issuer.sol";
+import "../testPI.sol";
+import "../pai_main.sol";
+import "./testPrepare.sol";
 
 
 contract TestPaiIssuer is Template, DSTest {

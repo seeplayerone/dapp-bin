@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/pai-experimental/testcase/testPrepare.sol";
+import "./testPrepare.sol";
 
 
 

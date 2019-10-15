@@ -1,12 +1,12 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/seeplayerone/dapp-bin/library/acl_slave.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_setting.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/pai_main.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/price_oracle.sol";
+import "../library/template.sol";
+import "./pai_issuer.sol";
+import "../library/acl_slave.sol";
+import "./3rd/math.sol";
+import "./pai_setting.sol";
+import "./pai_main.sol";
+import "./price_oracle.sol";
 
 contract Finance is Template,ACLSlave,DSMath {
     PAIIssuer public issuer;
@@ -43,6 +43,7 @@ contract Finance is Template,ACLSlave,DSMath {
         return block.timestamp;
     }
 
+    /// @notice 为什么是任意人都能调用啊？
     function mintPIS() public {
         require(0x0 != PISseller);
         require(flow.balance(PISseller,ASSET_PIS) == 0);
@@ -140,6 +141,7 @@ contract Finance is Template,ACLSlave,DSMath {
         operationCashLimit = add(operationCashLimit,amount);
     }
 
+    /// @dev 所有的设置都需要在构造函数里面进行配置，方便初始化部署
     function setSafePad(uint amount) public auth("PISVOTE") {
         safePad = amount;
     }
