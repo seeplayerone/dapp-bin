@@ -1,22 +1,21 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main_no_governance.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_finance.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/tdc.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_election.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/bank_issuer.sol";
-// import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_special.sol";
-// import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_PISvote_standard.sol";
-// import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_director_vote.sol";
+import "../../library/template.sol";
+import "../testPI.sol";
+import "../pai_main.sol";
+import "../pai_main_no_governance.sol";
+import "../pai_issuer.sol";
+import "../price_oracle.sol";
+import "../pai_setting.sol";
+import "../pai_finance.sol";
+import "../cdp.sol";
+import "../tdc.sol";
+import "../settlement.sol";
+import "../fake_btc_issuer.sol";
+import "../pai_election.sol";
+// import "../pai_PISvote_special.sol";
+// import "../pai_PISvote_standard.sol";
+// import "../pai_director_vote.sol";
 
 
 contract DividendsSample is Template {
@@ -538,6 +537,7 @@ contract FakePAIIssuer is PAIIssuer {
     constructor(string _organizationName, address paiMainContract)
         PAIIssuer(_organizationName,paiMainContract)
     public {
+<<<<<<< HEAD
         templateName = "Fake-Template-Name-For-Test-Pai-Issuer";
     }
 }
@@ -547,6 +547,9 @@ contract FakeBankIssuer is BankIssuer {
         BankIssuer(_organizationName,paiMainContract)
     public {
         templateName = "Fake-Template-Name-For-Test-Bank-Issuer";
+=======
+        templateName = "Fake-Template-Name-For-Test-pai_issuer";
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
     }
 }
 
@@ -555,7 +558,11 @@ contract FakePaiDao is PAIDAO {
         PAIDAO(_organizationName)
         public
     {
+<<<<<<< HEAD
         templateName = "Fake-Template-Name-For-Test-Pai-Main";
+=======
+        templateName = "Fake-Template-Name-For-Test-pai_main";
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
     }
 }
 

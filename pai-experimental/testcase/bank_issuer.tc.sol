@@ -1,12 +1,10 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/bank_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
-
-
+import "../../library/template.sol";
+import "../bank_issuer.sol";
+import "../testPI.sol";
+import "../pai_main.sol";
+import "../testcase/testPrepare.sol";
 
 contract TestBankIssuer is Template, DSTest {
     function() public payable {}

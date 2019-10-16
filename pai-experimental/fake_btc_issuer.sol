@@ -1,11 +1,8 @@
 pragma solidity 0.4.25;
 
-// import "../library/template.sol";
-// import "./3rd/math.sol";
-
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/registry.sol";
+import "../library/template.sol";
+import "./3rd/math.sol";
+import "./registry.sol";
 
 contract FakeBTCIssuer is Template, DSMath {
     string private name = "Fake_BTC_ISSUER";

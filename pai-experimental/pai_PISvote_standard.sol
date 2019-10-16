@@ -1,11 +1,16 @@
 pragma solidity 0.4.25;
 pragma experimental ABIEncoderV2;
 
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/library/execution.sol";
-import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
+import "../library/template.sol";
+import "./3rd/math.sol";
+import "../library/execution.sol";
+import "../library/acl_slave.sol";
+import "./pai_main.sol";
+
+/// @notice 1. 标准投票合约中，在构造函数中配置该投票合约所支持的投票列表，包含（方法签名、最小投票比例、投票通过比例和投票时长）
+///         2. 不允许在除构造函数以外的其他地方配置更多支持的投票列表
+///         3. 如果标准投票合约调用仅限于主合约（PIS发币合约），发起投票的时候则不允许配置回调合约的地址，默认为主合约
+///         4. 为保证逻辑的简洁，投票列表不需要根据属性进行合并；如投票列表过大，则拆成几个独立的合约
 
 contract PISVoteStandard is DSMath, Execution, Template, ACLSlave {
 

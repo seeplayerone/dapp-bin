@@ -1,8 +1,9 @@
 pragma solidity 0.4.25;
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/library/execution.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/test.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
+
+import "../../library/template.sol";
+import "../../library/execution.sol";
+import "../3rd/test.sol";
+import "../pai_issuer.sol";
 
 
 contract FakePAIIssuer is PAIIssuer {

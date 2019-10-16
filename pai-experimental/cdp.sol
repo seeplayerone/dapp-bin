@@ -1,20 +1,13 @@
 pragma solidity 0.4.25;
 
-// import "./3rd/math.sol";
-// import "./3rd/note.sol";
-// import "../library/template.sol";
-// import "./liquidator.sol";
-// import "./price_oracle.sol";
-// import "./pai_issuer.sol";
-
-import "github.com/evilcc2018/dapp-bin/pai-experimental/mathPI.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/liquidator.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
-import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
+import "./mathPI.sol";
+import "./3rd/note.sol";
+import "../library/template.sol";
+import "./liquidator.sol";
+import "./price_oracle.sol";
+import "./pai_issuer.sol";
+import "./pai_setting.sol";
+import "../library/acl_slave.sol";
 
 contract CDP is MathPI, DSNote, Template, ACLSlave {
 
@@ -155,6 +148,8 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         lastTimestamp = block.timestamp;
     }
 
+    /// @notice BUG: this function should only be called when there are no active cdps (cdps with collaterals)
+    /// UPDATE THE LOGIC OR REMOVE
     function setAssetCollateral(address newPriceOracle) public note auth("DIRECTORVOTE") {
         priceOracle = PriceOracle(newPriceOracle);
         emit SetContract(0,priceOracle);
@@ -178,6 +173,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit SetParam(8, secondInterestRate);
     }
 
+    /// @notice cutdown adjustment of CDPType.CUREENT will affect existing cdps, the design should be verified
     function updateCutDown(CDPType _type, uint _newCutDown) public note auth("DIRECTORVOTE") {
         cutDown[uint8(_type)] = _newCutDown;
         emit SetCutDown(_type,_newCutDown);
@@ -248,6 +244,8 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit SetParam(7,debtCeiling);
     }
 
+    /// @notice should use the value from SETTING contract directly instead of store a local value
+    ///  debtRateCeiling and this functions should be removed
     function updateDebtRateCeiling() public note {
         debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
         emit SetParam(9,debtRateCeiling);
@@ -270,6 +268,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit PostCDP(record, newOwner, _price);
     }
 
+    /// @notice should allow paying more money than the cdp price and refund the msg.sender
     function buyCDP(uint record) public payable note {
         require(setting.globalOpen());
         require(!disableALLCDPFunction);
@@ -461,6 +460,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit SetContract(1,liquidator);
     }
 
+    /// @notice will affact cdp purchase and repay with the old PAI
     function setPAIIssuer(address newIssuer) public note auth("DIRECTORVOTE") {
         issuer = PAIIssuer(newIssuer);
         ASSET_PAI = issuer.PAIGlobalId();
@@ -468,6 +468,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit SetContract(2,issuer);
     }
 
+    /// @notice all values should be read from settings directly instead of saving locally
     function setSetting(address _setting) public note auth("DIRECTORVOTE") {
         setting = Setting(_setting);
         emit SetContract(3,setting);

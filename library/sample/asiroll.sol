@@ -1,13 +1,8 @@
 pragma solidity 0.4.25;
 
-//import "../SafeMath.sol";
-//import "../acl.sol";
-//import "../template.sol";
-
-import "github.com/evilcc2018/dapp-bin/library/SafeMath.sol";
-import "github.com/evilcc2018/dapp-bin/library/acl.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-
+import "../SafeMath.sol";
+import "../acl.sol";
+import "../template.sol";
 
 /// @dev this is a sample roll contract
 ///  DO NOT TAKE IT SERIOUSLY !!!

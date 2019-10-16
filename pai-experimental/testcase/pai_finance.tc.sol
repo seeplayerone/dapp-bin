@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
+import "./testPrepare.sol";
 
 contract TestBase is Template, DSTest, DSMath {
     TimefliesTDC internal tdc;

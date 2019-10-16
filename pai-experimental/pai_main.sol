@@ -1,10 +1,10 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/library/acl_master.sol";
-import "github.com/evilcc2018/dapp-bin/library/asset.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/registry.sol";
+import "../library/template.sol";
+import "../library/acl_master.sol";
+import "../library/asset.sol";
+import "./3rd/math.sol";
+import "./registry.sol";
 
 
 contract PAIDAO is Template, Asset, DSMath, ACLMaster {

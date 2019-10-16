@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/testnet-tutorial/tutorial.sol";
-import "github.com/evilcc2018/dapp-bin/testnet-tutorial/test.sol";
+import "../testnet-tutorial/tutorial.sol";
+import "../testnet-tutorial/test.sol";
 
 /**
     @dev we recommend "test driven development" paradigm for contract developing
@@ -17,7 +17,10 @@ import "github.com/evilcc2018/dapp-bin/testnet-tutorial/test.sol";
      if we need to register and issue assets (no need for other cases)
 */
 contract NamedTutorial is Tutorial {
-    constructor() public {
+    constructor(string _name) 
+        Tutorial(_name)
+        public 
+    {
         templateName = "Fake-Template-Name-For-Test";
     }
 }
@@ -37,7 +40,7 @@ contract TutorialTest is DSTest {
 
     function test() public returns (bool) {
         /// @dev create contract INSTANCE from scratch is only avaiable in test mode
-        tutorial = new NamedTutorial();
+        tutorial = new NamedTutorial("sb");
 
         uint assettype = tutorial.mint(10 * SATOSHI);
         assertEq(tutorial.checkBalance(), 10 * SATOSHI);
