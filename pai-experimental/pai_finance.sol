@@ -1,14 +1,5 @@
 pragma solidity 0.4.25;
 
-<<<<<<< HEAD
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-=======
 import "../library/template.sol";
 import "./pai_issuer.sol";
 import "../library/acl_slave.sol";
@@ -16,7 +7,6 @@ import "./3rd/math.sol";
 import "./pai_setting.sol";
 import "./pai_main.sol";
 import "./price_oracle.sol";
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 contract Finance is Template,ACLSlave,DSMath {
     PAIIssuer public issuer;
@@ -53,10 +43,7 @@ contract Finance is Template,ACLSlave,DSMath {
         return block.timestamp;
     }
 
-<<<<<<< HEAD
-=======
     /// @notice 为什么是任意人都能调用啊？
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
     function mintPIS() public {
         require(0x0 != PISseller);
         require(flow.balance(PISseller,ASSET_PIS) == 0);

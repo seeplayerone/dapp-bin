@@ -1,13 +1,6 @@
 pragma solidity 0.4.25;
 pragma experimental ABIEncoderV2;
 
-<<<<<<< HEAD
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/library/execution.sol";
-import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
-=======
 import "../library/template.sol";
 import "./3rd/math.sol";
 import "../library/execution.sol";
@@ -21,7 +14,6 @@ import "./pai_main.sol";
 ///         3. pis投票合约，按需求设计，对于重大的director投票合约产生的决议，通过pre-pis投票合约进入pis投票合约进入表决
 ///            如果通过pis投票则投票决议生效
 ///         ./vote.png
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 contract DirectorVoteContract is DSMath, Execution, Template, ACLSlave {
 

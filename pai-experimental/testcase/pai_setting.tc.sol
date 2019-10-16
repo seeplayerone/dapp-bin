@@ -1,22 +1,9 @@
 pragma solidity 0.4.25;
 
-// import "../../library/template.sol";
-// import "../price_oracle.sol";
-// import "../3rd/test.sol";
-
-<<<<<<< HEAD
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
-=======
 import "../../library/template.sol";
 import "../price_oracle.sol";
 import "../testPI.sol";
 import "./testPrepare.sol";
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
-
-
 
 contract GlobalSettingTest is Template, DSTest, DSMath {
     

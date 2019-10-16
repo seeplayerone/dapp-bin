@@ -1,11 +1,11 @@
 pragma solidity 0.4.25;
 pragma experimental ABIEncoderV2;
 
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/library/execution.sol";
-import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
+import "../library/template.sol";
+import "./3rd/math.sol";
+import "../library/execution.sol";
+import "../library/acl_slave.sol";
+import "./pai_main.sol";
 
 contract BankDirectorVote is DSMath, Execution, Template, ACLSlave {
 
@@ -53,7 +53,7 @@ contract BankDirectorVote is DSMath, Execution, Template, ACLSlave {
     }
    
     /// all votes in this contract
-    mapping(uint => PISVote) public pisVotes;
+    //mapping(uint => PISVote) public pisVotes;
     mapping(uint => FuncData) public voteFuncDatas;
     mapping(uint => Proposal) public voteProposals;
     uint public lastPISVoteId = 0;

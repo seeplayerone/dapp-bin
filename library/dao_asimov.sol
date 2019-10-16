@@ -1,15 +1,7 @@
 pragma solidity 0.4.25;
 
-<<<<<<< HEAD
-import "github.com/evilcc2018/dapp-bin/library/string_utils.sol";
-import "github.com/evilcc2018/dapp-bin/library/organization.sol";
-
-//import "./string_utils.sol";
-//import "./organization.sol";
-=======
 import "./string_utils.sol";
 import "./organization.sol";
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 interface SimpleVote {
     function setOrganization(address orgAddress) external;

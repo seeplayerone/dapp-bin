@@ -1,14 +1,5 @@
 pragma solidity 0.4.25;
 
-<<<<<<< HEAD
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/settlement.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
-=======
 import "../3rd/math.sol";
 import "../../library/template.sol";
 import "../cdp.sol";
@@ -16,7 +7,6 @@ import "../testPI.sol";
 import "../fake_btc_issuer.sol";
 import "../settlement.sol";
 import "./testPrepare.sol";
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 contract TestBase is Template, DSTest, DSMath {
     TimefliesCDP internal cdp;

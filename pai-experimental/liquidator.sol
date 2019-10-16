@@ -1,15 +1,5 @@
 pragma solidity 0.4.25;
 
-<<<<<<< HEAD
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_finance.sol";
-import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
-=======
 import "./3rd/math.sol";
 import "./3rd/note.sol";
 import "../library/template.sol";
@@ -18,7 +8,6 @@ import "./price_oracle.sol";
 import "./pai_finance.sol";
 import "../library/acl_slave.sol";
 import "./pai_setting.sol";
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 contract Liquidator is DSMath, DSNote, Template, ACLSlave {
 
@@ -65,11 +54,8 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
 
     }
 
-<<<<<<< HEAD
-=======
     /// @notice same as in cdp, PAI and Collateral can only be changed when the liquidator is in a clean state
     ///  by then there is neither PAI nor Collateral remaining in the liquidator contract
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
     function setPAIIssuer(address newIssuer) public note auth("DIRECTORVOTE") {
         issuer = PAIIssuer(newIssuer);
         ASSET_PAI = issuer.PAIGlobalId();

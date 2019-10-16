@@ -1,26 +1,11 @@
 pragma solidity 0.4.25;
 
-// import "./3rd/note.sol";
-// import "../library/template.sol";
-// import "./liquidator.sol";
-// import "./pai_issuer.sol";
-// import "./cdp.sol";
-
-<<<<<<< HEAD
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/liquidator.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/cdp.sol";
-import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
-=======
 import "./3rd/note.sol";
 import "../library/template.sol";
 import "./liquidator.sol";
 import "./price_oracle.sol";
 import "./cdp.sol";
 import "../library/acl_slave.sol";
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 contract Settlement is Template, DSNote, ACLSlave {
 

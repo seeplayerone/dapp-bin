@@ -4,17 +4,6 @@ import "../SafeMath.sol";
 import "../acl.sol";
 import "../template.sol";
 
-<<<<<<< HEAD
-import "github.com/evilcc2018/dapp-bin/library/SafeMath.sol";
-import "github.com/evilcc2018/dapp-bin/library/acl.sol";
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-=======
-// import "github.com/seeplayerone/dapp-bin/library/SafeMath.sol";
-// import "github.com/seeplayerone/dapp-bin/library/acl.sol";
-// import "github.com/seeplayerone/dapp-bin/library/template.sol";
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
-
-
 /// @dev this is a sample roll contract
 ///  DO NOT TAKE IT SERIOUSLY !!!
 

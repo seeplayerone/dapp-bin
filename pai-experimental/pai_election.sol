@@ -1,18 +1,11 @@
 pragma solidity 0.4.25;
 
-<<<<<<< HEAD
-import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
-import "github.com/evilcc2018/dapp-bin/library/election.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-=======
 import "../library/acl_slave.sol";
 import "../library/election.sol";
 import "./pai_main.sol";
 import "./3rd/math.sol";
 
 /// @notice 和Election.sol需要联合重构一下，需要考虑链上提供的治理能力和链外治理能力的边界
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 contract PISelection is Election,ACLSlave,DSMath {
     struct ElectionState {

@@ -1,12 +1,12 @@
 pragma solidity 0.4.25;
 
-import "github.com/evilcc2018/dapp-bin/library/template.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
-import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
-import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
+import "../library/template.sol";
+import "./pai_issuer.sol";
+import "../library/acl_slave.sol";
+import "./3rd/math.sol";
+import "./pai_setting.sol";
+import "./pai_main.sol";
+import "./price_oracle.sol";
 
 contract Finance is Template,ACLSlave,DSMath {
     constructor(address paiMainContract) public {
