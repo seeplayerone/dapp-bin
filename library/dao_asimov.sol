@@ -235,7 +235,7 @@ contract Association is Organization {
     /**
      * @dev invitem a new member
      * 
-     * @param invited member address
+     * @param newMember member address
      */
     function inviteNewMember(address newMember)
         public 
