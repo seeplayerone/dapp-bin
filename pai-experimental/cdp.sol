@@ -1,5 +1,6 @@
 pragma solidity 0.4.25;
 
+<<<<<<< HEAD
 // import "./3rd/math.sol";
 // import "./3rd/note.sol";
 // import "../library/template.sol";
@@ -15,6 +16,16 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/price_oracle.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
 import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
+=======
+import "./mathPI.sol";
+import "./3rd/note.sol";
+import "../library/template.sol";
+import "./liquidator.sol";
+import "./price_oracle.sol";
+import "./pai_issuer.sol";
+import "./pai_setting.sol";
+import "../library/acl_slave.sol";
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 contract CDP is MathPI, DSNote, Template, ACLSlave {
 
@@ -151,6 +162,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         enable[uint8(CDPType._90DAYS)] = true;
         enable[uint8(CDPType._180DAYS)] = true;
         enable[uint8(CDPType._360DAYS)] = true;
+<<<<<<< HEAD
 
         lastTimestamp = block.timestamp;
     }
@@ -231,6 +243,91 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit SetParam(4,newTolerance);
     }
 
+=======
+
+        lastTimestamp = block.timestamp;
+    }
+
+    /// @notice BUG: this function should only be called when there are no active cdps (cdps with collaterals)
+    /// UPDATE THE LOGIC OR REMOVE
+    function setAssetCollateral(address newPriceOracle) public note auth("DIRECTORVOTE") {
+        priceOracle = PriceOracle(newPriceOracle);
+        emit SetContract(0,priceOracle);
+        ASSET_COLLATERAL = priceOracle.ASSET_COLLATERAL();
+        emit SetParam(1,ASSET_COLLATERAL);
+        debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
+        emit SetParam(9,debtRateCeiling);
+    }
+
+    function timeNow() public view returns (uint) {
+        return block.timestamp;
+    }
+
+    function updateBaseInterestRate() public note {
+        updateRates();
+        baseInterestRate = setting.lendingInterestRate();
+        emit SetParam(10, baseInterestRate);
+        annualizedInterestRate = sub(baseInterestRate,cutDown[uint8(CDPType.CURRENT)]);
+        secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
+        emit SetParam(2, annualizedInterestRate);
+        emit SetParam(8, secondInterestRate);
+    }
+
+    /// @notice cutdown adjustment of CDPType.CUREENT will affect existing cdps, the design should be verified
+    function updateCutDown(CDPType _type, uint _newCutDown) public note auth("DIRECTORVOTE") {
+        cutDown[uint8(_type)] = _newCutDown;
+        emit SetCutDown(_type,_newCutDown);
+        if(CDPType.CURRENT == _type) {
+            updateRates();
+            annualizedInterestRate = sub(baseInterestRate,cutDown[uint8(CDPType.CURRENT)]);
+            secondInterestRate = optimalExp(generalLog(add(RAY, annualizedInterestRate)) / 1 years);
+            emit SetParam(2, annualizedInterestRate);
+            emit SetParam(8, secondInterestRate);
+        }
+        
+    }
+
+    function updateTerm(CDPType _type, uint _newTerm) public note auth("DIRECTORVOTE") {
+        require(_type > CDPType._360DAYS);
+        term[uint8(_type)] = _newTerm;
+        emit SetTerm(_type,_newTerm);
+    }
+
+    function changeState(CDPType _type, bool newState) public note auth("DIRECTORVOTE") {
+        enable[uint8(_type)] = newState;
+        emit SetState(_type,newState);
+    }
+
+    function switchCDPTransfer(bool newState) public note auth("DIRECTORVOTE") {
+        disableCDPTransfer = newState;
+        emit FunctionSwitch(0,newState);
+    }
+
+    function switchCDPCreation(bool newState) public note auth("DIRECTORVOTE") {
+        disableCDPCreation = newState;
+        emit FunctionSwitch(1,newState);
+    }
+
+    function switchLiquidation(bool newState) public note auth("DIRECTORVOTE") {
+        disableLiquidation = newState;
+        emit FunctionSwitch(2,newState);
+    }
+
+    function switchAllCDPFunction(bool newState) public note auth("DIRECTORVOTE") {
+        disableALLCDPFunction = newState;
+        emit FunctionSwitch(3,newState);
+    }
+
+    function updateCreateCollateralRatio(uint newRatio, uint newTolerance) public note auth("DIRECTORVOTE") {
+        require(newRatio - newTolerance >= liquidationRatio);
+        require(newTolerance <= RAY / 10);
+        createCollateralRatio = newRatio;
+        createRatioTolerance = newTolerance;
+        emit SetParam(3,newRatio);
+        emit SetParam(4,newTolerance);
+    }
+
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
     function updateLiquidationRatio(uint newRatio) public note auth("DIRECTORVOTE") {
         require(newRatio >= RAY);
         liquidationRatio = newRatio;
@@ -248,6 +345,11 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit SetParam(7,debtCeiling);
     }
 
+<<<<<<< HEAD
+=======
+    /// @notice should use the value from SETTING contract directly instead of store a local value
+    ///  debtRateCeiling and this functions should be removed
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
     function updateDebtRateCeiling() public note {
         debtRateCeiling = setting.mintPaiRatioLimit(ASSET_COLLATERAL);
         emit SetParam(9,debtRateCeiling);
@@ -270,6 +372,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit PostCDP(record, newOwner, _price);
     }
 
+    /// @notice should allow paying more money than the cdp price and refund the msg.sender
     function buyCDP(uint record) public payable note {
         require(setting.globalOpen());
         require(!disableALLCDPFunction);
@@ -461,6 +564,10 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit SetContract(1,liquidator);
     }
 
+<<<<<<< HEAD
+=======
+    /// @notice will affact cdp purchase and repay with the old PAI
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
     function setPAIIssuer(address newIssuer) public note auth("DIRECTORVOTE") {
         issuer = PAIIssuer(newIssuer);
         ASSET_PAI = issuer.PAIGlobalId();
@@ -468,6 +575,10 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         emit SetContract(2,issuer);
     }
 
+<<<<<<< HEAD
+=======
+    /// @notice all values should be read from settings directly instead of saving locally
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
     function setSetting(address _setting) public note auth("DIRECTORVOTE") {
         setting = Setting(_setting);
         emit SetContract(3,setting);

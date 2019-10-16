@@ -1,10 +1,15 @@
 pragma solidity 0.4.25;
 
+<<<<<<< HEAD
 import "github.com/evilcc2018/dapp-bin/library/string_utils.sol";
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 
 //import "./string_utils.sol";
 //import "./template.sol";
+=======
+import "./string_utils.sol";
+import "./template.sol";
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 /// @dev ACL interface
 ///  ACL is provided by the organization contract

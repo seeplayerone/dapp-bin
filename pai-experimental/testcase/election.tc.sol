@@ -1,9 +1,16 @@
 pragma solidity 0.4.25;
 
+<<<<<<< HEAD
 import "github.com/evilcc2018/dapp-bin/library/election.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/test.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/fake_btc_issuer.sol";
+=======
+import "../../library/election.sol";
+import "../3rd/math.sol";
+import "../3rd/test.sol";
+import "../fake_btc_issuer.sol";
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 contract Fly {
     uint256  _era;

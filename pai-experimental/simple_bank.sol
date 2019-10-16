@@ -1,6 +1,10 @@
 pragma solidity 0.4.25;
 
+<<<<<<< HEAD
 import "github.com/seeplayerone/dapp-bin/library/organization.sol";
+=======
+import "../library/organization.sol";
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 contract Bank is Organization {
     /// @dev president of the organization

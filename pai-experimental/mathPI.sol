@@ -1,6 +1,10 @@
 pragma solidity 0.4.25;
 
+<<<<<<< HEAD
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
+=======
+import "./3rd/math.sol";
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 contract MathPI is DSMath {
     uint256 private constant FIXED_1 = 0x080000000000000000000000000000000;

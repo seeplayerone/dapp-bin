@@ -1,10 +1,18 @@
 pragma solidity 0.4.25;
 
+<<<<<<< HEAD
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testPI.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_main.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/testcase/testPrepare.sol";
+=======
+import "../../library/template.sol";
+import "../3rd/math.sol";
+import "../testPI.sol";
+import "../pai_main.sol";
+import "./testPrepare.sol";
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 contract TestPaiMain is Template, DSTest, DSMath {
     function() public payable {}

@@ -1,5 +1,6 @@
 pragma solidity 0.4.25;
 
+<<<<<<< HEAD
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/note.sol";
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_issuer.sol";
@@ -7,6 +8,15 @@ import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_finance.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/math.sol";
 import "github.com/evilcc2018/dapp-bin/library/acl_slave.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/pai_setting.sol";
+=======
+import "./3rd/note.sol";
+import "../library/template.sol";
+import "./pai_issuer.sol";
+import "./pai_finance.sol";
+import "./3rd/math.sol";
+import "../library/acl_slave.sol";
+import "./pai_setting.sol";
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 contract TDC is DSMath, DSNote, Template, ACLSlave {
     //time deposit certificates

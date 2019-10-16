@@ -1,9 +1,15 @@
 pragma solidity 0.4.25;
 pragma experimental ABIEncoderV2;
 
+<<<<<<< HEAD
 import "github.com/evilcc2018/dapp-bin/library/template.sol";
 import "github.com/evilcc2018/dapp-bin/library/execution.sol";
 import "github.com/evilcc2018/dapp-bin/pai-experimental/3rd/test.sol";
+=======
+import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "github.com/seeplayerone/dapp-bin/library/execution.sol";
+import "github.com/seeplayerone/dapp-bin/pai-experimental/3rd/test.sol";
+>>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
 
 contract EXEC is Template, Execution {
     function() public payable {}

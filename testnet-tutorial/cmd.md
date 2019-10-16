@@ -54,7 +54,7 @@ You can use the template cmd to submit template and deploy contract instance. ``
 
 ![](./img/cmd-asi-template-h.png)
 
-Try ```asi template -s /Users/xxd/gitflow/dapp-contracts/dapp-bin/testnet-tutorial.sol -n tutorial-1 create``` to submit a template.
+Try ```asi template -s /Users/xxd/gitflow/dapp-contracts/dapp-bin/testnet-tutorial/tutorial.sol -n tutorial-1 create``` to submit a template.
 
 ![](./img/cmd-asi-template-create.png)
 
