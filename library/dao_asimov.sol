@@ -303,7 +303,9 @@ contract Association is Organization {
      * when closed, the asset organization created can not transfer
      */
     function close() public authAddresses(presidents) {
-        updateStatus(true);
+        if (hasRegistered) {
+            updateStatus(true);
+        }
         emit CloseOrganization(true);
         selfdestruct(this);
     }
