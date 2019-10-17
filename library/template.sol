@@ -10,6 +10,7 @@ interface TemplateWarehouse{
 ///  Asimov only accepts a template rather than a randomly composed Solidity contract
 ///  An Asimov template always belongs to a given category and has a unique template name in the category
 contract Template {
+    bool private initialized;
     uint16 internal category;
     string internal templateName;
     
@@ -19,9 +20,10 @@ contract Template {
     /// @param _category category of the template
     /// @param _templateName name of the template
     function initTemplate(uint16 _category, string _templateName) public {
-        require(msg.sender == 0x66dbdd2826fb068f2929af065b04c0804d0397b09e);
+        require(!initialized, "it is not allowed to init more than once");
         category = _category;
         templateName = _templateName;
+        initialized = true;
     }
 
     /// @dev TEST ONLY: MUST BE REMOVED AFTER THE TEST IS DONE
