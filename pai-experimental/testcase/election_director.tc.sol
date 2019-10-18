@@ -108,8 +108,8 @@ contract ElectionTest is DSTest {
         for(uint i = 0; i < 12; i ++) {
             bool success = persons[i].execute(
                 address(elections), 
-                "nominateCandidateByAsset(uint256,address)", 
-                abi.encode(index, address(persons[i])), 
+                "nominateCandidateByAsset(address)", 
+                abi.encode(address(persons[i])), 
                 flow.balance(persons[i], issuer.PISGlobalId()), 
                 issuer.PISGlobalId()
             );
@@ -129,8 +129,8 @@ contract ElectionTest is DSTest {
         }
         bool success = persons[11].execute(
             address(elections),
-            "nominateCandidatesByAsset(uint256,address[])",
-            abi.encode(index, candidates), 
+            "nominateCandidatesByAsset(address[])",
+            abi.encode(candidates), 
             flow.balance(persons[11], issuer.PISGlobalId()),
             issuer.PISGlobalId()
         );
@@ -150,8 +150,8 @@ contract ElectionTest is DSTest {
         }
         bool success = persons[10].execute(
             address(elections),
-            "nominateCandidatesByAsset(uint256,address[])",
-            abi.encode(index, candidates), 
+            "nominateCandidatesByAsset(address[])",
+            abi.encode(candidates), 
             flow.balance(persons[10], issuer.PISGlobalId()),
             issuer.PISGlobalId()
         );
@@ -306,6 +306,53 @@ contract ElectionTest is DSTest {
     function testStart2rdNominationAfterCease() public {
         testCeaseSuccess();
         bool success = elections.call(abi.encodeWithSignature("startElection()"));
+        assertTrue(success);
+    }
+
+    function testNoRelevantNomination() public {
+        testNominateQualification();
+
+        FlyElection another = new FlyElection(issuer);
+
+        another.startElection();
+
+        bool success = persons[6].execute(
+                                address(another), 
+                                "nominateCandidateByAsset(address)", 
+                                abi.encode(address(persons[6])), 
+                                flow.balance(persons[6], issuer.PISGlobalId()), 
+                                issuer.PISGlobalId());
+
+        assertTrue(success);
+    }
+
+    function testRelevantNomination() public {
+        testNominateQualification();
+
+        FlyElection another = new FlyElection(issuer);
+
+        another.startElection();
+
+        PAIElectionBase[] memory go = new PAIElectionBase[](1);
+        go[0] = elections;
+        another.setRelevantElections(go);
+
+        bool success = persons[6].execute(
+                                address(another), 
+                                "nominateCandidateByAsset(address)", 
+                                abi.encode(address(persons[6])), 
+                                flow.balance(persons[6], issuer.PISGlobalId()), 
+                                issuer.PISGlobalId());
+
+        assertTrue(!success);
+
+        success = persons[7].execute(
+                                address(another), 
+                                "nominateCandidateByAsset(address)", 
+                                abi.encode(address(persons[1])), 
+                                flow.balance(persons[7], issuer.PISGlobalId()), 
+                                issuer.PISGlobalId());
+
         assertTrue(success);
     }
 }

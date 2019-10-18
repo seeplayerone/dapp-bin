@@ -23,6 +23,8 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
     /// target backup count
     uint public beta;
 
+    PAIElectionBase[] public relevantElections;
+
     constructor(address pisContract, string winnerRole, string backupRole, uint winnerCount, uint backupCount) public {
         master = ACLMaster(pisContract);
 
@@ -37,6 +39,10 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
         beta = backupCount;
     }
 
+    function setRelevantElections(PAIElectionBase[] eles) public {
+        relevantElections = eles;
+    }
+
     /// TODO acl
     function startElection() public returns (uint) {
         uint index = startElection(nominationLength, electionLength, executionLength, qualification, totalSupply);
@@ -45,6 +51,22 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
             nominateCandidatesByAuthority(index, master.getMembers(bytes(WINNER)));
         }
         return index;
+    }
+
+    function nominateCandidateByAsset(address candidate) public payable {
+        for(uint i = 0; i < relevantElections.length; i ++) {
+            require(!relevantElections[i].getActiveCandidates().contains(candidate));
+        }
+        nominateCandidateByAsset(currentElectionIndex.sub(1), candidate);
+    }
+
+    function nominateCandidatesByAsset(address[] candidates) public payable {
+        for(uint i = 0; i < relevantElections.length; i ++) {
+            for(uint j = 0; j < candidates.length; j ++) {
+                require(!relevantElections[i].getActiveCandidates().contains(candidates[j]));
+            }
+        }
+        nominateCandidatesByAsset(currentElectionIndex.sub(1), candidates);
     }
 
     /// TODO acl
@@ -92,5 +114,17 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
         require(index > 0);
 
         ceaseElection(index);   
+    }
+
+    function getActiveCandidates() public view returns (address[]) {
+        uint index = currentElectionIndex - 1;
+        require(index > 0);
+
+        ElectionRecord storage election = electionRecords[index];
+        if(election.created && !election.processed && !election.ceased) {
+            return election.candidates;
+        }
+
+        return new address[](0);
     }
 }
