@@ -68,19 +68,19 @@ contract PAIElectionDirector is Election,ACLSlave,DSMath {
 
         processElectionResult(index);
 
-        // address[] memory directors = new address[](alpha);
-        // for(uint i = 0; i < alpha; i++) {
-        //     directors[i] = election.candidates[i];
-        // }
-        // master.resetMembers(directors, bytes(DIRECTOR));
+        address[] memory directors = new address[](alpha);
+        for(uint i = 0; i < alpha; i++) {
+            directors[i] = election.candidates[i];
+        }
+        master.resetMembers(directors, bytes(DIRECTOR));
 
-        // if(len > alpha) {
-        //     address[] memory backups = new address[](len-alpha);
-        //     for(i = alpha; i < len; i ++) {
-        //         backups[i-alpha] = election.candidates[i];
-        //     }
-        //     master.resetMembers(backups, bytes(BACKUP));
-        // }
+        if(len > alpha) {
+            address[] memory backups = new address[](len-alpha);
+            for(i = alpha; i < len; i ++) {
+                backups[i-alpha] = election.candidates[i];
+            }
+            master.resetMembers(backups, bytes(BACKUP));
+        }
     }
 
     /// TODO acl

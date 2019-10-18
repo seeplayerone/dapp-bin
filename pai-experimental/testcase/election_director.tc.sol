@@ -82,6 +82,7 @@ contract ElectionTest is DSTest {
         persons.push(bossWife);
 
         elections = new FlyElection(issuer);
+        issuer.addMember(elections,"ADMIN");
         return elections.startElection();
     }
 
