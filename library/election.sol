@@ -48,13 +48,13 @@ contract Election is Template {
 
     uint constant public ONE_DAY_BLOCKS = 12 * 60 * 24;
 
-    constructor(bytes _role, uint _assettype) public {
+    function init(bytes _role, uint _assettype) public {
         role = _role;
         assettype = _assettype;
     }
 
     /// @dev before election
-    function startElection(uint nominationLength, uint electionLength, uint executionLength, uint qualification, uint totalSupply) public returns (uint) {
+    function startElection(uint nominationLength, uint electionLength, uint executionLength, uint qualification, uint totalSupply) internal returns (uint) {
         /// only one active election per contract - designed for safety considerations
         if(currentElectionIndex > 1) {
             require(electionFinished(currentElectionIndex.sub(1)));
@@ -120,13 +120,12 @@ contract Election is Template {
         msg.sender.transfer(msg.value,assettype);
     }
 
-    /// @dev election stage
-    function nominateCandidatesByAuthority(uint electionIndex, address[] candidates) public {
+    function nominateCandidatesByAuthority(uint electionIndex, address[] candidates) internal {
         ElectionRecord storage election = electionRecords[electionIndex];
         require(election.created);
 
-        require(nowBlock() >= election.electionStartBlock);
-        require(nowBlock() < election.executionStartBlock);
+        require(nowBlock() >= election.nominationStartBlock);
+        require(nowBlock() < election.electionStartBlock);
 
         uint length = candidates.length;
         require(length > 0);
@@ -141,6 +140,28 @@ contract Election is Template {
         }
     }
 
+    function cancelNomination(uint electionIndex) public {
+        ElectionRecord storage election = electionRecords[electionIndex];
+        require(election.created);
+
+        require(nowBlock() >= election.nominationStartBlock);
+        require(nowBlock() < election.electionStartBlock);
+
+        uint len = election.candidates.length;
+        for(uint i = 0; i < len; i ++) {
+            if(election.candidates[i] == msg.sender) {
+                if(i != len - 1) {
+                    election.candidates[i] = election.candidates[len-1];
+                    election.candidateSupportRates[i] = election.candidateSupportRates[len-1];
+                }
+                election.candidates.length--;
+                election.candidateSupportRates.length--;
+                break;
+            }
+        }
+    }
+
+    /// @dev election stage
     function voteForCandidate(uint electionIndex, address candidate) public payable {
         ElectionRecord storage election = electionRecords[electionIndex];
         require(election.created);
@@ -158,7 +179,7 @@ contract Election is Template {
     }
 
     /// @dev execution stage
-    function processElectionResult(uint electionIndex) public {
+    function processElectionResult(uint electionIndex) internal {
         ElectionRecord storage election = electionRecords[electionIndex];
         require(election.created);
         require(!election.processed);
@@ -175,7 +196,7 @@ contract Election is Template {
         election.processed = true;
     }
 
-    function ceaseElection(uint electionIndex) public {
+    function ceaseElection(uint electionIndex) internal {
         ElectionRecord storage election = electionRecords[electionIndex];
         require(election.created);
         require(!election.processed);
