@@ -18,14 +18,18 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
 
     uint public totalSupply;
 
-    /// target candidate count
-    uint public alpha;
-    /// target backup count
-    uint public beta;
+    struct Extra {
+        /// target candidate count
+        uint alpha;
+        /// target backup count
+        uint beta;
+        /// relevant elections
+        PAIElectionBase[] relevantElections;
+    }
 
-    PAIElectionBase[] public relevantElections;
+    mapping (uint=>Extra) extras;
 
-    constructor(address pisContract, string winnerRole, string backupRole, uint winnerCount, uint backupCount) public {
+    constructor(address pisContract, string winnerRole, string backupRole) public {
         master = ACLMaster(pisContract);
 
         assettype = PAIDAO(master).PISGlobalId();
@@ -34,18 +38,18 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
         WINNER = winnerRole;
         BACKUP = backupRole;
         role = bytes(WINNER);
-
-        alpha = winnerCount;
-        beta = backupCount;
-    }
-
-    function setRelevantElections(PAIElectionBase[] eles) public {
-        relevantElections = eles;
     }
 
     /// TODO acl
-    function startElection() public returns (uint) {
+    function startElection(uint _alpha, uint _beta) public returns (uint) {
+        /// update totalSupply for every election
+        (,,,,, totalSupply) = PAIDAO(master).getAssetInfo(0);  
+
         uint index = startElection(nominationLength, electionLength, executionLength, qualification, totalSupply);
+        Extra storage extra = extras[index];
+        extra.alpha = _alpha;
+        extra.beta = _beta;
+
         address[] memory oldman = master.getMembers(bytes(WINNER));
         if(oldman.length > 0) {
             nominateCandidatesByAuthority(index, master.getMembers(bytes(WINNER)));
@@ -53,63 +57,86 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
         return index;
     }
 
-    function nominateCandidateByAsset(address candidate) public payable {
-        for(uint i = 0; i < relevantElections.length; i ++) {
-            require(!relevantElections[i].getActiveCandidates().contains(candidate));
+    function startElectionSupplement(uint _alpha, uint _beta) public returns (uint) {
+        /// update totalSupply for every election
+        (,,,,, totalSupply) = PAIDAO(master).getAssetInfo(0);  
+
+        uint index = startElection(nominationLength, electionLength, executionLength, qualification, totalSupply);
+        Extra storage extra = extras[index];
+        extra.alpha = _alpha;
+        extra.beta = _beta;
+
+        return index;
+    }
+
+    function setRelevantElections(PAIElectionBase[] eles) public active {
+        uint index = currentElectionIndex - 1;
+        extras[index].relevantElections = eles;
+    }
+
+    function nominateCandidateByAsset(address candidate) public payable active {
+        uint index = currentElectionIndex - 1;
+        require(index > 0);
+
+        for(uint i = 0; i < extras[index].relevantElections.length; i ++) {
+            require(!extras[index].relevantElections[i].getActiveCandidates().contains(candidate));
         }
         nominateCandidateByAsset(currentElectionIndex.sub(1), candidate);
     }
 
-    function nominateCandidatesByAsset(address[] candidates) public payable {
-        for(uint i = 0; i < relevantElections.length; i ++) {
+    function nominateCandidatesByAsset(address[] candidates) public payable active {
+        uint index = currentElectionIndex - 1;
+        require(index > 0);
+
+        for(uint i = 0; i < extras[index].relevantElections.length; i ++) {
             for(uint j = 0; j < candidates.length; j ++) {
-                require(!relevantElections[i].getActiveCandidates().contains(candidates[j]));
+                require(!extras[index].relevantElections[i].getActiveCandidates().contains(candidates[j]));
             }
         }
         nominateCandidatesByAsset(currentElectionIndex.sub(1), candidates);
     }
 
     /// TODO acl
-    function nominateCandidatesByFoundingTeam(address[] cans) public {
+    function nominateCandidatesByFoundingTeam(address[] cans) public active {
         uint index = currentElectionIndex - 1;
         require(index > 0);
         ElectionRecord storage election = electionRecords[index];
         uint len = election.candidates.length;
         uint delta = cans.length;
-        require(len < alpha);
-        require(len + delta >= alpha);
-        require(len + delta <= alpha + beta);
+        require(len < extras[index].alpha);
+        require(len + delta >= extras[index].alpha);
+        require(len + delta <= extras[index].alpha + extras[index].beta);
         nominateCandidatesByAuthority(index, cans);
     }
 
     /// TODO acl
-    function processElectionResult() public {
+    function processElectionResult() public active {
         uint index = currentElectionIndex - 1;
         require(index > 0);
 
         ElectionRecord storage election = electionRecords[index];
         uint len = election.candidates.length;
-        require(len >= alpha);
+        require(len >= extras[index].alpha);
 
         processElectionResult(index);
 
-        address[] memory directors = new address[](alpha);
-        for(uint i = 0; i < alpha; i++) {
+        address[] memory directors = new address[](extras[index].alpha);
+        for(uint i = 0; i < extras[index].alpha; i++) {
             directors[i] = election.candidates[i];
         }
         master.resetMembers(directors, bytes(WINNER));
 
-        if(len > alpha) {
-            address[] memory backups = new address[](len-alpha);
-            for(i = alpha; i < len; i ++) {
-                backups[i-alpha] = election.candidates[i];
+        if(len > extras[index].alpha) {
+            address[] memory backups = new address[](len-extras[index].alpha);
+            for(i = extras[index].alpha; i < len; i ++) {
+                backups[i-extras[index].alpha] = election.candidates[i];
             }
             master.resetMembers(backups, bytes(BACKUP));
         }
     }
 
     /// TODO acl
-    function ceaseElection() public {
+    function ceaseElection() public active {
         uint index = currentElectionIndex - 1;
         require(index > 0);
 
@@ -126,5 +153,16 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
         }
 
         return new address[](0);
+    }
+
+    modifier active() {
+        uint index = currentElectionIndex - 1;
+        require(index > 0);
+        ElectionRecord storage election = electionRecords[index];
+        require(election.created);
+        require(!election.processed);
+        require(!election.ceased);
+
+        _;
     }
 }

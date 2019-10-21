@@ -5,6 +5,6 @@ import "./pai_election_base.sol";
 contract PAIElectionDirector is PAIElectionBase {
 
     constructor(address pisContract) 
-        PAIElectionBase(pisContract, "PAI-DIRECTOR", "PAI-DIRECTOR-BACKUP", 4, 3) 
+        PAIElectionBase(pisContract, "PAI-DIRECTOR", "PAI-DIRECTOR-BACKUP") 
         public { }
 }

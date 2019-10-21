@@ -83,7 +83,7 @@ contract ElectionTest is DSTest {
 
         elections = new FlyElection(issuer);
         issuer.addMember(elections,"ADMIN");
-        return elections.startElection();
+        return elections.startElection(4, 3);
     }
 
     function testSetup() public {
@@ -280,14 +280,14 @@ contract ElectionTest is DSTest {
     function testStart2rdNominationFail() public {
         testVoteForCandidates();
 
-        bool success = elections.call(abi.encodeWithSignature("startElection()"));
+        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,uint256)",4,3));
         assertTrue(!success);
     }
 
     function testStart2rdNominationAfterProcess() public {
         testProcessResult();
 
-        bool success = elections.call(abi.encodeWithSignature("startElection()"));
+        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,uint256)",4,3));
         assertTrue(success);
     }
 
@@ -305,7 +305,7 @@ contract ElectionTest is DSTest {
 
     function testStart2rdNominationAfterCease() public {
         testCeaseSuccess();
-        bool success = elections.call(abi.encodeWithSignature("startElection()"));
+        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,uint256)",4,3));
         assertTrue(success);
     }
 
@@ -314,7 +314,7 @@ contract ElectionTest is DSTest {
 
         FlyElection another = new FlyElection(issuer);
 
-        another.startElection();
+        another.startElection(4, 3);
 
         bool success = persons[6].execute(
                                 address(another), 
@@ -331,7 +331,7 @@ contract ElectionTest is DSTest {
 
         FlyElection another = new FlyElection(issuer);
 
-        another.startElection();
+        another.startElection(4, 3);
 
         PAIElectionBase[] memory go = new PAIElectionBase[](1);
         go[0] = elections;
