@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/testnet-tutorial/tutorial.sol";
-import "github.com/seeplayerone/dapp-bin/testnet-tutorial/test.sol";
+import "./tutorial.sol";
+import "./test.sol";
 
 /**
     @dev we recommend "test driven development" paradigm for contract developing
@@ -17,7 +17,9 @@ import "github.com/seeplayerone/dapp-bin/testnet-tutorial/test.sol";
      if we need to register and issue assets (no need for other cases)
 */
 contract NamedTutorial is Tutorial {
-    constructor() public {
+    constructor() 
+        Tutorial("Fake-Name-For-Test")
+        public {
         templateName = "Fake-Template-Name-For-Test";
     }
 }

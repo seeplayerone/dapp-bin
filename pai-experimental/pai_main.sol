@@ -49,6 +49,8 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
             updateAsset(assetIndex, amount);
         } else {
             flow.createAsset(assetType, assetIndex, amount);
+            Registry registry = Registry(0x630000000000000000000000000000000000000065);
+            registry.newAsset("PIS", "PIS", "Share of PAIDAO", assetType, assetIndex);            
             newAsset("PIS", "PIS", "Share of PAIDAO", assetType, assetIndex, amount);
         }
         dest.transfer(amount, PISGlobalId);

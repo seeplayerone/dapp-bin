@@ -12,13 +12,14 @@ pragma solidity 0.4.25;
      we recommend to write full testcases and have them passed (using IDE tool)
  */
 
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
+import "../library/template.sol";
 
 /**
     @dev Registry is a system contract on asimov chain, a contract needs to register before issuing assets
  */ 
 interface Registry {
      function registerOrganization(string organizationName, string templateName) external returns(uint32);
+     function newAsset(string name, string symbol, string description, uint32 assetType, uint32 assetIndex) external;
 }
 
 /**
@@ -79,6 +80,7 @@ contract Tutorial is Template {
             /// index = 1 which means this is the first asset created by this oraganization
             ///  an organization can create multiple assets with different indexes
             flow.createAsset(properties, index, amount);
+            reg.newAsset("Tutorial", "TC", "Tutorial Coin", uint32(properties), uint32(index));
         }
         
         totalSupply = totalSupply + amount;
