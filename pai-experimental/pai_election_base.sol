@@ -70,66 +70,54 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
     }
 
     function setRelevantElections(PAIElectionBase[] eles) public active {
-        uint index = currentElectionIndex - 1;
-        extras[index].relevantElections = eles;
+        extras[currentIndex].relevantElections = eles;
     }
 
     function nominateCandidateByAsset(address candidate) public payable active {
-        uint index = currentElectionIndex - 1;
-        require(index > 0);
-
-        for(uint i = 0; i < extras[index].relevantElections.length; i ++) {
-            require(!extras[index].relevantElections[i].getActiveCandidates().contains(candidate));
+        for(uint i = 0; i < extras[currentIndex].relevantElections.length; i ++) {
+            require(!extras[currentIndex].relevantElections[i].getActiveCandidates().contains(candidate));
         }
-        nominateCandidateByAsset(currentElectionIndex.sub(1), candidate);
+        nominateCandidateByAsset(currentIndex, candidate);
     }
 
     function nominateCandidatesByAsset(address[] candidates) public payable active {
-        uint index = currentElectionIndex - 1;
-        require(index > 0);
-
-        for(uint i = 0; i < extras[index].relevantElections.length; i ++) {
+        for(uint i = 0; i < extras[currentIndex].relevantElections.length; i ++) {
             for(uint j = 0; j < candidates.length; j ++) {
-                require(!extras[index].relevantElections[i].getActiveCandidates().contains(candidates[j]));
+                require(!extras[currentIndex].relevantElections[i].getActiveCandidates().contains(candidates[j]));
             }
         }
-        nominateCandidatesByAsset(currentElectionIndex.sub(1), candidates);
+        nominateCandidatesByAsset(currentIndex, candidates);
     }
 
     /// TODO acl
     function nominateCandidatesByFoundingTeam(address[] cans) public active {
-        uint index = currentElectionIndex - 1;
-        require(index > 0);
-        ElectionRecord storage election = electionRecords[index];
+        ElectionRecord storage election = electionRecords[currentIndex];
         uint len = election.candidates.length;
         uint delta = cans.length;
-        require(len < extras[index].alpha);
-        require(len + delta >= extras[index].alpha);
-        require(len + delta <= extras[index].alpha + extras[index].beta);
-        nominateCandidatesByAuthority(index, cans);
+        require(len < extras[currentIndex].alpha);
+        require(len + delta >= extras[currentIndex].alpha);
+        require(len + delta <= extras[currentIndex].alpha + extras[currentIndex].beta);
+        nominateCandidatesByAuthority(currentIndex, cans);
     }
 
     /// TODO acl
     function processElectionResult() public active {
-        uint index = currentElectionIndex - 1;
-        require(index > 0);
-
-        ElectionRecord storage election = electionRecords[index];
+        ElectionRecord storage election = electionRecords[currentIndex];
         uint len = election.candidates.length;
-        require(len >= extras[index].alpha);
+        require(len >= extras[currentIndex].alpha);
 
-        processElectionResult(index);
+        processElectionResult(currentIndex);
 
-        address[] memory directors = new address[](extras[index].alpha);
-        for(uint i = 0; i < extras[index].alpha; i++) {
+        address[] memory directors = new address[](extras[currentIndex].alpha);
+        for(uint i = 0; i < extras[currentIndex].alpha; i++) {
             directors[i] = election.candidates[i];
         }
         master.resetMembers(directors, bytes(WINNER));
 
-        if(len > extras[index].alpha) {
-            address[] memory backups = new address[](len-extras[index].alpha);
-            for(i = extras[index].alpha; i < len; i ++) {
-                backups[i-extras[index].alpha] = election.candidates[i];
+        if(len > extras[currentIndex].alpha) {
+            address[] memory backups = new address[](len-extras[currentIndex].alpha);
+            for(i = extras[currentIndex].alpha; i < len; i ++) {
+                backups[i-extras[currentIndex].alpha] = election.candidates[i];
             }
             master.resetMembers(backups, bytes(BACKUP));
         }
@@ -137,17 +125,15 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
 
     /// TODO acl
     function ceaseElection() public active {
-        uint index = currentElectionIndex - 1;
-        require(index > 0);
-
-        ceaseElection(index);   
+        ceaseElection(currentIndex);   
     }
 
     function getActiveCandidates() public view returns (address[]) {
-        uint index = currentElectionIndex - 1;
-        require(index > 0);
+        if(currentIndex == 0) {
+            return new address[](0);
+        }
 
-        ElectionRecord storage election = electionRecords[index];
+        ElectionRecord storage election = electionRecords[currentIndex];
         if(election.created && !election.processed && !election.ceased) {
             return election.candidates;
         }
@@ -156,9 +142,8 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
     }
 
     modifier active() {
-        uint index = currentElectionIndex - 1;
-        require(index > 0);
-        ElectionRecord storage election = electionRecords[index];
+        require(currentIndex > 0);
+        ElectionRecord storage election = electionRecords[currentIndex];
         require(election.created);
         require(!election.processed);
         require(!election.ceased);

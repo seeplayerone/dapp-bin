@@ -42,7 +42,7 @@ contract Election is Template {
     uint assettype;
 
     /// @dev auto incremental index to record all elections
-    uint currentElectionIndex = 1;
+    uint currentIndex = 0;
 
     mapping (uint=>ElectionRecord) public electionRecords;
 
@@ -56,11 +56,13 @@ contract Election is Template {
     /// @dev before election
     function startElection(uint nominationLength, uint electionLength, uint executionLength, uint qualification, uint totalSupply) internal returns (uint) {
         /// only one active election per contract - designed for safety considerations
-        if(currentElectionIndex > 1) {
-            require(electionFinished(currentElectionIndex.sub(1)));
+        if(currentIndex > 0) {
+            require(electionFinished(currentIndex));
         }
 
-        ElectionRecord storage election = electionRecords[currentElectionIndex];
+        currentIndex = currentIndex.add(1);
+
+        ElectionRecord storage election = electionRecords[currentIndex];
         require(!election.created);
         require(nominationLength >= ONE_DAY_BLOCKS);
         require(electionLength >= ONE_DAY_BLOCKS);
@@ -73,10 +75,9 @@ contract Election is Template {
         election.qualification = qualification;
         election.totalSupply = totalSupply;
 
-        currentElectionIndex = currentElectionIndex.add(1);
         election.created = true;
         
-        return currentElectionIndex.sub(1);
+        return currentIndex;
     }
 
     function electionFinished(uint electionIndex) internal view returns (bool) {
