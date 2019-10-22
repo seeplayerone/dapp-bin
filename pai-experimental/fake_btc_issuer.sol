@@ -38,12 +38,7 @@ contract FakeBTCIssuer is Template, DSMath {
         if(firstTry) {
             firstTry = false;
             flow.createAsset(assetType, assetIndex, amount);
-<<<<<<< HEAD
             registry.newAsset("FBTC", "FBTC", "Fake BTC Pegging Coin", assetType, assetIndex);
-=======
-            Registry registry = Registry(0x630000000000000000000000000000000000000065);
-            registry.newAsset(name, "FBTC", "Fake BTC 4 TEST", assetType, assetIndex);
->>>>>>> 89ee487a1200d31158e9866e60161e93d435b721
         } else {
             flow.mintAsset(assetIndex, amount);
         }
