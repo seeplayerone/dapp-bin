@@ -153,7 +153,7 @@ contract Organization is Template, ACL, Asset {
 
     /// @dev burn an asset
     /// @param assetIndex asset index in the organization
-    /// @param amountOrVoucherId amount or the unique voucher id of asset
+    /// @param amount amount or the unique voucher id of asset
     function burn(uint32 assetIndex, uint256 amount) internal {
         registry.burnAsset(assetIndex, amount);
     }
