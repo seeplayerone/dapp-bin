@@ -11,9 +11,10 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
 
     enum VoteStatus {NOTSTARTED, ONGOING, APPROVED, REJECTED}
     enum VoteAttitude {AGREE,DISAGREE,ABSTAIN}
-    uint public passProportion = RAY * 2 / 3;
-    uint public startProportion = RAY / 20;
-    uint public pisVoteDuration = 10 days / 5;
+    uint public passProportion;
+    uint public startProportion;
+    uint public pisVoteDuration;
+    uint96 public ASSET_PIS;
 
     // vote event
     event CreateVote(uint);
@@ -47,11 +48,13 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
     mapping(uint => Proposal) public voteProposals;
     uint public lastPISVoteId = 0;
     uint public lastAssignedProposalId = 0;
-    uint96 public ASSET_PIS;
 
     constructor(address paiMainContract) {
         master = ACLMaster(paiMainContract);
         ASSET_PIS = PAIDAO(master).PISGlobalId();
+        passProportion = RAY * 2 / 3;
+        startProportion = RAY / 20;
+        pisVoteDuration = 10 days / 5;
     }
 
     function startPISVote(uint _passProportion,uint _startTime,uint _duration) internal returns(uint) {

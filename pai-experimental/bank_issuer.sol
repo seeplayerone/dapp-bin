@@ -56,18 +56,18 @@ contract BankIssuer is Template, Asset, DSMath, ACLSlave {
         emit CreateAsset(bytes12(AssetGlobalId[assetIndex]));
     }
 
-    function mint(uint32 assetIndex, uint amount, address dest) public auth("BusinessContract@Bank") {
-        if(!issuedAssets[assetIndex].existed) {
+    function mint(uint32 _assetIndex, uint amount, address dest) public auth("BusinessContract@Bank") {
+        if(!issuedAssets[_assetIndex].existed) {
             return;
         }
-        flow.mintAsset(assetIndex, amount);
-        updateAsset(assetIndex, amount);
-        dest.transfer(amount, AssetGlobalId[assetIndex]);
+        flow.mintAsset(_assetIndex, amount);
+        updateAsset(_assetIndex, amount);
+        dest.transfer(amount, AssetGlobalId[_assetIndex]);
     }
 
-    function burn(uint32 assetIndex) public payable {
-        require(msg.assettype == AssetGlobalId[assetIndex],"index and asset not match");
-        issuedAssets[assetIndex].totalIssued = sub(issuedAssets[assetIndex].totalIssued, msg.value);
-        zeroAddr.transfer(msg.value, AssetGlobalId[assetIndex]);
+    function burn(uint32 _assetIndex) public payable {
+        require(msg.assettype == AssetGlobalId[_assetIndex],"index and asset not match");
+        issuedAssets[_assetIndex].totalIssued = sub(issuedAssets[_assetIndex].totalIssued, msg.value);
+        zeroAddr.transfer(msg.value, AssetGlobalId[_assetIndex]);
     }
 }

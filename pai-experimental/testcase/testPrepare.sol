@@ -1,4 +1,5 @@
 pragma solidity 0.4.25;
+pragma experimental ABIEncoderV2;
 
 import "../../library/template.sol";
 import "../testPI.sol";
@@ -13,9 +14,11 @@ import "../tdc.sol";
 import "../settlement.sol";
 import "../fake_btc_issuer.sol";
 import "../pai_election.sol";
-// import "../pai_PISvote_special.sol";
-// import "../pai_PISvote_standard.sol";
-// import "../pai_director_vote.sol";
+import "../bank_issuer.sol";
+import "../pai_PISvote.sol";
+import "../pai_proposal.sol";
+import "../pai_DIRvote.sol";
+import "../pai_demonstration.sol";
 
 
 contract DividendsSample is Template {
@@ -64,6 +67,14 @@ contract DividendsSample is Template {
 
 contract FakePerson is Template {
     function() public payable {}
+
+    function execute(address target, bytes4 selector, bytes params, uint amount, uint assettype) public returns (bool){
+        return target.call.value(amount, assettype)(abi.encodePacked(selector, params));
+    }
+
+    function execute(address target, bytes4 selector, bytes params) public returns (bool){
+        return target.call(abi.encodePacked(selector, params));
+    }
 
     function createPAIDAO(string _str) public returns (address) {
         return (new FakePaiDao(_str));
@@ -355,8 +366,6 @@ contract FakePerson is Template {
         return result;
     }
 
-
-
     function callTerminatePhaseOne(address settlement) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("terminatePhaseOne()"));
         bool result = Settlement(settlement).call(abi.encodeWithSelector(methodId));
@@ -537,7 +546,6 @@ contract FakePAIIssuer is PAIIssuer {
     constructor(string _organizationName, address paiMainContract)
         PAIIssuer(_organizationName,paiMainContract)
     public {
-<<<<<<< HEAD
         templateName = "Fake-Template-Name-For-Test-Pai-Issuer";
     }
 }
@@ -547,9 +555,6 @@ contract FakeBankIssuer is BankIssuer {
         BankIssuer(_organizationName,paiMainContract)
     public {
         templateName = "Fake-Template-Name-For-Test-Bank-Issuer";
-=======
-        templateName = "Fake-Template-Name-For-Test-pai_issuer";
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
     }
 }
 
@@ -558,11 +563,7 @@ contract FakePaiDao is PAIDAO {
         PAIDAO(_organizationName)
         public
     {
-<<<<<<< HEAD
-        templateName = "Fake-Template-Name-For-Test-Pai-Main";
-=======
         templateName = "Fake-Template-Name-For-Test-pai_main";
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
     }
 }
 
@@ -655,4 +656,23 @@ contract TimefliesElection is PISelection,TestTimeflies {
     }
 }
 
+contract TimefliesPISVote is PISVote,TestTimeflies {
+    constructor(address paiMainContract, address _proposal, uint _passProportion, uint _startProportion, uint _pisVoteDuration, string preVote)
+    PISVote(paiMainContract,_proposal,_passProportion,_startProportion,_pisVoteDuration,preVote)
+    public {
+    }
+}
 
+contract TimefliesDIRVote is DIRVote,TestTimeflies {
+    constructor(address paiMainContract, address _proposal, address _nextVote, uint _passProportion, uint _voteDuration, string _director)
+    DIRVote(paiMainContract, _proposal, _nextVote, _passProportion, _voteDuration, _director)
+    public {
+    }
+}
+
+contract TimefliesDemonstration is Demonstration,TestTimeflies {
+    constructor(address paiMainContract, address _proposal, address _nextVote, uint _passProportion, uint _duration, string preVote)
+    Demonstration(paiMainContract, _proposal, _nextVote, _passProportion, _duration, preVote)
+    public {
+    }
+}

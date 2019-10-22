@@ -141,10 +141,7 @@ contract Finance is Template,ACLSlave,DSMath {
         operationCashLimit = add(operationCashLimit,amount);
     }
 
-<<<<<<< HEAD
-=======
     /// @dev 所有的设置都需要在构造函数里面进行配置，方便初始化部署
->>>>>>> 1fe0cfad4b8a655a254e6309fc30278620be3937
     function setSafePad(uint amount) public auth("PISVOTE") {
         safePad = amount;
     }

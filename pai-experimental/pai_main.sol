@@ -14,6 +14,7 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
     uint32 private assetType = 0;
     uint32 private assetIndex = 0;
     bool private registed = false;
+    Registry public registry;
 
     ///params for PIS;
     uint96 public PISGlobalId;
@@ -28,7 +29,7 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
 
     function init() public {
         require(!registed);
-        Registry registry = Registry(0x630000000000000000000000000000000000000065);
+        registry = Registry(0x630000000000000000000000000000000000000065);
         organizationId = registry.registerOrganization(organizationName, templateName);
         uint64 PISLocalId = (uint64(assetType) << 32 | uint64(organizationId));
         PISGlobalId = uint96(PISLocalId) << 32 | uint96(assetIndex);
@@ -50,6 +51,7 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
         } else {
             flow.createAsset(assetType, assetIndex, amount);
             newAsset("PIS", "PIS", "Share of PAIDAO", assetType, assetIndex, amount);
+            registry.newAsset("PIS", "PIS", "Share of PAIDAO", assetType, assetIndex);
         }
         dest.transfer(amount, PISGlobalId);
     }

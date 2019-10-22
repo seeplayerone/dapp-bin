@@ -17,7 +17,6 @@ import "../pai_PISvote_special.sol";
 import "../pai_PISvote_standard.sol";
 import "../pai_director_vote.sol";
 
-
 contract FakePerson is Template {
     function() public payable {}
 

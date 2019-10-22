@@ -12,6 +12,7 @@ contract FakeBTCIssuer is Template, DSMath {
     uint256 private ASSET_BTC;
     
     uint private totalSupply = 0;
+    Registry registry;
 
     bool private firstTry;
     address private hole = 0x660000000000000000000000000000000000000000;
@@ -23,7 +24,7 @@ contract FakeBTCIssuer is Template, DSMath {
     function init(string _name) public {
         name = _name;
         /// TODO organization registration should be done in DAO
-        Registry registry = Registry(0x630000000000000000000000000000000000000065);
+        registry = Registry(0x630000000000000000000000000000000000000065);
         orgnizationID = registry.registerOrganization(name, "Fake-Template-Name-For-Test");
         assetIndex = 1;
         assetType = 0;
@@ -37,6 +38,7 @@ contract FakeBTCIssuer is Template, DSMath {
         if(firstTry) {
             firstTry = false;
             flow.createAsset(assetType, assetIndex, amount);
+            registry.newAsset("FBTC", "FBTC", "Fake BTC Pegging Coin", assetType, assetIndex);
         } else {
             flow.mintAsset(assetIndex, amount);
         }
