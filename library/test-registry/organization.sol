@@ -10,7 +10,7 @@ interface Registry {
      function registerOrganization(string organizationName, string templateName) external returns(uint32);
      function renameOrganization(string organizationName) external;
      function newAsset(string name, string symbol, string description, uint32 assetType, uint32 assetIndex, uint amountOrVoucherId) external;
-     function updateAsset(uint32 assetIndex, uint amountOrVoucherId) external;
+     function mintAsset(uint32 assetIndex, uint amountOrVoucherId) external;
      function updateOrganizationStatus(bool status) external;
 }
 
@@ -147,7 +147,7 @@ contract Organization is Template, ACL, Asset {
     function mint(uint32 assetIndex, uint256 amountOrVoucherId) internal {
         flow.mintAsset(assetIndex, amountOrVoucherId);
         updateAsset(assetIndex, amountOrVoucherId);
-        registry.updateAsset(assetIndex, amountOrVoucherId);
+        registry.mintAsset(assetIndex, amountOrVoucherId);
     }
     
     /// @dev transfer an asset
