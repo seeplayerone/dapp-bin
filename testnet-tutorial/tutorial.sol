@@ -19,6 +19,7 @@ import "../library/template.sol";
  */ 
 interface Registry {
      function registerOrganization(string organizationName, string templateName) external returns(uint32);
+     function newAsset(string name, string symbol, string description, uint32 assetType, uint32 assetIndex) external;
 }
 
 /**
@@ -79,6 +80,7 @@ contract Tutorial is Template {
             /// index = 1 which means this is the first asset created by this oraganization
             ///  an organization can create multiple assets with different indexes
             flow.createAsset(properties, index, amount);
+            reg.newAsset("Tutorial", "TC", "Tutorial Coin", uint32(properties), uint32(index));
         }
         
         totalSupply = totalSupply + amount;

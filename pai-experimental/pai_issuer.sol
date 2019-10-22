@@ -41,6 +41,8 @@ contract PAIIssuer is Template, Asset, DSMath, ACLSlave {
             updateAsset(assetIndex, amount);
         } else {
             flow.createAsset(assetType, assetIndex, amount);
+            Registry registry = Registry(0x630000000000000000000000000000000000000065);
+            registry.newAsset("PAI", "PAI", "PAI Stable Coin", assetType, assetIndex);            
             newAsset("PAI", "PAI", "PAI Stable Coin", assetType, assetIndex, amount);
         }
         dest.transfer(amount, PAIGlobalId);

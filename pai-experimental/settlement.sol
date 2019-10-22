@@ -7,6 +7,8 @@ import "./price_oracle.sol";
 import "./cdp.sol";
 import "../library/acl_slave.sol";
 
+/// @notice Settlement应该要能处理更多的清盘逻辑
+
 contract Settlement is Template, DSNote, ACLSlave {
 
     CDP private cdp;

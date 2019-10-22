@@ -1,9 +1,9 @@
 pragma solidity 0.4.25;
 
-import "../../library/election.sol";
+import "../pai_election_director.sol";
 import "../3rd/math.sol";
 import "../3rd/test.sol";
-import "../fake_btc_issuer.sol";
+import "../pai_main.sol";
 
 contract Fly {
     uint256  _era;
@@ -36,25 +36,36 @@ contract FakePerson {
     }
 }
 
-contract FlyElection is Election, Fly {
-    constructor(bytes _role, uint _assettype) 
-        public {
-            init(_role, _assettype);
-        }
+contract FlyElection is PAIElectionDirector, Fly {
+    constructor(address paiDAO) 
+        PAIElectionDirector(paiDAO)
+        public { }
+}
+
+contract FakePaiDao is PAIDAO {
+    constructor(string _organizationName)
+        PAIDAO(_organizationName)
+        public
+    {
+        templateName = "Fake-Template-Name-For-Test-pai_main";
+    }
 }
 
 contract ElectionTest is DSTest {
     uint constant public ONE_DAY_BLOCKS = 12 * 60 * 24;
     
     FlyElection elections;
-    FakeBTCIssuer issuer;
+    FakePaiDao issuer;
     FakePerson[] persons;
 
-    string public ROLE = "ADMIN";
-
     function setup() public returns (uint) {
-        issuer = new FakeBTCIssuer();
-        issuer.init("jack-sb");
+        issuer = new FakePaiDao("jack-sb");
+        issuer.createNewRole("PAI-DIRECTOR","ADMIN",0);
+        issuer.createNewRole("PAI-DIRECTOR-BACKUP","ADMIN",0);
+        issuer.createNewRole("PISVOTE","ADMIN",0);
+        issuer.addMember(this,"PISVOTE");
+
+        issuer.init();
 
         for(uint i = 1; i < 11; i ++) {
             FakePerson person = new FakePerson();
@@ -70,8 +81,9 @@ contract ElectionTest is DSTest {
         issuer.mint(10**8 * 25, address(bossWife));
         persons.push(bossWife);
 
-        elections = new FlyElection(bytes(ROLE), issuer.getAssetType());
-        return elections.startElection(ONE_DAY_BLOCKS * 2, ONE_DAY_BLOCKS * 2, ONE_DAY_BLOCKS * 2, 5 * 10**6, 10**10);
+        elections = new FlyElection(issuer);
+        issuer.addMember(elections,"ADMIN");
+        return elections.startElection(4, 3);
     }
 
     function testSetup() public {
@@ -81,14 +93,14 @@ contract ElectionTest is DSTest {
     function testElectionCreated() public {
         uint index = setup();
         (uint a, uint b, uint c) = elections.getElectionRecord(index);
-        assertEq(a, issuer.getAssetType());
+        assertEq(a, issuer.PISGlobalId());
         assertEq(b, 10**10);
         assertEq(c, 5 * 10**6);
         for(uint i = 0; i < 10; i ++) {
-            assertEq(flow.balance(persons[i], issuer.getAssetType()), (i+1)*10**8);
+            assertEq(flow.balance(persons[i], issuer.PISGlobalId()), (i+1)*10**8);
         }
-        assertEq(flow.balance(persons[10], issuer.getAssetType()), 10**8 * 20);
-        assertEq(flow.balance(persons[11], issuer.getAssetType()), 10**8 * 25);        
+        assertEq(flow.balance(persons[10], issuer.PISGlobalId()), 10**8 * 20);
+        assertEq(flow.balance(persons[11], issuer.PISGlobalId()), 10**8 * 25);        
     }
 
     function testNominateQualification() public {
@@ -96,10 +108,10 @@ contract ElectionTest is DSTest {
         for(uint i = 0; i < 12; i ++) {
             bool success = persons[i].execute(
                 address(elections), 
-                "nominateCandidateByAsset(uint256,address)", 
-                abi.encode(index, address(persons[i])), 
-                flow.balance(persons[i], issuer.getAssetType()), 
-                issuer.getAssetType()
+                "nominateCandidateByAsset(address)", 
+                abi.encode(address(persons[i])), 
+                flow.balance(persons[i], issuer.PISGlobalId()), 
+                issuer.PISGlobalId()
             );
             if(i < 4) {
                 assertTrue(!success);
@@ -117,10 +129,10 @@ contract ElectionTest is DSTest {
         }
         bool success = persons[11].execute(
             address(elections),
-            "nominateCandidatesByAsset(uint256,address[])",
-            abi.encode(index, candidates), 
-            flow.balance(persons[11], issuer.getAssetType()),
-            issuer.getAssetType()
+            "nominateCandidatesByAsset(address[])",
+            abi.encode(candidates), 
+            flow.balance(persons[11], issuer.PISGlobalId()),
+            issuer.PISGlobalId()
         );
         assertTrue(success);
         address[] memory a = elections.getElectionCandidates(index);
@@ -138,10 +150,10 @@ contract ElectionTest is DSTest {
         }
         bool success = persons[10].execute(
             address(elections),
-            "nominateCandidatesByAsset(uint256,address[])",
-            abi.encode(index, candidates), 
-            flow.balance(persons[10], issuer.getAssetType()),
-            issuer.getAssetType()
+            "nominateCandidatesByAsset(address[])",
+            abi.encode(candidates), 
+            flow.balance(persons[10], issuer.PISGlobalId()),
+            issuer.PISGlobalId()
         );
         assertTrue(!success);
     }
@@ -152,7 +164,7 @@ contract ElectionTest is DSTest {
         for(uint i = 0; i < 5; i ++) {
             candidates[i] = address(persons[i]);
         }
-        bool success = elections.call(abi.encodeWithSignature("nominateCandidatesByAuthority(uint256,address[])", index, candidates));
+        bool success = elections.call(abi.encodeWithSignature("nominateCandidatesByFoundingTeam(address[])", candidates));
         assertTrue(success);
 
         address[] memory a = elections.getElectionCandidates(index);
@@ -170,7 +182,7 @@ contract ElectionTest is DSTest {
             candidates[i] = address(persons[i]);
         }
 
-        elections.nominateCandidatesByAuthority(index, candidates);
+        elections.nominateCandidatesByFoundingTeam(candidates);
 
         address[] memory a = elections.getElectionCandidates(index);
         uint[] memory b = elections.getElectionCandidateSupportRates(index);
@@ -198,7 +210,7 @@ contract ElectionTest is DSTest {
 
     function testVoteForCandidates() public returns (uint) {
         uint index = testNominationMultipleByAuthorityDirectly();
-        elections.fly(ONE_DAY_BLOCKS * 2 + 1);
+        elections.fly(ONE_DAY_BLOCKS * 7 + 1);
 
         bool success;
 
@@ -233,19 +245,19 @@ contract ElectionTest is DSTest {
             address(elections),
             "voteForCandidate(uint256,address)",
             abi.encode(index, address(persons[n])),
-            flow.balance(persons[m], issuer.getAssetType()),
-            issuer.getAssetType()
+            flow.balance(persons[m], issuer.PISGlobalId()),
+            issuer.PISGlobalId()
         );
     }
 
     function testProcessResult() public returns (uint){
         uint index = testVoteForCandidates();
 
-        bool success = elections.call(abi.encodeWithSignature("processElectionResult(uint256)", index));
+        bool success = elections.call(abi.encodeWithSignature("processElectionResult()"));
         assertTrue(!success);
 
-        elections.fly(ONE_DAY_BLOCKS * 2 + 1);
-        success = elections.call(abi.encodeWithSignature("processElectionResult(uint256)", index));
+        elections.fly(ONE_DAY_BLOCKS * 7 + 1);
+        success = elections.call(abi.encodeWithSignature("processElectionResult()"));
         assertTrue(success);
 
         uint[] memory candidateSupportRates = elections.getElectionCandidateSupportRates(index);
@@ -268,32 +280,79 @@ contract ElectionTest is DSTest {
     function testStart2rdNominationFail() public {
         testVoteForCandidates();
 
-        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,uint256,uint256,uint256,uint256)",ONE_DAY_BLOCKS * 2, ONE_DAY_BLOCKS * 2, ONE_DAY_BLOCKS * 2, 5 * 10**6, 10**10));
+        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,uint256)",4,3));
         assertTrue(!success);
     }
 
     function testStart2rdNominationAfterProcess() public {
         testProcessResult();
 
-        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,uint256,uint256,uint256,uint256)",ONE_DAY_BLOCKS * 2, ONE_DAY_BLOCKS * 2, ONE_DAY_BLOCKS * 2, 5 * 10**6, 10**10));
+        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,uint256)",4,3));
         assertTrue(success);
     }
 
     function testCeaseFail() public {
         uint index = testVoteForCandidates();
-        bool success = elections.call("ceaseElection(uint256)",index);
+        bool success = elections.call("ceaseElection()");
         assertTrue(!success);
     }
 
     function testCeaseSuccess() public {
         uint index = testVoteForCandidates();
-        elections.fly(ONE_DAY_BLOCKS * 4 + 1);
-        elections.ceaseElection(index);
+        elections.fly(ONE_DAY_BLOCKS * 14 + 1);
+        elections.ceaseElection();
     }
 
     function testStart2rdNominationAfterCease() public {
         testCeaseSuccess();
-        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,uint256,uint256,uint256,uint256)",ONE_DAY_BLOCKS * 2, ONE_DAY_BLOCKS * 2, ONE_DAY_BLOCKS * 2, 5 * 10**6, 10**10));
+        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,uint256)",4,3));
+        assertTrue(success);
+    }
+
+    function testNoRelevantNomination() public {
+        testNominateQualification();
+
+        FlyElection another = new FlyElection(issuer);
+
+        another.startElection(4, 3);
+
+        bool success = persons[6].execute(
+                                address(another), 
+                                "nominateCandidateByAsset(address)", 
+                                abi.encode(address(persons[6])), 
+                                flow.balance(persons[6], issuer.PISGlobalId()), 
+                                issuer.PISGlobalId());
+
+        assertTrue(success);
+    }
+
+    function testRelevantNomination() public {
+        testNominateQualification();
+
+        FlyElection another = new FlyElection(issuer);
+
+        another.startElection(4, 3);
+
+        PAIElectionBase[] memory go = new PAIElectionBase[](1);
+        go[0] = elections;
+        another.setRelevantElections(go);
+
+        bool success = persons[6].execute(
+                                address(another), 
+                                "nominateCandidateByAsset(address)", 
+                                abi.encode(address(persons[6])), 
+                                flow.balance(persons[6], issuer.PISGlobalId()), 
+                                issuer.PISGlobalId());
+
+        assertTrue(!success);
+
+        success = persons[7].execute(
+                                address(another), 
+                                "nominateCandidateByAsset(address)", 
+                                abi.encode(address(persons[1])), 
+                                flow.balance(persons[7], issuer.PISGlobalId()), 
+                                issuer.PISGlobalId());
+
         assertTrue(success);
     }
 }

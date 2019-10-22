@@ -27,6 +27,7 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
 
     uint256 public TDCIndex = 0; /// how many TDCs have been created
 
+    /// @notice 不需要这个值，直接从settings里面读取即可
     uint public baseInterestRate; ///annualized interest rate, in RAY
 
     //There are 10 kinds of TDCs.
@@ -89,6 +90,7 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         return block.timestamp;
     }
 
+    /// @notice not necessary
     function updateBaseInterestRate() public note {
         baseInterestRate = setting.depositInterestRate();
         emit SetParam(0,baseInterestRate);

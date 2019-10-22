@@ -90,6 +90,9 @@ contract ACLMaster is DSMath {
     }
 
     function addressExist(bytes role, address _addr) public view returns (bool) {
+        // if(_addr == 0x0) {
+        //     return false;
+        // }
         for(uint i = 0; i < groups[role].members.length; i++) {
             if(_addr == groups[role].members[i]) {
                 return true;

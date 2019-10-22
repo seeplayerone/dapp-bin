@@ -47,6 +47,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     function updatePrice(uint256 newPrice) public auth(ORACLE) {
         require(!settlement);
         require(newPrice > 0);
+        /// @notice 每次都做位移运算会不会浪费gas，是不是直接算出来记录一个常量更好
         require(newPrice < (1 << 200));
         require(!disabled(msg.sender));
         updateSinglePriceInternal(newPrice);
@@ -72,6 +73,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     function updateOverallPrice() internal {
         if (master.getMemberLimit(bytes(ORACLE)) / 2 >= pirces.length) {
             lastUpdateBlock = height();
+            /// @notice 需要确保这个uint8能够被循环利用 256->0
             lastUpdateIndex = uint8(lastUpdateIndex + 1); //overflow is expected;
             //the lastUpdatePrice also needs to be updated, but its value needs no change, so the following code is noted.
             //lastUpdatePrice = lastUpdatePrice;
@@ -179,6 +181,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         return false;
     }
 
+    /// @notice 不应该允许换资产类型，可能会造成逻辑变的非常复杂，建议直接采取部署新合约的方式。
     function updateCollateral(uint96 newId) public auth("DIRECTORVOTE") {
         ASSET_COLLATERAL = newId;
     }

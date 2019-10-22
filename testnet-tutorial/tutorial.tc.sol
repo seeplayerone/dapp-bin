@@ -1,7 +1,12 @@
 pragma solidity 0.4.25;
 
+<<<<<<< HEAD
 import "../testnet-tutorial/tutorial.sol";
 import "../testnet-tutorial/test.sol";
+=======
+import "./tutorial.sol";
+import "./test.sol";
+>>>>>>> 89ee487a1200d31158e9866e60161e93d435b721
 
 /**
     @dev we recommend "test driven development" paradigm for contract developing
@@ -17,10 +22,16 @@ import "../testnet-tutorial/test.sol";
      if we need to register and issue assets (no need for other cases)
 */
 contract NamedTutorial is Tutorial {
+<<<<<<< HEAD
     constructor(string _name) 
         Tutorial(_name)
         public 
     {
+=======
+    constructor() 
+        Tutorial("Fake-Name-For-Test")
+        public {
+>>>>>>> 89ee487a1200d31158e9866e60161e93d435b721
         templateName = "Fake-Template-Name-For-Test";
     }
 }
