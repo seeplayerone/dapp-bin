@@ -1,9 +1,9 @@
 pragma solidity 0.4.25;
 
-import "./string_utils.sol";
+import "../utils/string_utils.sol";
 import "./organization.sol";
 
-interface SimpleVote {
+interface SimpleVoteInterface {
     function setOrganization(address orgAddress) external;
 }
 
@@ -63,9 +63,9 @@ contract Association is Organization {
 
     string constant ASSET_VOTE_CONTRACT = "ASSET_VOTE_CONTRACT";
 
-    address private assetVoteContractAddress;
+    address internal assetVoteContractAddress;
 
-    SimpleVote private assetVoteContract;
+    SimpleVoteInterface internal assetVoteContract;
 
     constructor(string _organizationName, address[] _members, string voteTemplateName) 
         Organization(_organizationName, _members) 
@@ -78,8 +78,8 @@ contract Association is Organization {
         presidents.push(msg.sender);
 
         /// deploy a vote contract for asset creation
-        assetVoteContractAddress =  flow.deployContract(1, voteTemplateName, "");
-        assetVoteContract = SimpleVote(assetVoteContractAddress); 
+        assetVoteContractAddress = flow.deployContract(1, voteTemplateName, "");
+        assetVoteContract = SimpleVoteInterface(assetVoteContractAddress); 
         assetVoteContract.setOrganization(this);
 
         emit CreateVoteContract(assetVoteContractAddress);
@@ -198,9 +198,11 @@ contract Association is Organization {
         authAddresses(presidents)
     {
         if (existingMembers[newPresident] || presidents[0] == newPresident) {
+            configureAddressRoleInternal(presidents[0], SUPER_ADMIN, OpMode.Remove);
             delete presidents[0];
             presidents.length--;
             presidents.push(newPresident);
+            configureAddressRoleInternal(newPresident, SUPER_ADMIN, OpMode.Add);
             emit ConfirmNewPresident(1, newPresident);
         } else {
             require(!existingCandidatePresidents[newPresident], "you have invited the president");
@@ -211,12 +213,15 @@ contract Association is Organization {
     }
 
     /**
-     * @dev new president confirm
+     * @dev new president confirms to take office
+     * transfer role of SUPER_ADMIN to new president
      */
     function confirmPresident() public authAddresses(candidatePresidents) {
+        configureAddressRoleInternal(presidents[0], SUPER_ADMIN, OpMode.Remove);
         delete presidents[0];
         presidents.length--;
         presidents.push(msg.sender);
+        configureAddressRoleInternal(msg.sender, SUPER_ADMIN, OpMode.Add);
         for (uint i = 0; i < candidatePresidents.length; i++) {
             existingCandidatePresidents[candidatePresidents[i]] = false;
         }
@@ -225,15 +230,15 @@ contract Association is Organization {
     }
     
     /**
-     * @dev add members
+     * @dev invitem a new member
      * 
-     * @param newMember address of new member
+     * @param newMember member address
      */
     function inviteNewMember(address newMember)
         public 
         authAddresses(presidents)
     {
-        require(!existingMembers[newMember] && existingInvitees[newMember], "member has existed!");
+        require(!existingMembers[newMember] && !existingInvitees[newMember], "member has existed!");
 
         existingInvitees[newMember] = true;
         invitees.push(newMember);
@@ -242,9 +247,9 @@ contract Association is Organization {
     }
     
     /**
-     * @dev join the organization
+     * @dev invited member joins the organization
      */
-    function join() internal authAddresses(invitees) {
+    function joinNewMember() public authAddresses(invitees) {
         existingInvitees[msg.sender] = false;
         uint length = invitees.length;
         for (uint i = 0; i < length; i++) {
@@ -258,8 +263,8 @@ contract Association is Organization {
         }
         members.push(msg.sender);
         existingMembers[msg.sender] = true;
-        configureFunctionAddress(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),START_VOTE_FUNCTION), msg.sender, OpMode.Add);
-        configureFunctionAddress(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),VOTE_FUNCTION), msg.sender, OpMode.Add);
+        configureFunctionAddressInternal(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),START_VOTE_FUNCTION), msg.sender, OpMode.Add);
+        configureFunctionAddressInternal(StringLib.strConcat(StringLib.convertAddrToStr(assetVoteContractAddress),VOTE_FUNCTION), msg.sender, OpMode.Add);
         emit JoinNewMember(msg.sender);
     }
     
@@ -292,9 +297,12 @@ contract Association is Organization {
 
     /**
      * @dev close the organization
+     * when closed, the asset organization created can not transfer
      */
     function close() public authAddresses(presidents) {
-        updateStatus(true);
+        if (hasRegistered) {
+            updateStatus(true);
+        }
         emit CloseOrganization(true);
         selfdestruct(this);
     }

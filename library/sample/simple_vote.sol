@@ -1,11 +1,11 @@
 pragma solidity 0.4.25;
 
-import "./string_utils.sol";
-import "./template.sol";
+import "../utils/string_utils.sol";
+import "../template.sol";
 
 /// @dev ACL interface
 ///  ACL is provided by the organization contract
-interface ACL {
+interface ACLInterface {
     function canPerform(address _caller, string _functionHash) external view returns (bool);
 }
 
@@ -63,14 +63,14 @@ contract SimpleVote is Template {
     mapping(uint => Vote) votes;
     
     /// ACL interface reference
-    ACL acl;
+    ACLInterface acl;
     
     /// organization contract
     address organizationContract;
  
     function setOrganization(address _organizationContract) public {
         organizationContract = _organizationContract;
-        acl = ACL(_organizationContract);
+        acl = ACLInterface(_organizationContract);
     }
 
     /// get the organization contract address

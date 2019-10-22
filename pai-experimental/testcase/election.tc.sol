@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "../../library/election.sol";
+import "../election.sol";
 import "../3rd/math.sol";
 import "../3rd/test.sol";
 import "../fake_btc_issuer.sol";

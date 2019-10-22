@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "./SafeMath.sol";
+import "./utils/safe_math.sol";
 
 /// @title The Asset contract is designed to store extra information of assets issued by an Organization
 ///  Detail information for an asset include:

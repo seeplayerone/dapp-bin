@@ -1,5 +1,9 @@
 pragma solidity 0.4.25;
 
+/**
+    Please use acl_master.sol/acl_slave.sol for simple permission control cases
+ */
+
 /// @title This is the base contract to support ACL in Asimov contracts
 ///  Permission control is applied at function level, to the end it is "whether an address can call a function in a contract"
 ///  This ACL contract provides 3 ways for inheriting contracts to configure access control on the function

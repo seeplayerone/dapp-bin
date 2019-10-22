@@ -1,22 +1,32 @@
 pragma solidity 0.4.25;
 
-import "../pai-experimental/3rd/math.sol";
+import "./utils/ds_math.sol";
+
+/**
+    ACL Master/Slave provides a basic structure for permission control.
+
+    We can define Permission Group in ACL Master. A PG contains a list of addresses and a Superior which is also a PG.
+    A PG is managed by addresses defined in its Superior PG.
+ */
 
 contract ACLMaster is DSMath {
+    struct PermissionGroup {
+        address[] members;
+        bytes superior;
+        uint32 memberLimit; // most of addresses this PG can have; 0 represents unlimited
+
+        bool exist;
+    }
+
     mapping(uint => bytes) public roles;
     mapping(bytes => PermissionGroup) groups;
-    struct PermissionGroup {
-        bool exist;
-        uint32 memberLimit; //when =0 represents no limit
-        bytes superior;
-        address[] members;
-    }
-    uint public indexOfACL;
+
+    uint public indexOfPG;
     string public TOPADMIN = "ADMIN";
 
     constructor() public {
-        indexOfACL = 1;
-        roles[indexOfACL] = bytes(TOPADMIN);
+        indexOfPG = 1;
+        roles[indexOfPG] = bytes(TOPADMIN);
         groups[bytes(TOPADMIN)].exist = true;
         groups[bytes(TOPADMIN)].superior = bytes(TOPADMIN);
         groups[bytes(TOPADMIN)].members.push(msg.sender);
@@ -25,8 +35,9 @@ contract ACLMaster is DSMath {
     function createNewRole(bytes newRole, bytes superior, uint32 limit) public auth(TOPADMIN) {
         require(!groups[newRole].exist);
         require(groups[superior].exist);
-        indexOfACL = add(indexOfACL,1);
-        roles[indexOfACL] = newRole;
+
+        indexOfPG = add(indexOfPG,1);
+        roles[indexOfPG] = newRole;
         groups[newRole].exist = true;
         groups[newRole].superior = superior;
         groups[newRole].memberLimit = limit;
@@ -57,7 +68,6 @@ contract ACLMaster is DSMath {
                 if(i != len - 1) {
                     groups[role].members[i] = groups[role].members[len - 1];
                 }
-                // delete groups[role].members[len - 1];
                 groups[role].members.length--;
                 return;
             }
@@ -67,7 +77,7 @@ contract ACLMaster is DSMath {
     function resetMembers(address[] _members, bytes role) public {
         require(groups[role].exist);
         require(canPerform(groups[role].superior, msg.sender));
-        require(0 == groups[role].memberLimit||_members.length <= groups[role].memberLimit);
+        require(0 == groups[role].memberLimit || _members.length <= groups[role].memberLimit);
         groups[role].members.length = 0;
         if (_members.length > 0) {
             for (uint i = 0; i < _members.length; i++) {
@@ -78,8 +88,8 @@ contract ACLMaster is DSMath {
 
     function changeSuperior(bytes role, bytes newSuperior) public {
         require(groups[role].exist);
-        require(canPerform(groups[groups[role].superior].superior, msg.sender));
         require(groups[newSuperior].exist);
+        require(canPerform(groups[groups[role].superior].superior, msg.sender) || canPerform(TOPADMIN, msg.sender));
         groups[role].superior = newSuperior;
     }
 
@@ -90,9 +100,6 @@ contract ACLMaster is DSMath {
     }
 
     function addressExist(bytes role, address _addr) public view returns (bool) {
-        // if(_addr == 0x0) {
-        //     return false;
-        // }
         for(uint i = 0; i < groups[role].members.length; i++) {
             if(_addr == groups[role].members[i]) {
                 return true;

@@ -2,7 +2,7 @@ pragma solidity 0.4.25;
 
 import "./template.sol";
 import "./array_utils.sol";
-import "./SafeMath.sol";
+import "./safe_math.sol";
 
 contract Election is Template {
 

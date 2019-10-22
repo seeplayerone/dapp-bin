@@ -1,15 +1,18 @@
 pragma solidity 0.4.25;
 
-import "./template.sol";
-import "./acl.sol";
-import "./asset.sol";
+import "../template.sol";
+import "../acl.sol";
+import "../asset.sol";
 
 /// @dev the Registry interface
 ///  Registry is a system contract, an organization needs to register before issuing assets
 interface Registry {
      function registerOrganization(string organizationName, string templateName) external returns(uint32);
      function renameOrganization(string organizationName) external;
+     function newAsset(string name, string symbol, string description, uint32 assetType, uint32 assetIndex, uint amountOrVoucherId) external;
+     function mintAsset(uint32 assetIndex, uint amountOrVoucherId) external;
      function updateOrganizationStatus(bool status) external;
+     function burnAsset(uint32 assetIndex, uint amount) external;
 }
 
 /// @title basic organization which inherits Template, ACL and Asset, it has capabilities to:
@@ -136,6 +139,7 @@ contract Organization is Template, ACL, Asset {
         uint256 amountOrVoucherId) internal {
         flow.createAsset(assetType, assetIndex, amountOrVoucherId);
         newAsset(name, symbol, description, assetType, assetIndex, amountOrVoucherId);
+        registry.newAsset(name, symbol, description, assetType, assetIndex, amountOrVoucherId);
     }
 
     /// @dev mint an asset
@@ -144,6 +148,14 @@ contract Organization is Template, ACL, Asset {
     function mint(uint32 assetIndex, uint256 amountOrVoucherId) internal {
         flow.mintAsset(assetIndex, amountOrVoucherId);
         updateAsset(assetIndex, amountOrVoucherId);
+        registry.mintAsset(assetIndex, amountOrVoucherId);
+    }
+
+    /// @dev burn an asset
+    /// @param assetIndex asset index in the organization
+    /// @param amount amount or the unique voucher id of asset
+    function burn(uint32 assetIndex, uint256 amount) internal {
+        registry.burnAsset(assetIndex, amount);
     }
     
     /// @dev transfer an asset
@@ -165,6 +177,5 @@ contract Organization is Template, ACL, Asset {
         returns(bool)
     {
         canTransferAsset(assetIndex, transferAddress);
-    }
-    
+    }   
 }
