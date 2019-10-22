@@ -10,7 +10,7 @@ interface Registry {
      function registerOrganization(string organizationName, string templateName) external returns(uint32);
      function renameOrganization(string organizationName) external;
      function newAsset(string name, string symbol, string description, uint32 assetType, uint32 assetIndex) external;
-     function updateAsset(assetIndex, amountOrVoucherId) external;
+     function updateAsset(uint32 assetIndex, uint amountOrVoucherId) external;
      function updateOrganizationStatus(bool status) external;
 }
 
