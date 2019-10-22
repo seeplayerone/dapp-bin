@@ -39,7 +39,7 @@ contract TutorialTest is DSTest {
 
     function test() public returns (bool) {
         /// @dev create contract INSTANCE from scratch is only avaiable in test mode
-        tutorial = new NamedTutorial();
+        tutorial = new NamedTutorial("sb");
 
         uint assettype = tutorial.mint(10 * SATOSHI);
         assertEq(tutorial.checkBalance(), 10 * SATOSHI);

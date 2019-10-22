@@ -1,11 +1,5 @@
 pragma solidity 0.4.25;
 
-// import "./3rd/note.sol";
-// import "../library/template.sol";
-// import "./liquidator.sol";
-// import "./pai_issuer.sol";
-// import "./cdp.sol";
-
 import "./3rd/note.sol";
 import "../library/template.sol";
 import "./liquidator.sol";

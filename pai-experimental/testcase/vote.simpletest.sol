@@ -1,4 +1,5 @@
 pragma solidity 0.4.25;
+
 import "../../library/template.sol";
 import "../../library/vote.sol";
 import "../3rd/test.sol";

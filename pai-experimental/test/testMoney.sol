@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-import "github.com/seeplayerone/dapp-bin/library/template.sol";
-import "github.com/seeplayerone/dapp-bin/pai-experimental/fake_btc_issuer.sol";
+import "../../library/template.sol";
+import "../fake_btc_issuer.sol";
 
 contract AcceptMoney {
     uint public money;
@@ -9,7 +9,7 @@ contract AcceptMoney {
     function updateMoney() public payable {
         money = msg.value;
         msg.sender.transfer(msg.value,msg.assettype);
-    }    
+    }
 }
 
 

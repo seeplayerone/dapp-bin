@@ -4,11 +4,6 @@ import "../SafeMath.sol";
 import "../acl.sol";
 import "../template.sol";
 
-// import "github.com/seeplayerone/dapp-bin/library/SafeMath.sol";
-// import "github.com/seeplayerone/dapp-bin/library/acl.sol";
-// import "github.com/seeplayerone/dapp-bin/library/template.sol";
-
-
 /// @dev this is a sample roll contract
 ///  DO NOT TAKE IT SERIOUSLY !!!
 

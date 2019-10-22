@@ -2,7 +2,6 @@ pragma solidity 0.4.25;
 
 import "./testPrepare.sol";
 
-
 contract TestBase is Template, DSTest, DSMath {
     TimefliesTDC internal tdc;
     Liquidator internal liquidator;
