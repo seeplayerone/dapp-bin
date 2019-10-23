@@ -14,6 +14,10 @@ contract SimpleOrganization is Organization {
     string public constant FUNCTION_HASH_SAMPLE = "FUNCTION_HASH_SAMPLE";
 
     uint32 public assetIndex = 1;
+    uint32 public oid;
+
+    uint mask = 0x1111;
+    address private constant zeroAddr = 0x660000000000000000000000000000000000000000;
 
     /// @dev constructor of the contract
     ///  initial acl settings are configured in the constructor
@@ -33,7 +37,8 @@ contract SimpleOrganization is Organization {
     ///  an organization id is assigned after successful registration,
     ///  which is the prerequisite of issuing assets
     function registerMe() public authAddresses(aclAddresses) returns (uint32){
-        return register();
+        oid = register();
+        return oid;
     }
 
     /// @dev issue new asset
@@ -52,6 +57,15 @@ contract SimpleOrganization is Organization {
     /// @dev transfer asset
     function transferAsset(address to, uint256 asset, uint256 amount) public authRoles(aclRoles) {
         transfer(to, asset, amount);
+    }
+
+    function burnAsset() payable public authRoles(aclRoles) {
+        uint32 _index = uint32(msg.assettype & mask);
+        uint32 _oid = uint32((msg.assettype >> 32) & mask);
+        require(oid == _oid);
+        
+        zeroAddr.transfer(msg.value, msg.assettype);
+        burn(_index, msg.value);
     }
     
 }

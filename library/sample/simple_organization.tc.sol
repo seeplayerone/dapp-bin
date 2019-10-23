@@ -4,6 +4,10 @@ import "./simple_organization.sol";
 import "../utils/ds-test.sol";
 import "../utils/execution.sol";
 
+interface RegistryInterface {
+    function getAssetInfoByAssetId(uint32 organizationId, uint32 assetIndex) external view returns(bool, string, string, string, uint, uint[]);
+}
+
 contract FakeOrganization is SimpleOrganization, Execution {
     constructor(string organizationName, address[] _members)
         SimpleOrganization(organizationName, _members) 
@@ -42,32 +46,54 @@ contract CalledContract {
 contract OrganizationTest is DSTest, Execution {
     FakeOrganization crayfish;
     uint96 asset;
+    RegistryInterface registry;
+
+    function() public payable {}
 
     function setup() public returns (uint32){
+        registry = RegistryInterface(0x630000000000000000000000000000000000000065);
         crayfish = new FakeOrganization("crayfish",new address[](0));
         return crayfish.registerMe();
     }
 
-    function testCreate() public {
+    function testCreate() public returns (uint32) {
         uint32 oid = setup();
         uint64 assetId = uint64(0) << 32 | uint64(oid);
         asset = uint96(assetId) << 32 | uint96(crayfish.assetIndex());
         crayfish.issueNewAsset("jack coin", "jc", "jack's first coin");
         assertEq(flow.balance(crayfish, asset), 1000000000);
+
+        (,,,,uint totalsupply,) = registry.getAssetInfoByAssetId(oid, crayfish.assetIndex()-1);
+        assertEq(totalsupply, 1000000000);
+
+        return oid;
     } 
 
     function testMint() public {
-        testCreate();
+        uint32 oid = testCreate();
         crayfish.issueMoreAsset(crayfish.assetIndex()-1);
         assertEq(flow.balance(crayfish, asset), 2000000000);
+
+        (,,,,uint totalsupply,) = registry.getAssetInfoByAssetId(oid, crayfish.assetIndex()-1);
+        assertEq(totalsupply, 2000000000);
     }
 
-    function testTransfer() public {
-        testCreate();
-        crayfish.transferAsset(0x668d5634afb9cfb064563b124bf6302ad78ed1cf40, asset, 200000000);
+    function testTransfer() public returns (uint32){
+        uint32 oid = testCreate();
+        crayfish.transferAsset(this, asset, 200000000);
         assertEq(flow.balance(crayfish, asset), 800000000);
-        assertEq(flow.balance(0x668d5634afb9cfb064563b124bf6302ad78ed1cf40, asset), 200000000);
+        assertEq(flow.balance(this, asset), 200000000);
+        return oid;
     }
+
+    function testBurn() public payable {
+        uint32 oid = testTransfer();
+        crayfish.burnAsset.value(100000000,asset)();
+
+        (,,,,uint totalsupply,) = registry.getAssetInfoByAssetId(oid, crayfish.assetIndex()-1);
+        assertEq(totalsupply, 900000000);
+    }
+
 
     function testExeAlpha() public {
         CalledContract jack = new CalledContract();

@@ -9,8 +9,8 @@ import "../asset.sol";
 interface Registry {
      function registerOrganization(string organizationName, string templateName) external returns(uint32);
      function renameOrganization(string organizationName) external;
-     function newAsset(string name, string symbol, string description, uint32 assetType, uint32 assetIndex, uint amountOrVoucherId) external;
-     function mintAsset(uint32 assetIndex, uint amountOrVoucherId) external;
+     function newAsset(string name, string symbol, string description, uint32 assetType, uint32 assetIndex, uint amount) external;
+     function mintAsset(uint32 assetIndex, uint amount) external;
      function updateOrganizationStatus(bool status) external;
      function burnAsset(uint32 assetIndex, uint amount) external;
 }
@@ -38,7 +38,7 @@ contract Organization is Template, ACL, Asset {
     mapping(address => bool) inviteesMap;
     
     /// event of invite new member
-    event invite(address invitee);
+    event Invited(address invitee);
     
     /// @dev constructor
     /// @param _organizationName organization name
@@ -75,7 +75,7 @@ contract Organization is Template, ACL, Asset {
         if (!inviteesMap[memberAddress] && !membersMap[memberAddress]) {
             inviteesMap[memberAddress] = true;
             invitees.push(memberAddress);
-            emit invite(memberAddress);
+            emit Invited(memberAddress);
         }
     }
     
@@ -88,7 +88,6 @@ contract Organization is Template, ACL, Asset {
                 if (i != length-1) {
                     invitees[i] = invitees[length-1];
                 }
-                delete invitees[length-1];
                 invitees.length--;
                 break;
             }
@@ -106,7 +105,6 @@ contract Organization is Template, ACL, Asset {
                 if (i != length-1) {
                     members[i] = members[length-1];
                 }
-                delete members[length-1];
                 members.length--;
                 membersMap[msg.sender] = false;
                 break;
@@ -134,21 +132,21 @@ contract Organization is Template, ACL, Asset {
     /// @dev create an asset
     /// @param assetType asset type
     /// @param assetIndex asset index in the organization
-    /// @param amountOrVoucherId amount or the unique voucher id of asset
+    /// @param amount amount or the unique voucher id of asset
     function create(string name, string symbol, string description, uint32 assetType, uint32 assetIndex,
-        uint256 amountOrVoucherId) internal {
-        flow.createAsset(assetType, assetIndex, amountOrVoucherId);
-        newAsset(name, symbol, description, assetType, assetIndex, amountOrVoucherId);
-        registry.newAsset(name, symbol, description, assetType, assetIndex, amountOrVoucherId);
+        uint256 amount) internal {
+        flow.createAsset(assetType, assetIndex, amount);
+        newAsset(name, symbol, description, assetType, assetIndex, amount);
+        registry.newAsset(name, symbol, description, assetType, assetIndex, amount);
     }
 
     /// @dev mint an asset
     /// @param assetIndex asset index in the organization
-    /// @param amountOrVoucherId amount or the unique voucher id of asset
-    function mint(uint32 assetIndex, uint256 amountOrVoucherId) internal {
-        flow.mintAsset(assetIndex, amountOrVoucherId);
-        updateAsset(assetIndex, amountOrVoucherId);
-        registry.mintAsset(assetIndex, amountOrVoucherId);
+    /// @param amount amount or the unique voucher id of asset
+    function mint(uint32 assetIndex, uint256 amount) internal {
+        flow.mintAsset(assetIndex, amount);
+        updateAsset(assetIndex, amount);
+        registry.mintAsset(assetIndex, amount);
     }
 
     /// @dev burn an asset
