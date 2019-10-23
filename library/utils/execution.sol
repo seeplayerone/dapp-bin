@@ -6,7 +6,7 @@ contract Execution {
     }
 
     function execute(address target, string signature) public returns (bool){
-        bytes4 selector = bytes4(keccak256(signature));
+        bytes4 selector = bytes4(keccak256(abi.encodePacked(signature)));
         return target.call(abi.encodePacked(selector));        
     }
 
@@ -15,12 +15,12 @@ contract Execution {
     }
 
     function execute(address target, string signature, bytes params) public returns (bool){
-        bytes4 selector = bytes4(keccak256(signature));
+        bytes4 selector = bytes4(keccak256(abi.encodePacked(signature)));
         return target.call(abi.encodePacked(selector, params));        
     }
 
     function execute(address target, string signature, uint amount, uint assettype) public returns (bool){
-        bytes4 selector = bytes4(keccak256(signature));
+        bytes4 selector = bytes4(keccak256(abi.encodePacked(signature)));
         return target.call.value(amount, assettype)(abi.encodePacked(selector));        
     }
 
@@ -29,7 +29,7 @@ contract Execution {
     }
 
     function execute(address target, string signature, bytes params, uint amount, uint assettype) public returns (bool){
-        bytes4 selector = bytes4(keccak256(signature));
+        bytes4 selector = bytes4(keccak256(abi.encodePacked(signature)));
         return target.call.value(amount, assettype)(abi.encodePacked(selector, params));        
     }
 

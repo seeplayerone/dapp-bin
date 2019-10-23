@@ -9,6 +9,10 @@ import "./utils/safe_math.sol";
 ///  - total issued & issuance history
 ///  - whitelist for restricted asset
 
+/**
+    @dev Note in the latest design, all information other than the whitelist are also stored in the Registry system contract
+ */
+
 contract Asset {
     
     /// full information of an asset
