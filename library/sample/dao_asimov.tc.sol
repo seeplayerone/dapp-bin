@@ -3,6 +3,7 @@ pragma solidity 0.4.25;
 import "./dao_asimov.sol";
 import "./simple_vote.sol";
 import "../utils/ds-test.sol";
+import "../utils/execution.sol";
 
 contract FakeDAO is Association{
     constructor(string organizationName, address[] _members)
@@ -24,17 +25,8 @@ contract FakeDAO is Association{
         }
 }
 
-contract FakePerson {
+contract FakePerson is Execution {
     function() public payable {}
-
-    function execute(address target, string signature, bytes params) returns (bool){
-        bytes4 selector = bytes4(keccak256(signature));
-        return target.call(abi.encodePacked(selector, params));        
-    }
-
-    function execute(address target, string signature) returns (bool) {
-        return target.call(abi.encodeWithSignature(signature));
-    }
 }
 
 contract DAOTest is DSTest {
