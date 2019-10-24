@@ -16,6 +16,7 @@
 * [asimov_upTime](#asimov_upTime)
 * [asimov_getCurrentNet](#asimov_getCurrentNet)
 * [asimov_getNetTotals](#asimov_getNetTotals)
+* [asimov_currentPeers](#asimov_currentPeers)
 
 ### helper
 
@@ -1238,3 +1239,32 @@ curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_getContractTempla
 }
 ```
 ---
+
+###asimov_currentPeers
+
+return current connected peers.
+
+#### Parameters
+
+None
+
+#### Returns
+
+* peer ip list
+
+#### Example
+
+````json
+# Request
+curl -X POST --data '{"id":1, "jsonrpc":"2.0","method":"asimov_currentPeers"}' -H "Content-type: application/json" http://localhost:8545/
+
+# Response
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": [
+        "192.168.4.102:49519"
+    ]
+}
+````
+
