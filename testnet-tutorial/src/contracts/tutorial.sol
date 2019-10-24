@@ -12,7 +12,7 @@ pragma solidity 0.4.25;
      we recommend to write full testcases and have them passed (using IDE tool)
  */
 
-import "../../library/template.sol";
+import "../../../library/template.sol";
 
 /**
     @dev Registry is a system contract on asimov chain, a contract needs to register before issuing assets

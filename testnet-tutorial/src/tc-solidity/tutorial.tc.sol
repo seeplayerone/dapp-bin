@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-import "./tutorial.sol";
-import "./test.sol";
+import "../contracts/tutorial.sol";
+import "../contracts/test.sol";
 
 /**
     @dev we recommend "test driven development" paradigm for contract developing
