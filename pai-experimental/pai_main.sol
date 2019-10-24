@@ -2,12 +2,11 @@ pragma solidity 0.4.25;
 
 import "../library/template.sol";
 import "../library/acl_master.sol";
-import "../library/asset.sol";
 import "./3rd/math.sol";
 import "./registry.sol";
 
 
-contract PAIDAO is Template, Asset, DSMath, ACLMaster {
+contract PAIDAO is Template, DSMath, ACLMaster {
     ///params for organization
     string public organizationName;
     uint32 public organizationId;
@@ -33,6 +32,7 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
         organizationId = registry.registerOrganization(organizationName, templateName);
         uint64 PISLocalId = (uint64(assetType) << 32 | uint64(organizationId));
         PISGlobalId = uint96(PISLocalId) << 32 | uint96(assetIndex);
+        registry.newAsset("PIS", "PIS", "Share of PAIDAO", assetType, assetIndex,0);   
         registed = true;
     }
 
@@ -45,23 +45,19 @@ contract PAIDAO is Template, Asset, DSMath, ACLMaster {
     }
 
     function mintInternal(uint amount, address dest) internal {
-        if(issuedAssets[assetIndex].existed) {
-            flow.mintAsset(assetIndex, amount);
-            updateAsset(assetIndex, amount);
-        } else {
-            flow.createAsset(assetType, assetIndex, amount);
-            Registry registry = Registry(0x630000000000000000000000000000000000000065);
-            registry.newAsset("PIS", "PIS", "Share of PAIDAO", assetType, assetIndex);            
-            newAsset("PIS", "PIS", "Share of PAIDAO", assetType, assetIndex, amount);
-            registry.newAsset("PIS", "PIS", "Share of PAIDAO", assetType, assetIndex);
-        }
+        flow.mintAsset(assetIndex, amount);
+        registry.mintAsset(assetIndex, amount);
         dest.transfer(amount, PISGlobalId);
     }
 
     function burn() public payable {
         require(msg.assettype == PISGlobalId,
                 "Only PIS can be burned!");
-        issuedAssets[0].totalIssued = sub(issuedAssets[0].totalIssued, msg.value);
+        registry.burnAsset(assetIndex,msg.value);
         zeroAddr.transfer(msg.value, PISGlobalId);
+    }
+
+    function totalSupply() public view returns(uint supply) {
+        (,,,,supply,) = registry.getAssetInfoByAssetId(organizationId,assetIndex);
     }
 }

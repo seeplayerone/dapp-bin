@@ -13,6 +13,7 @@ contract PAIIssuer is Template, Asset, DSMath, ACLSlave {
     uint32 private assetType = 0;
     uint32 private assetIndex = 0;
     bool private registed = false;
+    Registry registry;
 
     ///params for PAI;
     uint96 public PAIGlobalId;
@@ -28,7 +29,7 @@ contract PAIIssuer is Template, Asset, DSMath, ACLSlave {
 
     function init() public {
         require(!registed);
-        Registry registry = Registry(0x630000000000000000000000000000000000000065);
+        registry = Registry(0x630000000000000000000000000000000000000065);
         organizationId = registry.registerOrganization(organizationName, templateName);
         uint64 PAILocalId = (uint64(assetType) << 32 | uint64(organizationId));
         PAIGlobalId = uint96(PAILocalId) << 32 | uint96(assetIndex);
@@ -41,8 +42,7 @@ contract PAIIssuer is Template, Asset, DSMath, ACLSlave {
             updateAsset(assetIndex, amount);
         } else {
             flow.createAsset(assetType, assetIndex, amount);
-            Registry registry = Registry(0x630000000000000000000000000000000000000065);
-            registry.newAsset("PAI", "PAI", "PAI Stable Coin", assetType, assetIndex);            
+            registry.newAsset("PAI", "PAI", "PAI Stable Coin", assetType, assetIndex,amount);            
             newAsset("PAI", "PAI", "PAI Stable Coin", assetType, assetIndex, amount);
         }
         dest.transfer(amount, PAIGlobalId);

@@ -88,8 +88,7 @@ contract Demonstration is DSMath, Execution, Template, ACLSlave {
         require(VoteStatus.ONGOING == v.status, "vote not ongoing");
         v.agreeVotes = add(v.agreeVotes, msg.value);
         msg.sender.transfer(msg.value,ASSET_PIS);
-        (,,,,,uint totalPISSupply) = PAIDAO(master).getAssetInfo(0);
-        if(v.agreeVotes >= rmul(passProportion,totalPISSupply)) {
+        if(v.agreeVotes >= rmul(passProportion,PAIDAO(master).totalSupply())) {
             nextVoteContract.startVoteByAuthroity(votes[voteId].proposalId,0);
             votes[voteId].executed = true;
         }

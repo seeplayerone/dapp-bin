@@ -35,9 +35,9 @@ contract TestBase is Template, DSTest, DSMath {
         proposal = new ProposalData();
         vote = new TimefliesPISVote(paiDAO,proposal,RAY * 2 / 3,RAY / 20, 10 days / 5,"test");
         demonstration = new TimefliesDemonstration(paiDAO, proposal, vote, RAY / 10, 1 days / 5, "test");
-        dirvote1 = new TimefliesDIRVote(paiDAO, proposal, vote, RAY, 10 days / 5, "director");
-        dirvote2 = new TimefliesDIRVote(paiDAO, proposal, demonstration, RAY/2, 10 days / 5, "director");
-        admin.callCreateNewRole(paiDAO,"director","ADMIN",4);
+        dirvote1 = new TimefliesDIRVote(paiDAO, proposal, vote, RAY, 10 days / 5, "director","lala");
+        dirvote2 = new TimefliesDIRVote(paiDAO, proposal, demonstration, RAY/2, 10 days / 5, "director","lala");
+        admin.callCreateNewRole(paiDAO,"director","ADMIN",4,true);
         //assertEq(uint(paiDAO.getMemberLimit(bytes(director))),4);
         paiDAO.mint(100000000,this);
     }

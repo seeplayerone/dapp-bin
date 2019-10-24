@@ -13,7 +13,6 @@ import "../cdp.sol";
 import "../tdc.sol";
 import "../settlement.sol";
 import "../fake_btc_issuer.sol";
-import "../pai_election.sol";
 import "../bank_issuer.sol";
 import "../pai_PISvote.sol";
 import "../pai_proposal.sol";
@@ -90,9 +89,9 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callCreateNewRole(address paidao, string newRole, string superior, uint32 limit) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("createNewRole(bytes,bytes,uint32)"));
-        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,bytes(newRole),bytes(superior),limit));
+    function callCreateNewRole(address paidao, string newRole, string superior, uint32 limit, bool canQuit) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("createNewRole(bytes,bytes,uint32,bool)"));
+        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,bytes(newRole),bytes(superior),limit,canQuit));
         return result;
     }
 
@@ -533,13 +532,6 @@ contract FakePerson is Template {
         bool result = DividendsSample(Dividends).call(abi.encodeWithSelector(methodId));
         return result;
     }
-
-    function callSetCandidatesLimit(address election, bytes role, uint limits) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("setCandidatesLimit(bytes,uint256)"));
-        bool result = PISelection(election).call(abi.encodeWithSelector(methodId,role,limits));
-        return result;
-    }
-
 }
 
 contract FakePAIIssuer is PAIIssuer {
@@ -649,13 +641,6 @@ contract TimefliesFinance is Finance, TestTimeflies {
     }
 }
 
-contract TimefliesElection is PISelection,TestTimeflies {
-    constructor(address paiMainContract)
-    PISelection(paiMainContract)
-    public {
-    }
-}
-
 contract TimefliesPISVote is PISVote,TestTimeflies {
     constructor(address paiMainContract, address _proposal, uint _passProportion, uint _startProportion, uint _pisVoteDuration, string preVote)
     PISVote(paiMainContract,_proposal,_passProportion,_startProportion,_pisVoteDuration,preVote)
@@ -664,8 +649,8 @@ contract TimefliesPISVote is PISVote,TestTimeflies {
 }
 
 contract TimefliesDIRVote is DIRVote,TestTimeflies {
-    constructor(address paiMainContract, address _proposal, address _nextVote, uint _passProportion, uint _voteDuration, string _director)
-    DIRVote(paiMainContract, _proposal, _nextVote, _passProportion, _voteDuration, _director)
+    constructor(address paiMainContract, address _proposal, address _nextVote, uint _passProportion, uint _voteDuration, string _director, string _originator)
+    DIRVote(paiMainContract, _proposal, _nextVote, _passProportion, _voteDuration, _director,_originator)
     public {
     }
 }

@@ -11,7 +11,7 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
     uint public nominationLength = 7 days / ONE_BLOCK_TIME;
     uint public electionLength = 7 days / ONE_BLOCK_TIME;
     uint public executionLength = 7 days / ONE_BLOCK_TIME;
-    uint public qualification = 5 * 10**6;
+    uint public qualification = RAY / 20;
 
     string public WINNER;
     string public BACKUP;
@@ -25,6 +25,8 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
         uint beta;
         /// relevant elections
         PAIElectionBase[] relevantElections;
+        /// election type
+        bool isSupplement;
     }
 
     mapping (uint=>Extra) extras;
@@ -33,22 +35,22 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
         master = ACLMaster(pisContract);
 
         assettype = PAIDAO(master).PISGlobalId();
-        (,,,,, totalSupply) = PAIDAO(master).getAssetInfo(0);  
+        totalSupply = PAIDAO(master).totalSupply(); 
 
         WINNER = winnerRole;
         BACKUP = backupRole;
         role = bytes(WINNER);
     }
 
-    /// TODO acl
-    function startElection(uint _alpha, uint _beta) public returns (uint) {
+    function startElection(uint _beta, PAIElectionBase[] eles) public auth("Secretary") returns (uint) {
         /// update totalSupply for every election
-        (,,,,, totalSupply) = PAIDAO(master).getAssetInfo(0);  
+        totalSupply = PAIDAO(master).totalSupply(); 
 
         uint index = startElection(nominationLength, electionLength, executionLength, qualification, totalSupply);
         Extra storage extra = extras[index];
-        extra.alpha = _alpha;
+        extra.alpha = master.getMemberLimit(bytes(WINNER));
         extra.beta = _beta;
+        extra.relevantElections = eles;
 
         address[] memory oldman = master.getMembers(bytes(WINNER));
         if(oldman.length > 0) {
@@ -57,20 +59,18 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
         return index;
     }
 
-    function startElectionSupplement(uint _alpha, uint _beta) public returns (uint) {
+    function startElectionSupplement(uint _beta, PAIElectionBase[] eles) public auth("Secretary") returns (uint) {
         /// update totalSupply for every election
-        (,,,,, totalSupply) = PAIDAO(master).getAssetInfo(0);  
+        totalSupply = PAIDAO(master).totalSupply();
 
         uint index = startElection(nominationLength, electionLength, executionLength, qualification, totalSupply);
         Extra storage extra = extras[index];
-        extra.alpha = _alpha;
+        extra.alpha = master.getMemberLimit(bytes(WINNER)) - master.getMembers(bytes(WINNER)).length;
         extra.beta = _beta;
+        extra.relevantElections = eles;
+        extra.isSupplement = true;
 
         return index;
-    }
-
-    function setRelevantElections(PAIElectionBase[] eles) public active {
-        extras[currentIndex].relevantElections = eles;
     }
 
     function nominateCandidateByAsset(address candidate) public payable active {
@@ -89,35 +89,45 @@ contract PAIElectionBase is Election,ACLSlave,DSMath {
         nominateCandidatesByAsset(currentIndex, candidates);
     }
 
-    /// TODO acl
-    function nominateCandidatesByFoundingTeam(address[] cans) public active {
+    function nominateCandidatesByFoundingTeam(address[] cans) public auth("Founder") active {
         ElectionRecord storage election = electionRecords[currentIndex];
         uint len = election.candidates.length;
         uint delta = cans.length;
         require(len < extras[currentIndex].alpha);
         require(len + delta >= extras[currentIndex].alpha);
         require(len + delta <= extras[currentIndex].alpha + extras[currentIndex].beta);
+        for(uint i = 0; i < extras[currentIndex].relevantElections.length; i ++) {
+            for(uint j = 0; j < cans.length; j ++) {
+                require(!extras[currentIndex].relevantElections[i].getActiveCandidates().contains(cans[j]));
+            }
+        }
         nominateCandidatesByAuthority(currentIndex, cans);
     }
 
-    /// TODO acl
-    function processElectionResult() public active {
+    function processElectionResult() public auth("Secretary") active {
         ElectionRecord storage election = electionRecords[currentIndex];
         uint len = election.candidates.length;
         require(len >= extras[currentIndex].alpha);
 
         processElectionResult(currentIndex);
 
-        address[] memory directors = new address[](extras[currentIndex].alpha);
-        for(uint i = 0; i < extras[currentIndex].alpha; i++) {
-            directors[i] = election.candidates[i];
+        if(extras[currentIndex].isSupplement) {
+            for(uint i = 0; i < extras[currentIndex].alpha; i++) {
+                master.addMember(election.candidates[i], bytes(WINNER));
+            }
+        } else {
+            address[] memory directors = new address[](extras[currentIndex].alpha);
+            for(i = 0; i < extras[currentIndex].alpha; i++) {
+                directors[i] = election.candidates[i];
+            }
+            master.resetMembers(directors, bytes(WINNER));
         }
-        master.resetMembers(directors, bytes(WINNER));
 
         if(len > extras[currentIndex].alpha) {
             address[] memory backups = new address[](len-extras[currentIndex].alpha);
             for(i = extras[currentIndex].alpha; i < len; i ++) {
-                backups[i-extras[currentIndex].alpha] = election.candidates[i];
+                //Reverse order to make following things simple
+                backups[len-i-1] = election.candidates[i];
             }
             master.resetMembers(backups, bytes(BACKUP));
         }

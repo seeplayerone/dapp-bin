@@ -7,15 +7,19 @@ import "./bank_issuer.sol";
 
 
 contract BankBusiness is Template, DSMath, ACLSlave {
-    mapping(uint32 => AssetParam) params;
+    mapping(uint32 => AssetParam) public params;
     struct AssetParam {
-        uint dailyCashInLimit;
-        uint singleCashInLimit;
-        uint singleCashOutLimit;
+        uint minterDailyCashInLimit;
+        uint minterSingleCashInLimit;
+        uint userSingleCashOutUpperLimit;
+        uint userSingleCashOutLowerLimit;
+        uint allUserDailyCashOutLimit;
         uint cashInRate;
         uint cashOutRate;
         mapping(address => uint) remainingLimit;
         mapping(address => uint) lastUpdateTime; //in blockheight
+        uint remainingCashOutLimit;
+        uint lastCashOutTime;
         bool exist;
         bool enable;
     }
@@ -25,11 +29,14 @@ contract BankBusiness is Template, DSMath, ACLSlave {
         uint32 assetIndex;
         uint amount;
         uint agreeVote;
+        uint startTime;
         mapping(address => bool) voted;
         bool excuted;
     }
+    uint public duration = 3 days / 5;
 
     uint public totalVoteId = 0;
+    uint32 public currentAssetId = 0;
     uint passRate = RAY / 2;
     mapping(uint => CashOutVote) cashOutVotes;
     uint baseTime;
@@ -72,87 +79,94 @@ contract BankBusiness is Template, DSMath, ACLSlave {
     }
 
     function createNewAsset(
-        uint32 assetId,
         uint _dailyCashInLimit,
         uint _singleCashInLimit,
-        uint _singleCashOutLimit,
+        uint _singleCashOutUpperLimit,
+        uint _singleCashOutLowerLimit,
+        uint _allUserDailyCashOutLimit,
         uint _cashInRate,
-        uint _cashOutRate
-    ) public auth("DirectorVote@Bank") {
-        require(!params[assetId].exist);
-        params[assetId].dailyCashInLimit = _dailyCashInLimit;
-        params[assetId].singleCashInLimit = _singleCashInLimit;
-        params[assetId].singleCashOutLimit = _singleCashOutLimit;
+        uint _cashOutRate,
+        string name,
+        string symbol,
+        string description
+    ) public auth("50%DirVote@Bank") {
+        require(currentAssetId != uint32(-1));
+        currentAssetId = currentAssetId + 1 ;
+        params[currentAssetId].minterDailyCashInLimit = _dailyCashInLimit;
+        params[currentAssetId].minterSingleCashInLimit = _singleCashInLimit;
+        params[currentAssetId].userSingleCashOutUpperLimit = _singleCashOutUpperLimit;
+        params[currentAssetId].userSingleCashOutLowerLimit = _singleCashOutLowerLimit;
+        params[currentAssetId].allUserDailyCashOutLimit = _allUserDailyCashOutLimit;
+        params[currentAssetId].remainingCashOutLimit = _allUserDailyCashOutLimit;
+        params[currentAssetId].cashInRate = _cashInRate;
+        params[currentAssetId].cashOutRate = _cashOutRate;
+        params[currentAssetId].exist = true;
+        params[currentAssetId].enable = true;
+        issuer.createAsset(name,symbol,description,currentAssetId);
+    }
+
+    function setDailyCashInLimit(uint32 assetId, uint _dailyCashInLimit) public auth("50%DirVote@Bank") {
+        require(params[assetId].exist);
+        params[assetId].minterDailyCashInLimit = _dailyCashInLimit;
+    }
+
+    function setSingleCashInLimit(uint32 assetId, uint _singleCashInLimit) public auth("50%DirVote@Bank") {
+        require(params[assetId].exist);
+        params[assetId].minterSingleCashInLimit = _singleCashInLimit;
+    }
+
+    function setSingleCashOutUpperLimit(uint32 assetId, uint _singleCashOutLimit) public auth("50%DirVote@Bank") {
+        require(params[assetId].exist);
+        params[assetId].userSingleCashOutUpperLimit = _singleCashOutLimit;
+    }
+
+    function setSingleCashOutLowerLimit(uint32 assetId, uint _dailyCashOutLimit) public auth("50%DirVote@Bank") {
+        require(params[assetId].exist);
+        params[assetId].userSingleCashOutLowerLimit = _dailyCashOutLimit;
+    }
+
+    function setDailyCashOutLimit(uint32 assetId, uint _singleCashOutLimit) public auth("50%DirVote@Bank") {
+        require(params[assetId].exist);
+        params[assetId].allUserDailyCashOutLimit = _singleCashOutLimit;
+    }
+
+    function setCashInRate(uint32 assetId, uint _cashInRate) public auth("50%DirVote@Bank") {
+        require(params[assetId].exist);
         params[assetId].cashInRate = _cashInRate;
-        params[assetId].cashOutRate = _cashOutRate;
-        params[assetId].exist = true;
-        params[assetId].enable = true;
     }
 
-    function setDailyCashInLimit(uint32 assetId, uint _dailyCashInLimit) public auth("DirectorVote@Bank") {
-        require(params[assetId].exist);
-        params[assetId].dailyCashInLimit = _dailyCashInLimit;
-    }
-
-    function setSingleCashInLimit(uint32 assetId, uint _singleCashInLimit) public auth("DirectorVote@Bank") {
-        require(params[assetId].exist);
-        params[assetId].singleCashInLimit = _singleCashInLimit;
-    }
-
-    function setSingleCashOutLimit(uint32 assetId, uint _singleCashOutLimit) public auth("DirectorVote@Bank") {
-        require(params[assetId].exist);
-        params[assetId].singleCashOutLimit = _singleCashOutLimit;
-    }
-
-    function setCashInRate(uint32 assetId, uint _cashInRate) public auth("DirectorVote@Bank") {
-        require(params[assetId].exist);
-        params[assetId].cashInRate = _cashInRate;
-    }
-
-    function setCashOutRate(uint32 assetId, uint _cashOutRate) public auth("DirectorVote@Bank") {
+    function setCashOutRate(uint32 assetId, uint _cashOutRate) public auth("50%DirVote@Bank") {
         require(params[assetId].exist);
         params[assetId].cashOutRate = _cashOutRate;
     }
 
-    function switchAssetBusiness(uint32 assetId, bool newState) public auth("DirectorVote@Bank") {
+    function switchAssetBusiness(uint32 assetId, bool newState) public auth("50%DirVote@Bank") {
         require(params[assetId].exist);
         params[assetId].enable = newState;
     }
 
-    function switchAllBusiness(bool newState) public auth("DirectorVote@Bank") {
+    function switchAllBusiness(bool newState) public auth("100%DirVote@Bank") {
         disableAll = newState;
     }
 
     
-    function deposit(string txid, string depAddr, address to, uint32 assetIndex, uint amount)
-    public auth("Minter@Bank")
-    {
+    function deposit(string txid, string depAddr, address to, uint32 assetIndex, uint amount) public auth("Minter@Bank"){
         require(bytes(txid).length > 0, "requires txid");
         require(bytes(depAddr).length > 0, "requires depAddr");
         require(amount > 0,"amount must greater than zero");
         require(params[assetIndex].enable);
         require(!disableAll);
-        if(params[assetIndex].singleCashInLimit < amount) {
-            cashOutVote(to, assetIndex, amount);
-            return;
-        }
+        require(params[assetIndex].minterSingleCashInLimit >= amount);
         if(crossADay(params[assetIndex].lastUpdateTime[msg.sender])) {
-            if(params[assetIndex].dailyCashInLimit < amount) {
-                cashOutVote(to, assetIndex, amount);
-                return;
-            }
-        } else {
-            if(params[assetIndex].remainingLimit[msg.sender] < amount) {
-                cashOutVote(to, assetIndex, amount);
-                return;
-            }
-        }
-        params[assetIndex].lastUpdateTime[msg.sender] = height();
-        if(crossADay(params[assetIndex].lastUpdateTime[msg.sender])) {
-            params[assetIndex].remainingLimit[msg.sender] = sub(params[assetIndex].dailyCashInLimit,amount);
+            params[assetIndex].remainingLimit[msg.sender] = sub(params[assetIndex].minterDailyCashInLimit,amount);
         } else {
             params[assetIndex].remainingLimit[msg.sender] = sub(params[assetIndex].remainingLimit[msg.sender],amount);
         }
+        params[assetIndex].lastUpdateTime[msg.sender] = height();
+        mintInternal(to,assetIndex,amount);
+    }
+
+    function mintInternal(address to, uint32 assetIndex, uint amount) internal {
         emit MintAsset(assetIndex);
         uint tax = rmul(params[assetIndex].cashInRate,amount);
         if(tax > 0) {
@@ -160,35 +174,30 @@ contract BankBusiness is Template, DSMath, ACLSlave {
             emit TransferAsset(finance, tax);
         }
         uint rest = sub(amount,tax);
-        issuer.mint(assetIndex, rest, to);
+            issuer.mint(assetIndex, rest, to);
         emit TransferAsset(to, rest);
+
     }
 
-    function cashOutVote(address _to, uint32 _assetIndex, uint _amount) internal {
+    function startCashOutVote(address _to, uint32 _assetIndex, uint _amount) public auth("Minter@Bank") {
         require(_amount > 0, "amount must greater than zero");
         totalVoteId = add(totalVoteId,1);
         cashOutVotes[totalVoteId].to = _to;
         cashOutVotes[totalVoteId].assetIndex = _assetIndex;
         cashOutVotes[totalVoteId].amount = _amount;
+        cashOutVotes[totalVoteId].startTime = height();
     }
 
     function vote(uint voteid) public auth("Director@Bank") {
         require(cashOutVotes[voteid].amount != 0,"vote not exist");
         require(!cashOutVotes[voteid].excuted,"vote excuted");
         require(!cashOutVotes[voteid].voted[msg.sender],"you already voted");
+        require(height() < add(cashOutVotes[voteid].startTime,duration));
         cashOutVotes[voteid].agreeVote = add(cashOutVotes[voteid].agreeVote,1);
         cashOutVotes[voteid].voted[msg.sender] = true;
         if(cashOutVotes[voteid].agreeVote >= rmul(master.getMemberLimit(bytes(DIRECTOR)),passRate)) {
             cashOutVotes[voteid].excuted = true;
-            emit MintAsset(cashOutVotes[voteid].assetIndex);
-            uint tax = rmul(params[cashOutVotes[voteid].assetIndex].cashInRate,cashOutVotes[voteid].amount);
-            if(tax > 0) {
-                issuer.mint(cashOutVotes[voteid].assetIndex, tax, finance);
-                emit TransferAsset(finance, tax);
-            }
-            uint rest = sub(cashOutVotes[voteid].amount,tax);
-            issuer.mint(cashOutVotes[voteid].assetIndex, rest, cashOutVotes[voteid].to);
-            emit TransferAsset(cashOutVotes[voteid].to, rest);
+            mintInternal(cashOutVotes[voteid].to,cashOutVotes[voteid].assetIndex,cashOutVotes[voteid].amount);
         }
     }
 
@@ -197,20 +206,30 @@ contract BankBusiness is Template, DSMath, ACLSlave {
      *
      * @param recAddr receive address
      */
-    function withdraw(string recAddr,uint32 assetIndex)
+    function withdraw(string recAddr)
     public payable
     {
+        uint32 assetIndex = uint32(msg.assettype);
         require(params[assetIndex].enable);
         require(!disableAll);
         require(bytes(recAddr).length > 0, "requires recAddr");
-        require(params[assetIndex].singleCashOutLimit >= msg.value, "Too much money in one cash-out apply");
+        require(params[assetIndex].userSingleCashOutUpperLimit >= msg.value, "Too much money in one cash-out apply");
+        require(params[assetIndex].userSingleCashOutLowerLimit <= msg.value, "Too little money in one cash-out apply");
+        if(crossADay(params[assetIndex].lastCashOutTime)) {
+            //require is already include in sub()        
+            params[assetIndex].remainingCashOutLimit = sub(params[assetIndex].allUserDailyCashOutLimit,msg.value);
+        } else {
+            //require is already include in sub()
+            params[assetIndex].remainingCashOutLimit = sub(params[assetIndex].remainingCashOutLimit,msg.value);
+        }
+        params[assetIndex].lastCashOutTime = height();
         uint tax = rmul(params[assetIndex].cashOutRate,msg.value);
         if(tax > 0) {
             finance.transfer(tax,msg.assettype);
             emit TransferAsset(finance, tax);
         }
         uint rest = sub(msg.value,tax);
-        issuer.burn.value(msg.assettype,rest)(assetIndex);
+        issuer.burn.value(rest,msg.assettype)();
         emit BurnAsset(msg.assettype, msg.value);
     }
 }

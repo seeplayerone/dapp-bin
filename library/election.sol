@@ -42,16 +42,11 @@ contract Election is Template {
     uint assettype;
 
     /// @dev auto incremental index to record all elections
-    uint currentIndex = 0;
+    uint public currentIndex = 0;
 
     mapping (uint=>ElectionRecord) public electionRecords;
 
     uint constant public ONE_DAY_BLOCKS = 12 * 60 * 24;
-
-    function init(bytes _role, uint _assettype) public {
-        role = _role;
-        assettype = _assettype;
-    }
 
     /// @dev before election
     function startElection(uint nominationLength, uint electionLength, uint executionLength, uint qualification, uint totalSupply) internal returns (uint) {
@@ -212,7 +207,7 @@ contract Election is Template {
 
     /// @dev percent in 10**8
     function percent(uint own, uint total) public pure returns (uint){
-        return own.mul(10**8).div(total);
+        return own.mul(10**27).div(total);
     }
 
     /// @dev should test gas comsumptions

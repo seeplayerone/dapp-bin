@@ -49,7 +49,7 @@ contract PISVoteSpecial is DSMath, Execution, Template, ACLSlave {
     uint public lastPISVoteId = 0;
     uint public lastAssignedProposalId = 0;
 
-    constructor(address paiMainContract) {
+    constructor(address paiMainContract) public {
         master = ACLMaster(paiMainContract);
         ASSET_PIS = PAIDAO(master).PISGlobalId();
         passProportion = RAY * 2 / 3;
