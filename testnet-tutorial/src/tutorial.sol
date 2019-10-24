@@ -12,7 +12,7 @@ pragma solidity 0.4.25;
      we recommend to write full testcases and have them passed (using IDE tool)
  */
 
-import "../library/template.sol";
+import "../../library/template.sol";
 
 /**
     @dev Registry is a system contract on asimov chain, a contract needs to register before issuing assets
@@ -47,12 +47,12 @@ contract Tutorial is Template {
     /// organization id, assigned after registration
     uint private orgnizationID = 0;
     /// assettype of UTXO => 32bit properteis + 32 bit organization id + 32 bit asset index
-    uint private assettype;
+    uint public assettype;
 
     /// total supply 
-    uint private totalSupply = 0;
+    uint public totalSupply = 0;
 
-    string organizationName;
+    string public organizationName;
 
     constructor(string _name) public {
         organizationName = _name;
