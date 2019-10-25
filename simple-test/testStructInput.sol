@@ -1,9 +1,9 @@
 pragma solidity 0.4.25;
 pragma experimental ABIEncoderV2;
 
-import "../../library/template.sol";
-import "../../library/execution.sol";
-import "../3rd/test.sol";
+import "../library/template.sol";
+import "../library/utils/execution.sol";
+import "../pai-experimental/3rd/test.sol";
 
 contract EXEC is Template, Execution {
     function() public payable {}

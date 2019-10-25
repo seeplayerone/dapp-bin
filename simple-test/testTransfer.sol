@@ -1,8 +1,8 @@
 pragma solidity 0.4.25;
 
-import "../../library/template.sol";
+import "../library/template.sol";
 
-contract MultipleTransfer is Template {
+contract TestMultipleTransfer is Template {
     uint total;
 
     function() public payable {

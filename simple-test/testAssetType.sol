@@ -1,8 +1,8 @@
 pragma solidity 0.4.25;
 
-import "../../library/template.sol";
+import "../library/template.sol";
 
-contract AssetType is Template {
+contract TestAssetType is Template {
 
     event Type(uint);
 

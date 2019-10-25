@@ -1,6 +1,7 @@
 pragma solidity 0.4.25;
 
-contract testForLoop {
+contract TestForLoop {
+    
     uint state = 0;
     function test() public returns(uint) {
         uint a = 3;

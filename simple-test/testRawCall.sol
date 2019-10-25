@@ -19,9 +19,8 @@ contract Person{
 
 
 contract CallTest{
-    
 
-    function testname() returns (string){
+    function testname() public returns (string){
 
         address addr = new Person();
 
@@ -31,7 +30,7 @@ contract CallTest{
         return Person(addr).name();
     }
 
-    function testnamebytes() returns (string,string,uint) {
+    function testnamebytes() public returns (string,string,uint) {
         address addr = new Person();
 
         bytes4 methodId = bytes4(keccak256("updatename(string,uint256,string)"));
@@ -41,7 +40,7 @@ contract CallTest{
         return (Person(addr).name(),Person(addr).lastname(),Person(addr).age());
     }
 
-    function testage() returns (uint){
+    function testage() public returns (uint){
 
         address addr = new Person();
 
