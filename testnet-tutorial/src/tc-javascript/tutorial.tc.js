@@ -2,6 +2,8 @@ template = require("@asimovdev/asimov-cli/scripts/template")
 call = require("@asimovdev/asimov-cli/scripts/call")
 rpc = require("@asimovdev/asimov-cli/scripts/rpc")
 
+assert = require('assert')
+
 var source = '/Users/xxd/gitflow/dapp-contracts/dapp-bin/testnet-tutorial/src/contracts/tutorial.sol';
 var privateKey = '91ab6c021cbe1e489f259dfae308b5328f0647e65ffd2d529fb9a61a593917c4';
 var address = '0x66fbecbfcb831851bb3d4629a9bc72372e785e5895';
@@ -53,28 +55,40 @@ async function testTutorial() {
     call.call(_address, 'mint(uint256)', [1000000000], gas, value, type, privateKey);
 
     await sleep(12000);
-    call.call(_address, 'checkBalance', [], gas, value, type, privateKey);
+    call.call(_address, 'checkBalance', [], gas, value, type, privateKey).then(res => {
+        assert.equal(res, 2000000000);
+    })
 
     await sleep(2000);
-    call.call(_address, 'checkTotalSupply', [], gas, value, type, privateKey);
+    call.call(_address, 'checkTotalSupply', [], gas, value, type, privateKey).then(res =>{
+        assert.equal(res, 2000000000);
+    })
 
     await sleep(2000);
     call.call(_address, 'transfer(address,uint256)', [address ,1000000000], gas, value, type, privateKey);
 
     await sleep(12000);
-    call.call(_address, 'checkBalance', [], gas, value, type, privateKey);
+    call.call(_address, 'checkBalance', [], gas, value, type, privateKey).then(res => {
+        assert.equal(res, 1000000000);
+    })
 
     await sleep(2000);
-    call.call(_address, 'checkTotalSupply', [], gas, value, type, privateKey);
+    call.call(_address, 'checkTotalSupply', [], gas, value, type, privateKey).then(res => { 
+        assert.equal(res, 2000000000);
+    })
 
     await sleep(2000);
     call.call(_address, 'burn', [], gas, 500000000, _type, privateKey);
 
     await sleep(12000);
-    call.call(_address, 'checkBalance', [], gas, value, type, privateKey);
+    call.call(_address, 'checkBalance', [], gas, value, type, privateKey).then(res => {
+        assert.equal(res, 1000000000);
+    })
 
     await sleep(2000);
-    call.call(_address, 'checkTotalSupply', [], gas, value, type, privateKey);
+    call.call(_address, 'checkTotalSupply', [], gas, value, type, privateKey).then(res => {
+        assert.equal(res, 1500000000);
+    })
 }
 
 testTutorial();

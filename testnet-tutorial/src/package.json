@@ -9,6 +9,7 @@
   "author": "jack",
   "license": "ISC",
   "dependencies": {
-    "@asimovdev/asimov-cli": "^1.0.35"
+    "@asimovdev/asimov-cli": "^1.0.35",
+    "mocha": "^6.2.2"
   }
 }
