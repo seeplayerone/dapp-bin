@@ -1,49 +1,53 @@
 # IDE Tool
 
-This document briefly introduces the features of Asimov [IDE Tool](https://ide.asimov.work). At this moment IDE tool is the most important tool provided by Asimov to develop/test smart contracts.
+This document briefly introduces the features of Asimov [IDE Tool](https://ide.asimov.tech). At this moment IDE tool is the most important tool provided by Asimov to develop/test smart contracts.
 
-> In the future, we will provide alternatives such as full functional command line tools. And the IDE tool itself is also being updated rapidly.
+> As we are still developing Asimov chain, the IDE tool will also be updated rapidly. Besides the IDE Tool, we also provide the full functional [CMD Tool](./cmd.md).
 
-## Switch Network
+## Network
 
-Similar to AsiLink wallet, you can switch network in the IDE tool from the up-right conner:
+Similar to AsiLink wallet, you can switch and add new network configuration in the IDE tool from the up-right conner:
 
 ![](./img/ide-network.png)
 
-## Blocks and Transactions
+## Block and UTXO
 
-You can view the latest block information on [BLOCKS](https://ide.asimov.work/#/blockchain) page, and search for specific transactions on [TRANSACTIONS](https://ide.asimov.work/#/transaction) page.
+You can view the latest block information on [BLOCK](https://ide.asimov.tech/#/blockchain) page, and search for specific utxos on [UTXO](https://ide.asimov.tech/#/utxo) page.
 
-> Note that the block and transaction information provided by the IDE tool are raw data from PRC service. For better experiences, please view them on [AScan-TestNet](https://ascan.asimov.network/). 
+> Note that the block and utxo information provided by the IDE tool are raw data from PRC service. For better experiences, please view them on [AScan-TestNet](https://ascan.asimov.network/). 
 
-## Create Template
+## RUN
 
-As elabrated in [Tutorial of Contract Development](tutorial-contract.md), we adopt TEMPLATE design. Developers can go to [SUBMIT](https://ide.asimov.work/#/contract-template) page to upload contract source code and create tempates on chain.
+As elabrated in [Tutorial of Contract Development](tutorial-contract.md), we adopt TEMPLATE design:
 
-## Review Template
+**Contract Source File** --submit--> **Asimov Template** --deploy--> **Contract Instance** --execute-->
 
-> Note the [REVIEW](https://ide.asimov.work/#/contract-template-vote) feature is subjected to change in the future. And for now, review feature is disabled in TestNet. All templates submitted will be approved automatically.
+### Submit
 
-Once a template is submitted, the security team will give a full review to make sure the contract logics are robust. They can either approve or decline a template after review.
+You can go to [Submit](https://ide.asimov.tech/#/run/submit) page to upload contract source code and create tempates on chain. You can upload folders/files and do basic IDE operations (add/delete file, change file contents, etc) on this page.
 
-## Deploy Template
+> Note the folders/files are shared with the [Test](https://ide.asimov.tech/#/test) page described below.
 
-All approved tempates will display on [DEPLOYMENT](https://ide.asimov.work/#/contract-deploy) page. For now, everyone can see others' templates as well. Find the template you need and provide the initialization parameters, you then can deploy a contract instance based on the template and have its address returned.
+### Deploy
+
+All submitted tempates will display on [Deploy](https://ide.asimov.tech/#/run/deploy) page. For now, everyone can see others' templates as well. Find the template you need and provide the initialization parameters, you then can deploy a contract instance based on the template and have its address returned.
 
 > You can have a better experience creating templates and deploying instances from the [Asimov Developers-TestNet](https://developer.asimov.network/) portal.
 
-## Run/Test Contract
+### Execute
 
-You can run contract functions and test contracts on [EXECUTION](https://ide.asimov.work/#/contract-call) page. The details of RUN and TEST are elabrated in [Tutorial of Contract Development](tutorial-contract.md) document.
+You can execute contract functions and on [Execution](https://ide.asimov.tech/#/run/execute) page. The details of execution is elabrated in [Tutorial of Contract Development](tutorial-contract.md) document.
 
-## Settings
+## Test
 
-At the moment, you can set solidity compiler version on [SETTINGS](https://ide.asimov.work/#/setting) page. The latest version is **flow_4.0.0.js**.
+We recommend "test driven development" paradigm for contract developing. Developers should write thorough testcases before submit a TEMPLATE on asimov. In test mode, we bypass the TEMPLATE precedure for convenience. You can test contracts on [Test](https://ide.asimov.tech/#/test) page. The details of test elabrated is in [Tutorial of Contract Development](tutorial-contract.md) document.
 
 ## Faucet
 
-You can fetch test Asim (the asimov system asset) from the [FAUCET](https://ide.asimov.work/#/receive) page. Details on how to do that are provided in [AsiLink](./asilink.md).
+You can fetch test Asim (the asimov system asset) from the [FAUCET](https://ide.asimov.tech/#/faucet) page. Details on how to do that are provided in [AsiLink](./asilink.md). You can also config the private key of the faucet on this page if you setup your own developing environment.
 
-## Tools
+> At the moment, you can set solidity compiler version on this page as well. The default compiler is **asimov.js**.
 
-At the moment, we provide easy access for developers to generate mnemonic and private key/address pairs based on BIP44 on [TOOLS](https://ide.asimov.work/#/tools) page.
+## Mnenmonic
+
+We provide easy access for developers to generate mnemonic and private key/address pairs based on BIP44 on [Mnenmonic](https://ide.asimov.tech/#/mnenmonic) page.
