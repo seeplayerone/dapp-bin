@@ -118,35 +118,20 @@ contract Print is TestBase {
         emit printString("===================================================");
         //contract
         emit printAddr("paiDAO",paiDAO);
-        // emit printAddr("paiIssuer",paiIssuer);
-        // emit printAddr("pisOracle",pisOracle);
-        // emit printAddr("election",election);
-        // emit printAddr("VSP",VSP);
-        // emit printAddr("VST",VST);
-        // emit printAddr("DV",DV);
-        // emit printAddr("setting",setting);
-        // emit printAddr("finance",finance);
-        // emit printAddr("PISseller",PISseller);
-        // emit printAddr("btcOracle",btcOracle);
-        // emit printAddr("btcLiquidator",btcLiquidator);
-        // emit printAddr("btcCDP",btcCDP);
-        // emit printAddr("btcSettlement",btcSettlement);
-        // emit printAddr("ethOracle",ethOracle);
-        // emit printAddr("ethLiquidator",ethLiquidator);
-        // emit printAddr("ethCDP",ethCDP);
-        // emit printAddr("ethSettlement",ethSettlement);
-        // emit printAddr("tdc",tdc);
+        emit printAddr("proposal",proposal);
+        emit printAddr("bankElection",bankElection);
+        emit printAddr("CEOsuperior",CEOsuperior);
+        emit printAddr("assistant",assistant);
+        emit printAddr("impeachVote",impeachVote);
+        emit printAddr("dirVote1",dirVote1);
+        emit printAddr("dirVote2",dirVote2);
+        emit printAddr("business",business);
+        emit printAddr("bankIssuer",bankIssuer);
+        emit printAddr("bankFinance",bankFinance);
         //person
         emit printAddr("Admin",this);
-        // emit printAddr("oracle1",oracle1);
-        // emit printAddr("oracle2",oracle2);
-        // emit printAddr("oracle3",oracle3);
-        // emit printAddr("director1",director1);
-        // emit printAddr("director2",director2);
-        // emit printAddr("director3",director3);
-        // emit printAddr("airDropRobot",airDropRobot);
-        // emit printAddr("CFO",CFO);
-        // emit printAddr("oracleManager",oracleManager);
+        emit printAddr("founder",founder);
+        emit printAddr("secretary",secretary);
     }
 }
 
