@@ -2,7 +2,6 @@ pragma solidity 0.4.25;
 
 import "../library/template.sol";
 import "../library/acl_slave.sol";
-import "./3rd/math.sol";
 
 contract Setting is Template, DSMath, ACLSlave {
     uint public lendingInterestRate; // in RAY

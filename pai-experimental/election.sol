@@ -1,8 +1,8 @@
 pragma solidity 0.4.25;
 
-import "./template.sol";
-import "./array_utils.sol";
-import "./safe_math.sol";
+import "../library/template.sol";
+import "../library/utils/array_utils.sol";
+import "../library/utils/safe_math.sol";
 
 contract Election is Template {
 

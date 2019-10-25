@@ -4,7 +4,6 @@ pragma solidity 0.4.25;
 // import "./3rd/math.sol";
 
 import "../library/template.sol";
-import "./3rd/math.sol";
 import "../library/acl_slave.sol";
 
 contract PriceOracle is Template, ACLSlave, DSMath {
