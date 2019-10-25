@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@asimovdev/asimov-cli": "^1.0.35",
+    "colors": "^1.4.0",
     "mocha": "^6.2.2"
   }
 }

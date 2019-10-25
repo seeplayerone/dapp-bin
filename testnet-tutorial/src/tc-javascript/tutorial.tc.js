@@ -2,6 +2,8 @@ template = require("@asimovdev/asimov-cli/scripts/template")
 call = require("@asimovdev/asimov-cli/scripts/call")
 rpc = require("@asimovdev/asimov-cli/scripts/rpc")
 
+const colors = require('colors')
+
 assert = require('assert')
 
 var source = '/Users/xxd/gitflow/dapp-contracts/dapp-bin/testnet-tutorial/src/contracts/tutorial.sol';
@@ -33,26 +35,34 @@ async function testTutorial() {
     var _address;
     var _type;
 
+    console.log(colors.yellow('create template: ') + colors.green(temp))
     template.createTemplateWithContractName(source, temp, category, gas, privateKey, "Tutorial").then(res => {
+        console.log(colors.yellow('template created successfully: ') + colors.green(res))
         _tid = res;
     });
 
     await sleep(12000);
+    console.log(colors.yellow('deploy contract using template: ') + colors.green(temp))
     template.deployTemplate(_tid, name, gas, privateKey).then(res => {
+        console.log(colors.yellow('contract deployed successfully: ') + colors.green(res[0]))
         _address = res[0];
     });
 
     await sleep(12000);
+    console.log(colors.yellow('create asset and mint: ') + colors.green(1000000000))
     call.call(_address, 'mint(uint256)', [1000000000], gas, value, type, privateKey);
 
     await sleep(12000);
     call.call(_address, 'assettype',[], gas, value, type, privateKey).then(res =>{
+        console.log(colors.yellow('asset created successfully with assettype: ') + colors.green(intTo24Hex(res)))
         _type = intTo24Hex(res);
-        console.log(_type);
     });
 
     await sleep(2000);
-    call.call(_address, 'mint(uint256)', [1000000000], gas, value, type, privateKey);
+    console.log(colors.yellow('mint asset: ') + colors.green(1000000000))
+    call.call(_address, 'mint(uint256)', [1000000000], gas, value, type, privateKey).then(res => {
+        console.log(colors.yellow('asset minted successfully'))
+    })
 
     await sleep(12000);
     call.call(_address, 'checkBalance', [], gas, value, type, privateKey).then(res => {
@@ -65,7 +75,10 @@ async function testTutorial() {
     })
 
     await sleep(2000);
-    call.call(_address, 'transfer(address,uint256)', [address ,1000000000], gas, value, type, privateKey);
+    console.log(colors.yellow('transfer asset to: ') + colors.green(address))
+    call.call(_address, 'transfer(address,uint256)', [address ,1000000000], gas, value, type, privateKey).then(res => {
+        console.log(colors.yellow('asset transferred successfully'))
+    })
 
     await sleep(12000);
     call.call(_address, 'checkBalance', [], gas, value, type, privateKey).then(res => {
@@ -76,6 +89,7 @@ async function testTutorial() {
     call.call(_address, 'checkTotalSupply', [], gas, value, type, privateKey).then(res => { 
         assert.equal(res, 2000000000);
     })
+
 
     await sleep(2000);
     call.call(_address, 'burn', [], gas, 500000000, _type, privateKey);
