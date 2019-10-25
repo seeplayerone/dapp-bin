@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "./3rd/note.sol";
+import "../library/utils/ds-note.sol";
 import "../library/template.sol";
 import "./pai_issuer.sol";
 import "./pai_finance.sol";
