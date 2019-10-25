@@ -1,5 +1,9 @@
 pragma solidity 0.4.25;
 
+/**
+    Please use acl_master.sol/acl_slave.sol for simple permission control cases
+ */
+
 /// @title This is the base contract to support ACL in Asimov contracts
 ///  Permission control is applied at function level, to the end it is "whether an address can call a function in a contract"
 ///  This ACL contract provides 3 ways for inheriting contracts to configure access control on the function
@@ -89,15 +93,10 @@ contract ACL {
             if (funcRole.exist) {
                 for(uint i = 0; i < funcRole.value.length; i++) {
                     if (funcRole.value[i] == _role) {
-                        /// @dev code review comments - jack
-                        /// Use Swap & Delete mode when deleting an element in array
-                        /// https://stackoverflow.com/questions/49051856/is-there-a-pop-functionality-for-solidity-arrays
-                        /// This applies to all array deleting operations in this contract
                         uint len = funcRole.value.length;
                         if(i != len-1) {
                             funcRole.value[i] = funcRole.value[len-1];
                         }
-                        delete funcRole.value[len-1];
                         funcRole.value.length--;                        
                         funcRole.references[_role] = false;                        
                         break;
@@ -111,11 +110,10 @@ contract ACL {
     /// @param _address address to configure
     /// @param _role role to configure
     /// @param _opMode either add or remove
-    function configureAddressRole(address _address, string _role, OpMode _opMode) authFunctionHash(CONFIGURE_NORMAL_FUNCTION) public {
+    /// @dev in order to improve security, only super admin can configure address/role mappings; 
+    ///  otherwise lower level authorized admins can link any addresses to a super admin role which can possibly cause severe issues
+    function configureAddressRole(address _address, string _role, OpMode _opMode) authFunctionHash(CONFIGURE_SUPER_FUNCTION) public {
         configureAddressRoleInternal(_address, _role, _opMode);
-        ///这里有个漏洞，如果"董事长"把"ceo"设置成最高权限，这个时候，普通主管确实无法将任意一个“角色”设置成“最高权限”，
-        ///但是普通主管可以将任意一个“地址”设置成CEO，从而使得任意一个地址可以操纵最高权限。
-        ///建议重构时直接去掉与“角色”的所有逻辑。
     }
 
     /// @dev internal function of configureAddressRole()
@@ -141,7 +139,6 @@ contract ACL {
                         if(i != len-1) {
                             addrRole.value[i] = addrRole.value[len-1];
                         }
-                        delete addrRole.value[len-1];
                         addrRole.value.length--;                       
                         addrRole.references[_role] = false;
                         break;
@@ -195,7 +192,6 @@ contract ACL {
                         if(i != len-1) {
                             addrFunc.value[i] = addrFunc.value[len-1];
                         }
-                        delete addrFunc.value[len-1];
                         addrFunc.value.length--;                       
                         addrFunc.references[_address] = false;
                         break;

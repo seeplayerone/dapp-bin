@@ -3,7 +3,6 @@ pragma solidity 0.4.25;
 import "../library/template.sol";
 import "./pai_issuer.sol";
 import "../library/acl_slave.sol";
-import "./3rd/math.sol";
 import "./pai_setting.sol";
 import "./pai_main.sol";
 import "./price_oracle.sol";

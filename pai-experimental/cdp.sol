@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
 import "./mathPI.sol";
-import "./3rd/note.sol";
+import "../library/utils/ds-note.sol";
 import "../library/template.sol";
 import "./liquidator.sol";
 import "./price_oracle.sol";

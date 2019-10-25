@@ -3,7 +3,6 @@ pragma solidity 0.4.25;
 import "../library/template.sol";
 import "../library/asset.sol";
 import "../library/acl_slave.sol";
-import "./3rd/math.sol";
 import "./registry.sol";
 
 contract PAIIssuer is Template, Asset, DSMath, ACLSlave {

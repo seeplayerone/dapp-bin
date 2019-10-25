@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-import "../mathPI.sol";
-import "../testPI.sol";
+import "../pai-experimental/mathPI.sol";
+import "../pai-experimental/testPI.sol";
 
 contract TestMath is DSTest, MathPI {
     uint256 private constant FIXED_1 = 0x080000000000000000000000000000000;

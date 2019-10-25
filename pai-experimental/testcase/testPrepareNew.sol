@@ -22,7 +22,6 @@ import "../bank_issuer.sol";
 import "../bank_finance.sol";
 import "../bank_business.sol";
 
-
 contract FakePerson is Template {
     function() public payable {}
 

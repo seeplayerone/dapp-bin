@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "./SafeMath.sol";
+import "./utils/safe_math.sol";
 
 /// @title The Asset contract is designed to store extra information of assets issued by an Organization
 ///  Detail information for an asset include:
@@ -8,6 +8,10 @@ import "./SafeMath.sol";
 ///  - assetType (inherited from UTXO)
 ///  - total issued & issuance history
 ///  - whitelist for restricted asset
+
+/**
+    @dev Note in the latest design, all information other than the whitelist are also stored in the Registry system contract
+ */
 
 contract Asset {
     

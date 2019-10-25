@@ -2,8 +2,8 @@ pragma solidity 0.4.25;
 pragma experimental ABIEncoderV2;
 
 import "../library/template.sol";
-import "./3rd/math.sol";
-import "../library/execution.sol";
+import "../library/utils/ds_math.sol";
+import "../library/utils/execution.sol";
 import "../library/acl_slave.sol";
 import "./pai_main.sol";
 import "./pai_proposal.sol";

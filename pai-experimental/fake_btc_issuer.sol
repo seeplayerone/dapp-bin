@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
 import "../library/template.sol";
-import "./3rd/math.sol";
+import "../library/utils/ds_math.sol";
 import "./registry.sol";
 
 contract FakeBTCIssuer is Template, DSMath {

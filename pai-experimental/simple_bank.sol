@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "../library/organization.sol";
+import "../library/sample/organization.sol";
 
 contract Bank is Organization {
     /// @dev president of the organization

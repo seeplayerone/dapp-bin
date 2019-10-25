@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "./3rd/math.sol";
+import "../library/utils/ds_math.sol";
 
 contract MathPI is DSMath {
     uint256 private constant FIXED_1 = 0x080000000000000000000000000000000;

@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "../../library/template.sol";
+import "../library/template.sol";
 
 contract ERA1 {
     event LOG(uint);

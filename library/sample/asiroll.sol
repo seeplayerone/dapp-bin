@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "../SafeMath.sol";
+import "../utils/safe_math.sol";
 import "../acl.sol";
 import "../template.sol";
 

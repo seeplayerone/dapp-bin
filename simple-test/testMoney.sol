@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
-import "../../library/template.sol";
-import "../fake_btc_issuer.sol";
+import "../library/template.sol";
+import "../pai-experimental/fake_btc_issuer.sol";
 
 contract AcceptMoney {
     uint public money;

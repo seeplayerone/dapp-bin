@@ -2,7 +2,7 @@ pragma solidity 0.4.25;
 pragma experimental ABIEncoderV2;
 
 import "../library/template.sol";
-import "./3rd/math.sol";
+import "../library/utils/ds_math.sol";
 
 contract ProposalData is DSMath, Template {
     struct Proposal {

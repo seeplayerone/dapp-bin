@@ -2,7 +2,7 @@ pragma solidity 0.4.25;
 
 import "../library/template.sol";
 import "../library/acl_master.sol";
-import "./3rd/math.sol";
+import "../library/asset.sol";
 import "./registry.sol";
 
 

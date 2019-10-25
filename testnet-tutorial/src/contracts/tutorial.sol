@@ -12,14 +12,17 @@ pragma solidity 0.4.25;
      we recommend to write full testcases and have them passed (using IDE tool)
  */
 
-import "../library/template.sol";
+import "../../../library/template.sol";
 
 /**
     @dev Registry is a system contract on asimov chain, a contract needs to register before issuing assets
  */ 
 interface Registry {
-     function registerOrganization(string organizationName, string templateName) external returns(uint32);
-     function newAsset(string name, string symbol, string description, uint32 assetType, uint32 assetIndex) external;
+    function registerOrganization(string organizationName, string templateName) external returns(uint32);
+    function newAsset(string name, string symbol, string description, uint32 assetType, uint32 assetIndex, uint amount) external;
+    function mintAsset(uint32 assetIndex, uint amount) external;
+    function burnAsset(uint32 assetIndex, uint amount) external;
+    function getAssetInfoByAssetId(uint32 organizationId, uint32 assetIndex) external view returns(bool, string, string, string, uint, uint[]);
 }
 
 /**
@@ -33,7 +36,7 @@ contract Tutorial is Template {
     /// black hole
     address hole = 0x660000000000000000000000000000000000000000;
     /// registry system contract
-    address registry = 0x630000000000000000000000000000000000000065;
+    Registry registry;
 
     bool private registered = false;
 
@@ -44,15 +47,16 @@ contract Tutorial is Template {
     /// organization id, assigned after registration
     uint private orgnizationID = 0;
     /// assettype of UTXO => 32bit properteis + 32 bit organization id + 32 bit asset index
-    uint private assettype;
+    uint public assettype;
 
     /// total supply 
-    uint private totalSupply = 0;
+    uint public totalSupply = 0;
 
-    string organizationName;
+    string public organizationName;
 
     constructor(string _name) public {
         organizationName = _name;
+        registry = Registry(0x630000000000000000000000000000000000000065);
     }
 
     /**
@@ -62,11 +66,10 @@ contract Tutorial is Template {
         if(registered) {
             /// @dev instruction to mint more on an existing asset
             flow.mintAsset(index, amount);
+            registry.mintAsset(uint32(index), amount);
         } else {
-            /// register the organization (contract) before issuing assets
-            Registry reg = Registry(registry);
             /// template name is given when submitting a TEMPLATE using IDE tool
-            orgnizationID = reg.registerOrganization(organizationName, templateName);
+            orgnizationID = registry.registerOrganization(organizationName, templateName);
 
             registered = true;
 
@@ -80,10 +83,10 @@ contract Tutorial is Template {
             /// index = 1 which means this is the first asset created by this oraganization
             ///  an organization can create multiple assets with different indexes
             flow.createAsset(properties, index, amount);
-            reg.newAsset("Tutorial", "TC", "Tutorial Coin", uint32(properties), uint32(index));
+            registry.newAsset("Tutorial", "TC", "Tutorial Coin", uint32(properties), uint32(index), amount);
         }
         
-        totalSupply = totalSupply + amount;
+        (,,,,totalSupply,) = registry.getAssetInfoByAssetId(uint32(orgnizationID),uint32(index));
 
         return assettype;
     }
@@ -109,7 +112,8 @@ contract Tutorial is Template {
      */
     function burn() public payable {
         hole.transfer(msg.value, msg.assettype);
-        totalSupply = totalSupply - msg.value;
+        registry.burnAsset(uint32(index), msg.value);
+        (,,,,totalSupply,) = registry.getAssetInfoByAssetId(uint32(orgnizationID),uint32(index));
     }
 
     /**

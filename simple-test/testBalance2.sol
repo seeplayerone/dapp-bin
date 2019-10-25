@@ -1,8 +1,8 @@
 pragma solidity 0.4.25;
 
-import "../../library/template.sol";
+import "../library/template.sol";
 
-contract BalanceOf is Template {
+contract TestBalance is Template {
 
     uint debt;
 
