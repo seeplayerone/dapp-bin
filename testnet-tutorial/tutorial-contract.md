@@ -24,7 +24,7 @@ Asimov has made some improvements based on EVM and developers need to be aware o
 
 ### TEMPLATE
 
-On the Asimov platform, users need to upload the developed smart contract to the Asimov template warehouse from the [IDE tool](https://ide.asimov.work/#/) or [Developer Center](https://developer.asimov.network/), which then becomes a template. The corresponding contract instance is then deployed based on the template.
+On the Asimov platform, users need to upload the developed smart contract to the Asimov template warehouse from the [IDE tool](https://ide.asimov.tech/#/) or [Developer Center](https://developer.asimov.network/), which then becomes a template. The corresponding contract instance is then deployed based on the template.
 
 Two important things to note related to template when developing smart contracts:
 
@@ -105,25 +105,39 @@ We have created a [tutorial project](https://github.com/seeplayerone/dapp-bin/tr
 
 We recommend to adopt a **Test Driven Development** paradigm for contract development.
 
-Once finish designing and implementing a smart contract, it is a good practice to write thorough unit tests to fully cover every single function uint of a contract. There are usually two ways to write test cases for a contract, either using other smart contracts or through js library. We are prefering the former one for now as it has better support from the IDE tool.
+Once finish designing and implementing a smart contract, it is a good practice to write thorough unit tests to fully cover every single function uint of a contract. There are usually two ways to write test cases for a contract, either using other smart contracts or through js library. Both of them are introduced below.
 
-We have provided a [test contract](https://github.com/seeplayerone/dapp-bin/blob/master/testnet-tutorial/tutorial.tc.sol) in the tutorial project. 
+### Test using Solidity
+
+We have provided a [test contract](https://github.com/seeplayerone/dapp-bin/tree/pai-governance/testnet-tutorial/src/tc-solidity/tutorial.tc.sol) in the tutorial project. 
 
 We can run a test contract in "test mode" in IDE tool: we don't need to create a template for the test contract or the target contract it is testing against, and the execution is not state perserving. In order to support that, ```new``` and ```create``` are enabled in "test mode".
 
-### Test in IDE
+Go to the IDE [Test](https://ide.asimov.tech/#/test) page: 
 
-Go to the IDE [EXECUTION](https://ide.asimov.work/#/contract-call) page: 
-
-- click the file icon to upload the test contract.
+- on the lefe pane of the page, upload folders/files.
+- choose the file need to test, it displays on the ide pane in the middle.
+- edit the source file if necessary. 
 - click ```Compile``` to compile the test contract.
-- click the ```Test``` tab on the right pane. click the ```Console```tab on the bottom pane.
+- click the ```Console```tab on the bottom pane.
 - select the contract instance to test agianst, as shown in the figure below we choose ```TutorialTest```. 
 - select the specific test function to execute, as shown in the figure below we choose ```test```.
-- click ```Try``` button and you can see the test result in the console.
-- click ```Try All Test``` button will execute all functions with **test** prefix in the selected contract instance.
+- click ```Test``` button and you can see the test result in the console.
+- click ```Test All``` button will execute all functions with **test** prefix in the selected contract instance.
 
 ![](./img/contract-test.png)
+
+> Note the folder system on the left pane are shared with the [EXECUTE](https://ide.asimov.tech/#/run/execute) page.
+
+### Test using Javascript
+
+We have provided a [test javascript](https://github.com/seeplayerone/dapp-bin/tree/pai-governance/testnet-tutorial/src/tc-javascript/tutorial.tc.js) in the tutorial project. 
+
+The javascript test cases are written based on [@asimovdev/asimov-cli](https://www.npmjs.com/package/@asimovdev/asimov-cli) and [@asimovdev/asimovjs](https://www.npmjs.com/package/@asimovdev/asimov-cli) libraries. You need to have node and npm installed.
+
+Run ```node tutorial.tc.js``` in the test folder and you will see something like below in the console. 
+
+![](./img/contract-test-js.png)
 
 ## Deploy Contract
 
@@ -131,11 +145,13 @@ After thorough tests, you may deploy your contract through the IDE tool.
 
 As we adpots the TEMPLATE design, there are three sub steps to deploy/run a contract on Asimov.
 
+**Contract Source File** --submit--> **Asimov Template** --deploy--> **Contract Instance** --execute-->
+
 ### Create Contract Template
 
-Go to the IDE [SUBMIT](https://ide.asimov.work/#/contract-template) page:
+Go to the IDE [SUBMIT](https://ide.asimov.tech/#/run/submit) page:
 
-- click ```Select File``` to upload the developed contract.
+- choose the file you need to submit as template from the left pane.
 - input template name and choose template category (As shown in the figure below, the name is ```tutorial-1``` and the category is ```Organization```).
 - click ```Compile File``` to compile the contract.
 - choose the contract instance used to create the template (As shown below, ```Tutorial```).
@@ -145,10 +161,10 @@ Go to the IDE [SUBMIT](https://ide.asimov.work/#/contract-template) page:
 
 ### Deploy Contract Instance
 
-Go to the IDE [DEPLOYMENT](https://ide.asimov.work/#/contract-deploy) page:
+Go to the IDE [DEPLOY](https://ide.asimov.tech/#/run/deploy) page:
 
 - find the contract template you just created.
-- click the ```Deploy``` button and fill in the initialization parameters (none in our sample).
+- click the ```Deploy``` button and fill in the initialization parameters.
 - click the ```Deploy``` button to invoke the AsiLink wallet plugin to submit the transaction.
 
 After the contract instance is deployed successfully, the AsiLink wallet will return the address of the instance and please save the address for the next steps.
@@ -158,43 +174,11 @@ After the contract instance is deployed successfully, the AsiLink wallet will re
 ### Call Contract Functions
 
 
-Go to the IDE [EXECUTION](https://ide.asimov.work/#/contract-call) page:
+Go to the IDE [EXECUTE](https://ide.asimov.tech/#/run/execute) page:
 
 - input the contract address saved in the previous step and click ```Search Contract```.
-- after loading the contract template, select the contract instance and select the function you want to execute on the right pane (As shown in the figure below, the contract instance is ```Tutorial``` and the function is ```mint```).
-- click the ```Call``` button to invoke the AsiLink wallet plugin to submit the transaction.
+- after loading the contract template, select the function you want to execute on the right pane (As shown in the figure below, the function is ```mint```).
+- click the ```Call Function``` button to invoke the AsiLink wallet plugin to submit the transaction.
 - click the ```Balance``` tab on the buttom pane to verify the asset has been mint.
 
 ![](./img/contract-call-contract.png)
-
-## APPENDIX: Basic Contracts
-
-In theory, developers familiar with the Solidity language can combine the above-mentioned new features of Asimov to complete the development of various smart contracts from scratch. But in order to alleviate the developer's workload and make better use of the capabilities provided by Asimov, we offer the following basic contracts.
-
-- [acl.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/acl.sol)
-- [asset.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/asset.sol)
-- [organization.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/organization.sol)
-
-The [acl](https://github.com/seeplayerone/dapp-bin/blob/master/library/acl.sol) contract provides a permission control framework at the contract method level:
-
-1. Restrict specific addresses to access a method through ```authAddresses()``` modifier.
-2. Define roles, and restrict specific roles to access a method through ```authRoles()``` modifier.
-3. Define function hash, and restrict addresses or roles linked with this function hash to access a method through ```authFunctionHash()``` modifier.
-
-Through a set of configuration methods to manage the links between (role - address), (function hash - address) and (function hash - role), Asimov enables dynamic access control configuration after a contract is deployed.
-
-The [asset](https://github.com/seeplayerone/dapp-bin/blob/master/library/asset.sol) contract stores detailed information about all assets issued by the organization, including:
-
-1. Basic information of the asset, name, code, description, total amount, etc.;
-2. The basic properties of the asset, whether it can be divided, whether it is restricted in circulation, whether it is anonymous or not (corresponds to the **assettype** set when creating the asset);
-3. Address whitelist of an asset;
-4. The initial and additional issuance history of assets.
-
-The [organization](https://github.com/seeplayerone/dapp-bin/blob/master/library/organization.sol) contract inherits the template, acl, and asset contracts. And provides a simple organization structure: several members with the same rights, and new members are added by invitation. We recommend that third-party organization contracts inherit [organization.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/organization.sol) for development.
-
-
-### Samples
-
-Asimov's official website provides a simple autonomous organization implementation, the corresponding organization contract is [dao_asimov.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/dao_asimov.sol). The contract inherits organization.sol and adds a "president" role to its organizational structure to manage the organization.
-
-Another example of an organization contract [simple_organization.sol](https://github.com/seeplayerone/dapp-bin/blob/master/library/simple_organization.sol) is much simpler.
