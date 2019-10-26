@@ -4,7 +4,7 @@ This document briefly describes the use of the AsiLink wallet. AsiLink is the of
 
 ## Download and Install
 
-[Download](https://asimov.network/wallet) AsiLink plugin wallet from the Asimov official website, open the Chrome browser extensions (chrome://extensions/) page, drag in the newly downloaded wallet crx file (after unzip) for installation. Verify that the plugin wallet is installed successfully, as shown below:
+[Download](https://asimov.tech/wallet) AsiLink plugin wallet from the Asimov official website, open the Chrome browser extensions page (chrome://extensions/), unzip and drag in the **asilink.crx** file to install. Verify the wallet is installed successfully, as shown below:
 
 ![](./img/asilink-installed.png)
 
@@ -28,11 +28,13 @@ Verify the mnemonic words.
 
 Click the ```Confirm``` button to create the wallet.
 
+You can also import an existing wallet by providing mnemonic words saved before. Asilink supports multiple wallets and you can switch between them easily.
+
 ## Obtain Asim from Faucet
 
-After the wallet is created successfully, switch to the Dev1 Network or Test Network. Initially there are no assets. Go to [faucet](https://ide.asimov.work/#/receive) page to get some test Asim. Input the wallet address created above to receive some test Asim.
+After the wallet is created successfully, switch to the Test Network. Initially there are no assets. Go to [IDE faucet](https://ide.asimov.tech/#/faucet) page to get some test Asim. Input the wallet address created above to receive some test Asim.
 
-![](./img/faucet.png)
+![](./img/asilink-faucet.png)
 
 Open AsiLink to confirm the test Asim is received.
 
@@ -40,7 +42,9 @@ Open AsiLink to confirm the test Asim is received.
 
 ## Transfer
 
-Click the ```Send``` button on AsiLink to open the transfer page. Input the target address and amount, click ```Confirm and Send```, then input the user password to create the transaction.
+Click the ```Send``` button on AsiLink to open the transfer page. Input the target address and amount, click ```Confirm and Send```, then input the user password to submit the transaction.
+
+> The default transaction fee in TestNet is 0.02 Asim. You can toggle "Advanced Options" to set a different value you perfer. The higher transaction fee you pay, the sooner the transaction will be confirmed on the chain.
 
 ![](./img/asilink-transfer.png)
 
