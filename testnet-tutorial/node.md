@@ -8,9 +8,9 @@ Prerequisites:
 
 ## Download Package
 
-Download the [latest installation package](https://cdn.asimov.network/asimovnode_solo_mac_2019082801.zip).
+Download the latest binary file from Asimov [tutorial repository](https://github.com/seeplayerone/dapp-bin/tree/pai-governance/testnet-tutorial/bin).
 
-Unzip it, you will find following files:
+You will find following files:
 
 - full node binary file ```asimovd```
 - wallet tool binary file ```wallet```
@@ -21,16 +21,16 @@ Unzip it, you will find following files:
 
 Like Bitcoin and Ethereum, it is required to provide enough disk space to run the asimov full node. The default working directory is:
 
-- ```~/.flowd``` on POSIX OSes
-- ```$LOCALAPPDATA/Flowd``` on Windows
-- ```~/Library/Application Support/Flowd``` on Mac OS
-- ```$home/flowd``` on Plan9
+- ```~/.asimovd``` on POSIX OSes
+- ```$LOCALAPPDATA/Asimovd``` on Windows
+- ```~/Library/Application Support/Asimovd``` on Mac OS
+- ```$home/asimovd``` on Plan9
 
-You may create a ```flowd.conf``` file (see below) from the ```asimovd.sample.conf``` file and put it under the default working directory.
+You may create an ```asimovd.conf``` file (see below) from the ```asimovd.sample.conf``` file and put it under the default working directory.
 
-## Configurate ```flowd.conf```
+## Configurate ```asimovd.conf```
 
-```flowd.conf``` contains all configuration parameters to run the asimov full node. Currently, we support 2 running modes:
+```asimovd.conf``` contains all configuration parameters to run the asimov full node. Currently, we support 2 running modes:
 
 ### SOLO
 
@@ -73,11 +73,11 @@ New key pair (priv, pubkey) (format:hex)
       { 0x1305e7ebe67d868c9112ef2fc707f497f579be4facef279eced7fb3dd0b3c807 ,  0x0230447ee4976fd98e0325fcebd44d25541eff40cee7084b7474d5eb449e0d7845 }
       Compressed pubkey hash address: 0x66affdf663256fe0f3852c814c5e6848a1f59bf3b8
 ```
-Copy the private key and address to ```flowd.conf``` respectively.
+Copy the private key and address to ```asimovd.conf``` respectively.
 
 ### RPC Port
 
-The default rpc listening port is **8545**. If you want to change to another port, add the following line to ```flowd.conf```:
+The default rpc listening port is **8545**. If you want to change to another port, add the following line to ```asimovd.conf```:
 
 ```sh
 rpclisten=:8888
@@ -85,7 +85,7 @@ rpclisten=:8888
 
 ## Run Asimov Fullnode
 
-Once the working directory and ```flowd.conf``` are set, you can run the asimov fullnode:
+Once the working directory and ```asimovd.conf``` are set, you can run the asimov fullnode:
 
 ```./asimovd```
 
@@ -116,9 +116,11 @@ For more information about how to setup AsiLink wallet, please read [AsiLink](./
 
 ### FAUCET
 
-Go to IDE tool [FAUCET](https://ide.asimov.work/#/receive) page, make sure to switch to local network on the up-right conner and reload the website if necessary. 
+Go to IDE tool [FAUCET](https://ide.asimov.tech/#/faucet) page, make sure to switch to local network on the up-right conner and reload the website if necessary. 
 
-Choose the asset type (**0000000000000000000000** which represents Asim), input the receving address (your wallet address), input the amount the click the ```Send``` button. Open the wallet to verify the test Asim is received successfully.
+If you are running in SOLO mode, set your private key to make the corresponding mining address as the faucet address; otherwise, leave as default. Choose the asset type (**0000000000000000000000** which represents Asim), input the receving address (your wallet address), input the amount the click the ```Send``` button. Open the wallet to verify the test Asim is received successfully.
+
+![](./img/node-faucet.png)
 
 ### ASILINK
 
