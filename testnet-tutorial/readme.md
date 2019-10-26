@@ -1,23 +1,15 @@
-This tutorial demostrates following features:
+## Asimov Tutorial Project
 
-- EXCLUSIVE asset instructions on asimov blockchain
-- Test Driven Development paradigm for contract developing
+This repository contains following documentations:
 
-Prerequisites of target readers:
+- Documentations on [Asimov node setup](./node.md) and [Asimov chrome wallet](./asilink.md).
+- Documentations on Asimov blockchain official tools including [Web IDE tool](./ide-tool.md) and [CMD tool](./cmd.md).
+- Documentations on [RPC API](./rpc.md).
+- Documentations on [Contract Development](./tutorial-contract.md).
+
+There is a [tutorial contract](./src/contracts/tutorial.sol) which demostrates how to utilize the exclusive Asimov asset instructions in smart contract. There are also test cases written in both [solidity](./src/tc-solidity/tutorial.tc.sol) and [javascript](./src/tc-javascript/tutorial.tc.js).
+
+The main target readers are smart contract and dapp developers on Asimov who should at least have basic knowledge on:
 
 - Blockchain and smart contract
 - Ethereum VM and Solidity
-
-Contracts included:
-
-- **tutorial.sol** main contract demostrates usage of asimov asset instructions
-- **tutorial.tc.sol** test contract to contain all test cases around **tutorial.sol**
-- **test.sol** excellent lib provided by https://dapp.tools/.
-
-Documents:
-
-- [Setup Asilink](./asilink.md)
-- [Contract Development Guide](./tutorial-contract.md)
-- [Setup Asimov Fullnode](./node.md)
-- [Asimov IDE Tool](./ide-tool.md)
-- [JSON RPC API Reference](./rpc.md)
