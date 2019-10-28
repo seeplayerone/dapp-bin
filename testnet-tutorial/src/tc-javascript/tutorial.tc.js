@@ -1,12 +1,12 @@
-template = require("@asimovdev/asimov-cli/scripts/template")
-call = require("@asimovdev/asimov-cli/scripts/call")
 rpc = require("@asimovdev/asimov-cli/scripts/rpc")
+call = require("@asimovdev/asimov-cli/scripts/call")
+template = require("@asimovdev/asimov-cli/scripts/template")
 
-const colors = require('colors')
-
+path = require('path')
+colors = require('colors')
 assert = require('assert')
 
-var source = '/Users/xxd/gitflow/dapp-contracts/dapp-bin/testnet-tutorial/src/contracts/tutorial.sol';
+var source = path.resolve(__dirname, '../contracts/tutorial.sol');
 var privateKey = '91ab6c021cbe1e489f259dfae308b5328f0647e65ffd2d529fb9a61a593917c4';
 var address = '0x66fbecbfcb831851bb3d4629a9bc72372e785e5895';
 var category = 1;
