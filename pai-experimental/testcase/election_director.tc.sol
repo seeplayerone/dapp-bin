@@ -1,8 +1,8 @@
 pragma solidity 0.4.25;
 
 import "../pai_election_director.sol";
-import "../3rd/math.sol";
-import "../3rd/test.sol";
+import "../../library/utils/ds_math.sol";
+import "../../library/utils/ds_test.sol";
 import "../pai_main.sol";
 
 contract Fly {
@@ -64,8 +64,8 @@ contract ElectionTest is DSTest {
         issuer.createNewRole("PAI-DIRECTOR-BACKUP","ADMIN",0,false);
         issuer.createNewRole("Secretary","ADMIN",0,false);
         issuer.addMember(this,"Secretary");
-        issuer.createNewRole("PISVOTE","ADMIN",0,false);
-        issuer.addMember(this,"PISVOTE");
+        issuer.createNewRole("DirPisVote","ADMIN",0,false);
+        issuer.addMember(this,"DirPisVote");
         issuer.createNewRole("Founder","ADMIN",0,false);
         issuer.addMember(this,"Founder");
 

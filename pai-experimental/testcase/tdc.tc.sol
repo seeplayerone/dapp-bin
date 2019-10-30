@@ -6,6 +6,7 @@ contract TestBase is Template, DSTest, DSMath {
     TimefliesTDC internal tdc;
     Liquidator internal liquidator;
     TimefliesOracle internal oracle;
+    TimefliesOracle internal oracle2;
     FakePAIIssuer internal paiIssuer;
     FakeBTCIssuer internal btcIssuer;
     FakePerson internal admin;
@@ -17,6 +18,7 @@ contract TestBase is Template, DSTest, DSMath {
 
     uint96 internal ASSET_BTC;
     uint96 internal ASSET_PAI;
+    uint96 internal ASSET_PIS;
 
     function() public payable {}
 
@@ -26,39 +28,55 @@ contract TestBase is Template, DSTest, DSMath {
         p2 = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
+        ASSET_PIS = paiDAO.PISGlobalId();
         btcIssuer = new FakeBTCIssuer();
         btcIssuer.init("BTC");
         ASSET_BTC = uint96(btcIssuer.getAssetType());
 
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY * 10,ASSET_BTC);
-        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3);
-        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"SettlementContract","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"BTCCDP","ADMIN",0);
+        oracle2  = new TimefliesOracle("BTCOracle",paiDAO,RAY,ASSET_PIS);
+        admin.callCreateNewRole(paiDAO,"Liqudator@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3,false);
+        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"Settlement@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"BTCCDP","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"DirVote@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"50%DemPreVote@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"100%DemPreVote@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"50%Demonstration@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"100%Demonstration@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"DirPisVote","ADMIN",0,false);
         admin.callAddMember(paiDAO,admin,"BTCOracle");
         admin.callAddMember(paiDAO,p1,"BTCOracle");
         admin.callAddMember(paiDAO,p2,"BTCOracle");
         admin.callAddMember(paiDAO,admin,"DIRECTORVOTE");
         admin.callAddMember(paiDAO,admin,"PISVOTE");
-        admin.callAddMember(paiDAO,admin,"SettlementContract");
+        admin.callAddMember(paiDAO,admin,"Settlement@STCoin");
+        admin.callAddMember(paiDAO,admin,"DirVote@STCoin");
+        admin.callAddMember(paiDAO,admin,"50%DemPreVote@STCoin");
+        admin.callAddMember(paiDAO,admin,"100%DemPreVote@STCoin");
+        admin.callAddMember(paiDAO,admin,"50%Demonstration@STCoin");
+        admin.callAddMember(paiDAO,admin,"100%Demonstration@STCoin");
         admin.callAddMember(paiDAO,admin,"BTCCDP");
+        admin.callAddMember(paiDAO,admin,"DirPisVote");
+        admin.callModifyEffectivePriceNumber(oracle,3);
 
         paiIssuer = new FakePAIIssuer("PAIISSUER",paiDAO);
         paiIssuer.init();
         ASSET_PAI = paiIssuer.PAIGlobalId();
 
         setting = new Setting(paiDAO);
-        finance = new Finance(paiDAO,paiIssuer,setting,oracle);
+        finance = new Finance(paiDAO,paiIssuer,setting,oracle2);
         liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
-        admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
-        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callCreateNewRole(paiDAO,"Minter@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,admin,"Minter@STCoin");
 
         tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance);
-        admin.callCreateNewRole(paiDAO,"TDCContract","ADMIN",0);
-        admin.callAddMember(paiDAO,tdc,"TDCContract");
+        admin.callCreateNewRole(paiDAO,"TDC@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,tdc,"TDC@STCoin");
 
         btcIssuer.mint(100000000000, p1);
         btcIssuer.mint(100000000000, p2);
@@ -74,16 +92,12 @@ contract TestBase is Template, DSTest, DSMath {
 contract SettingTest is TestBase {
     function testUpdateBaseInterestRate() public {
         setup();
-        assertEq(tdc.baseInterestRate(), RAY / 5);
         assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY / 5 + RAY * 4 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY / 5 + RAY * 6 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY / 5 + RAY * 8 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY / 5 + RAY * 10 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY / 5 + RAY * 12 / 1000);
         admin.callUpdateDepositRate(setting, RAY / 10);
-        assertEq(tdc.baseInterestRate(), RAY / 5);
-        assertTrue(p1.callUpdateBaseInterestRate(tdc));
-        assertEq(tdc.baseInterestRate(), RAY / 10);
         assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY/10 + RAY * 4 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY/10 + RAY * 6 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY/10 + RAY * 8 / 1000);
@@ -91,41 +105,41 @@ contract SettingTest is TestBase {
         assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY/10 + RAY * 12 / 1000);
     }
 
-    function testUpdateFloatUp() public {
+    function testUpdateRateAdj() public {
         setup();
-        assertEq(tdc.floatUp(0), RAY * 4 / 1000);
-        assertEq(tdc.floatUp(1), RAY * 6 / 1000);
-        assertEq(tdc.floatUp(2), RAY * 8 / 1000);
-        assertEq(tdc.floatUp(3), RAY * 10 / 1000);
-        assertEq(tdc.floatUp(4), RAY * 12 / 1000);
-        assertEq(tdc.floatUp(5), 0);
-        assertEq(tdc.floatUp(6), 0);
-        assertEq(tdc.floatUp(7), 0);
-        assertEq(tdc.floatUp(8), 0);
-        assertEq(tdc.floatUp(9), 0);
+        assertEq(tdc.rateAdj(0), int(RAY * 4 / 1000));
+        assertEq(tdc.rateAdj(1), int(RAY * 6 / 1000));
+        assertEq(tdc.rateAdj(2), int(RAY * 8 / 1000));
+        assertEq(tdc.rateAdj(3), int(RAY * 10 / 1000));
+        assertEq(tdc.rateAdj(4), int(RAY * 12 / 1000));
+        assertEq(tdc.rateAdj(5), 0);
+        assertEq(tdc.rateAdj(6), 0);
+        assertEq(tdc.rateAdj(7), 0);
+        assertEq(tdc.rateAdj(8), 0);
+        assertEq(tdc.rateAdj(9), 0);
         assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY / 5 + RAY * 4 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY / 5 + RAY * 6 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY / 5 + RAY * 8 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY / 5 + RAY * 10 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY / 5 + RAY * 12 / 1000);
-        bool tempBool = p1.callUpdateFloatUp(tdc,0,RAY * 2 / 1000);
+        bool tempBool = p1.callUpdateRateAdj(tdc,0,int(RAY * 2 / 1000));
         assertTrue(!tempBool);
         for(uint8 i = 0 ; i < 10; i++) {
-            admin.callUpdateFloatUp(tdc,i,RAY * 2 / 1000);
-            assertEq(tdc.floatUp(i), RAY * 2 / 1000);
+            admin.callUpdateRateAdj(tdc,i,int(RAY * 2 / 1000));
+            assertEq(tdc.rateAdj(i), int(RAY * 2 / 1000));
         }
-        admin.callUpdateFloatUp(tdc,0, RAY * 8 / 1000);
-        admin.callUpdateFloatUp(tdc,1, RAY * 12 / 1000);
-        admin.callUpdateFloatUp(tdc,2, RAY * 16 / 1000);
-        admin.callUpdateFloatUp(tdc,3, RAY * 20 / 1000);
-        admin.callUpdateFloatUp(tdc,4, RAY * 24 / 1000);
+        admin.callUpdateRateAdj(tdc,0, int(RAY * 8 / 1000));
+        admin.callUpdateRateAdj(tdc,1, int(RAY * 12 / 1000));
+        admin.callUpdateRateAdj(tdc,2, int(RAY * 16 / 1000));
+        admin.callUpdateRateAdj(tdc,3, int(RAY * 20 / 1000));
+        admin.callUpdateRateAdj(tdc,4, int(RAY * 24 / 1000));
 
         assertEq(tdc.getInterestRate(TDC.TDCType._30DAYS), RAY / 5 + RAY * 8 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._60DAYS), RAY / 5 + RAY * 12 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._90DAYS), RAY / 5 + RAY * 16 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._180DAYS), RAY / 5 + RAY * 20 / 1000);
         assertEq(tdc.getInterestRate(TDC.TDCType._360DAYS), RAY / 5 + RAY * 24 / 1000);
-        tempBool = admin.callUpdateFloatUp(tdc,10,RAY * 2 / 1000);
+        tempBool = admin.callUpdateRateAdj(tdc,10,int(RAY * 2 / 1000));
         assertTrue(!tempBool);
     }
 
@@ -177,18 +191,6 @@ contract SettingTest is TestBase {
         }
     }
 
-    function testSwitchDeposit() public {
-        setup();
-        assertTrue(!tdc.disableDeposit());
-        bool tempBool = p1.callSwitchDeposit(tdc,true);
-        assertTrue(!tempBool);
-        tempBool = admin.callSwitchDeposit(tdc,true);
-        assertTrue(tempBool);
-        assertTrue(tdc.disableDeposit());
-        admin.callSwitchDeposit(tdc,false);
-        assertTrue(!tdc.disableDeposit());
-    }
-
     function testSwitchGetInterest() public {
         setup();
         assertTrue(!tdc.disableGetInterest());
@@ -204,7 +206,6 @@ contract SettingTest is TestBase {
     function testSetSetting() public {
         setup();
         assertEq(tdc.setting(), setting);
-        assertEq(tdc.baseInterestRate(), RAY / 5);
         Setting setting2 = new Setting(paiDAO);
         admin.callUpdateDepositRate(setting2, RAY / 10);
 
@@ -213,20 +214,17 @@ contract SettingTest is TestBase {
         tempBool = admin.callSetSetting(tdc, setting2);
         assertTrue(tempBool);
         assertEq(tdc.setting(), setting2);
-        assertEq(tdc.baseInterestRate(), RAY / 10);
     }
 
-    function testSetPAIIssuer() public {
+    function testSetFinance() public {
         setup();
         assertEq(tdc.issuer(), paiIssuer);
-        FakePAIIssuer issuer2 = new FakePAIIssuer("PAIISSUER2",paiDAO);
-        issuer2.init();
-        bool tempBool = p1.callSetPAIIssuer(tdc, issuer2);
+        Finance finance2 = new Finance(paiDAO,paiIssuer,setting,oracle2);
+        bool tempBool = p1.callSetFinance(tdc, finance2);
         assertTrue(!tempBool);
-        tempBool = admin.callSetPAIIssuer(tdc, issuer2);
+        tempBool = admin.callSetFinance(tdc, finance2);
         assertTrue(tempBool);
-        assertEq(tdc.issuer(), issuer2);
-        assertEq(uint(tdc.ASSET_PAI()), uint(issuer2.PAIGlobalId()));
+        assertEq(tdc.finance(), finance2);
     }
 
 }
@@ -260,13 +258,6 @@ contract FunctionTest is TestBase {
         tempBool = p1.callTDCDeposit(tdc,0,1000,ASSET_PAI);
         assertTrue(!tempBool);
         admin.callGlobalReopen(setting);
-        tempBool = p1.callTDCDeposit(tdc,0,1000,ASSET_PAI);
-        assertTrue(tempBool);
-
-        admin.callSwitchDeposit(tdc,true);
-        tempBool = p1.callTDCDeposit(tdc,0,1000,ASSET_PAI);
-        assertTrue(!tempBool);
-        admin.callSwitchDeposit(tdc,false);
         tempBool = p1.callTDCDeposit(tdc,0,1000,ASSET_PAI);
         assertTrue(tempBool);
 

@@ -2,7 +2,7 @@ pragma solidity 0.4.25;
 
 import "./dao_asimov.sol";
 import "./simple_vote.sol";
-import "../utils/ds-test.sol";
+import "../utils/ds_test.sol";
 import "../utils/execution.sol";
 
 contract FakeDAO is Association{

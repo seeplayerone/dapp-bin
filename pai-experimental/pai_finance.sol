@@ -27,11 +27,12 @@ contract Finance is Template,ACLSlave,DSMath {
 
     constructor(address paiMainContract, address _issuer, address _setting, address _oracle) public {
         master = ACLMaster(paiMainContract);
+        ASSET_PIS = PAIDAO(master).PISGlobalId();
         issuer = PAIIssuer(_issuer);
         setting = Setting(_setting);
         ASSET_PAI = issuer.PAIGlobalId();
         priceOracle = PriceOracle(_oracle);
-        ASSET_PIS = priceOracle.ASSET_COLLATERAL();
+        require(ASSET_PIS == priceOracle.assetId());
     }
 
     function() public payable {
@@ -55,32 +56,27 @@ contract Finance is Template,ACLSlave,DSMath {
 
     function setOracle(address newPriceOracle) public auth("PISVOTE") {
         priceOracle = PriceOracle(newPriceOracle);
+        require(ASSET_PIS == priceOracle.assetId());
     }
 
-    function setPAIIssuer(address newIssuer) public auth("DIRECTORVOTE") {
-        require(flow.balance(this,ASSET_PAI) == 0);
-        issuer = PAIIssuer(newIssuer);
-        ASSET_PAI = issuer.PAIGlobalId();
-    }
-
-    function setSetting(address _setting) public auth("DIRECTORVOTE") {
+    function setSetting(address _setting) public auth("100%Demonstration@STCoin") {
         setting = Setting(_setting);
     }
 
-    function setTDC(address _tdc) public auth("DIRECTORVOTE") {
+    function setTDC(address _tdc) public auth("100%Demonstration@STCoin") {
         tdc = _tdc;
     }
 
-    function setPISseller(address newSeller) public auth("PISVOTE") {
+    function setPISseller(address newSeller) public auth("DirPisVote") {
         PISseller = newSeller;
     }
 
-    function payForInterest(uint amount, address receiver) public auth("TDCContract") {
+    function payForInterest(uint amount, address receiver) public auth("TDC@STCoin") {
         require(amount > 0);
         receiver.transfer(amount,ASSET_PAI);
     }
 
-    function payForDebt(uint amount) public auth("LiqudatorContract") {
+    function payForDebt(uint amount) public auth("Liqudator@STCoin") {
         if (0 == amount)
             return;
         if (flow.balance(this,ASSET_PAI) > amount) {
@@ -90,14 +86,14 @@ contract Finance is Template,ACLSlave,DSMath {
         }
     }
 
-    function payForDividends(uint amount, address receiver) public auth("DividendsContract") {
+    function payForDividends(uint amount, address receiver) public auth("Dividends@STCoin") {
         require(amount > 0);
         receiver.transfer(amount,ASSET_PAI);
     }
 
-    function applyForAirDropCashOut(uint amount) public auth("AirDropAddr") {
+    function applyForAirDropCashOut(uint amount) public auth("AirDrop@STCoin") {
         require(amount > 0);
-        (,,,,,uint totalSupply) = issuer.getAssetInfo(0);
+        uint totalSupply = issuer.totalSupply();
         uint depositNumber = flow.balance(tdc,ASSET_PAI);
         uint delta;
         if (0 == lastAirDropCashOut) {
@@ -105,7 +101,7 @@ contract Finance is Template,ACLSlave,DSMath {
         } else {
             delta = sub(timeNow(),lastAirDropCashOut);
         }
-        uint CashOutLimit = mul(delta,add(setting.depositInterestRate(),setting.currentDepositFloatUp()));
+        uint CashOutLimit = mul(delta,setting.currentDepositRate());
         CashOutLimit =rmul(sub(sub(totalSupply,depositNumber),flow.balance(this,ASSET_PAI)),CashOutLimit) / 1 years;
         if (CashOutLimit > amount) {
             applyAmount = amount;
@@ -117,7 +113,7 @@ contract Finance is Template,ACLSlave,DSMath {
         applyTime = timeNow();
     }
 
-    function approvalAirDropCashOut(uint nonce, bool result) public auth("CFO") {
+    function approvalAirDropCashOut(uint nonce, bool result) public auth("CFO@STCoin") {
         require(nonce == applyNonce);
         require(applyAmount > 0);
         if(result) {
@@ -129,27 +125,26 @@ contract Finance is Template,ACLSlave,DSMath {
         applyAmount = 0;
     }
 
-    function operationCashOut(uint amount, address dest) public auth("CFO") {
+    function operationCashOut(uint amount, address dest) public auth("CFO@STCoin") {
         require(amount > 0);
         require(operationCashLimit >= amount);
         operationCashLimit = sub(operationCashLimit,amount);
         dest.transfer(amount,ASSET_PAI);
     }
 
-    function increaseOperationCashLimit(uint amount) public auth("PISVOTE") {
+    function increaseOperationCashLimit(uint amount) public auth("DirPisVote@STCoin") {
         operationCashLimit = add(operationCashLimit,amount);
     }
 
-    /// @dev 所有的设置都需要在构造函数里面进行配置，方便初始化部署
-    function setSafePad(uint amount) public auth("PISVOTE") {
+    function setSafePad(uint amount) public auth("50%DemPreVote@STCoin") {
         safePad = amount;
     }
 
-    function setPISmintRate(uint newRate) public auth("PISVOTE") {
+    function setPISmintRate(uint newRate) public auth("50%DemPreVote@STCoin") {
         PISmintRate = newRate;
     }
 
-    function cashOut(uint amount, address dest) public auth("PISVOTE") {
+    function cashOut(uint amount, address dest) public auth("100%Demonstration@STCoin") {
         require(amount > 0);
         dest.transfer(amount,ASSET_PAI);
     }

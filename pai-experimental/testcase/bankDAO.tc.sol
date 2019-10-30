@@ -96,6 +96,8 @@ contract TestBase is Template, DSTest, DSMath {
         paiDAO.addMember(dirVote2,"100%DirVote@Bank");
 
         //mint money, should not be include when real environment
+        paiDAO.createNewRole("DirPisVote","PISVOTE",0,false);
+        paiDAO.addMember(this,"DirPisVote");
         paiDAO.mint(300000000,this);
     }
 }
@@ -103,11 +105,12 @@ contract TestBase is Template, DSTest, DSMath {
 contract Print is TestBase {
     function print() public {
         setup();
+        paiDAO.removeMember(this,"DirPisVote");
         paiDAO.removeMember(this,"DirectorElection@Bank");
         paiDAO.removeMember(this,"CEOsuperior@Bank");
         paiDAO.removeMember(this,"50%DirVote@Bank");
         paiDAO.removeMember(this,"PISVOTE");
-        uint groupNumber = paiDAO.indexOfACL();
+        uint groupNumber = paiDAO.indexOfPG();
         for (uint i = 1; i <= groupNumber; i++) {
             emit printString("===================================================");
             emit printDoubleString("Role:",string(paiDAO.roles(i)));

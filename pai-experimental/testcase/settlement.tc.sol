@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "../3rd/math.sol";
+import "../../library/utils/ds_math.sol";
 import "../../library/template.sol";
 import "../cdp.sol";
 import "../testPI.sol";
@@ -12,6 +12,7 @@ contract TestBase is Template, DSTest, DSMath {
     TimefliesCDP internal cdp;
     Liquidator internal liquidator;
     TimefliesOracle internal oracle;
+    TimefliesOracle internal oracle2;
     FakePAIIssuer internal paiIssuer;
     FakeBTCIssuer internal btcIssuer;
     FakePerson internal admin;
@@ -24,6 +25,7 @@ contract TestBase is Template, DSTest, DSMath {
 
     uint96 internal ASSET_BTC;
     uint96 internal ASSET_PAI;
+    uint96 internal ASSET_PIS;
 
     function() public payable {
 
@@ -35,39 +37,46 @@ contract TestBase is Template, DSTest, DSMath {
         p2 = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
+        ASSET_PIS = paiDAO.PISGlobalId();
         btcIssuer = new FakeBTCIssuer();
         btcIssuer.init("BTC");
         ASSET_BTC = uint96(btcIssuer.getAssetType());
 
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,ASSET_BTC);
-        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3);
-        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"SettlementContract","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"BTCCDP","ADMIN",0);
+        oracle2  = new TimefliesOracle("BTCOracle",paiDAO,RAY,ASSET_PIS);
+        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3,false);
+        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"Settlement@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"BTCCDP","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"DirVote@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"50%DemPreVote@STCoin","ADMIN",0,false);
         admin.callAddMember(paiDAO,admin,"BTCOracle");
         admin.callAddMember(paiDAO,p1,"BTCOracle");
         admin.callAddMember(paiDAO,p2,"BTCOracle");
         admin.callAddMember(paiDAO,admin,"DIRECTORVOTE");
         admin.callAddMember(paiDAO,admin,"PISVOTE");
-        admin.callAddMember(paiDAO,admin,"SettlementContract");
+        admin.callAddMember(paiDAO,admin,"Settlement@STCoin");
+        admin.callAddMember(paiDAO,admin,"DirVote@STCoin");
+        admin.callAddMember(paiDAO,admin,"50%DemPreVote@STCoin");
+        admin.callModifyEffectivePriceNumber(oracle,3);
 
         paiIssuer = new FakePAIIssuer("PAIISSUER",paiDAO);
         paiIssuer.init();
         ASSET_PAI = paiIssuer.PAIGlobalId();
 
         setting = new Setting(paiDAO);
-        finance = new Finance(paiDAO,paiIssuer,setting,oracle);
+        finance = new Finance(paiDAO,paiIssuer,setting,oracle2);
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
         liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
 
         cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,100000000000);
-        admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
-        admin.callAddMember(paiDAO,cdp,"PAIMINTER");
+        admin.callCreateNewRole(paiDAO,"Minter@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,cdp,"Minter@STCoin");
         admin.callAddMember(paiDAO,cdp,"BTCCDP");
 
         settlement = new Settlement(paiDAO,oracle,cdp,liquidator);
-        admin.callAddMember(paiDAO,settlement,"SettlementContract");
+        admin.callAddMember(paiDAO,settlement,"Settlement@STCoin");
 
         btcIssuer.mint(1000000000000, p1);
         btcIssuer.mint(1000000000000, p2);
@@ -156,24 +165,25 @@ contract SettlementTest is TestBase {
         assertTrue(!cdp.readyForPhaseTwo());
 
         cdp.quickLiquidate(2);
-        // assertEq(liquidator.totalCollateral(), 750000000);
-        // assertEq(liquidator.totalDebt(), 1500000000);
+        assertEq(liquidator.totalCollateral(), 750000000);
+        assertEq(liquidator.totalDebt(), 1500000000);
 
-        // assertTrue(!cdp.readyForPhaseTwo());
+        assertTrue(!cdp.readyForPhaseTwo());
 
-        // cdp.quickLiquidate(3);
-        // assertEq(liquidator.totalCollateral(), 1750000000);
-        // assertEq(liquidator.totalDebt(), 3500000000);
+        cdp.quickLiquidate(3);
 
-        // assertTrue(cdp.totalPrincipal() == 0);
-        // assertEq(flow.balance(this,ASSET_BTC),emm + 1750000000 + 2500000000 + 4000000000);
-        // assertTrue(cdp.readyForPhaseTwo());
+        assertEq(liquidator.totalCollateral(), 1750000000);
+        assertEq(liquidator.totalDebt(), 3500000000);
 
-        // admin.callTerminatePhaseTwo(settlement);
+        assertTrue(cdp.totalPrincipal() == 0);
+        assertEq(flow.balance(this,ASSET_BTC),emm + 1750000000 + 2500000000 + 4000000000);
+        assertTrue(cdp.readyForPhaseTwo());
 
-        // liquidator.buyCollateral.value(3500000000, ASSET_PAI)();
-        // assertEq(liquidator.totalCollateral(), 0);
-        // assertEq(liquidator.totalDebt(), 0);
+        admin.callTerminatePhaseTwo(settlement);
+
+        liquidator.buyCollateral.value(3500000000, ASSET_PAI)();
+        assertEq(liquidator.totalCollateral(), 0);
+        assertEq(liquidator.totalDebt(), 0);
     }
 
     function testSettlementMultipleCDPUnderCollateral() public {
@@ -267,7 +277,7 @@ contract SettlementTest is TestBase {
         settlementSetup();     
 
         //test whether there are grammar error!
-        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callAddMember(paiDAO,admin,"Minter@STCoin");
         admin.callMint(paiIssuer,100000000000,this);
         uint idx = cdp.createDepositBorrow.value(1000000000, ASSET_BTC)(500000000,CDP.CDPType.CURRENT);
         assertTrue(cdp.call.value(1000000000, ASSET_BTC)(abi.encodeWithSelector(cdp.deposit.selector,idx)));

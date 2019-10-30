@@ -7,12 +7,14 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     /// asset prices against PAI
     /// price should be set in RAY
     bool private settlement;
-    uint96 public ASSET_COLLATERAL;
+    uint96 public assetId;
     uint public lastUpdateBlock; // in blockheights
     uint public lastUpdatePrice; // in RAY
     uint public updateInterval;  // in blockheights
     uint public sensitivityTime; // should be multiple of updateInterval,  in blockheights
     uint public sensitivityRate; // in RAY
+    uint public priceUpperLimit = 1 << 200;
+    uint8 public effectivePriceNumber;
 
     uint[256] private priceHistory;
     uint8 private lastUpdateIndex;
@@ -26,7 +28,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     }
     singlePirce[] pirces;
 
-    constructor(string orcaleGroupName, address paiMainContract, uint _price, uint96 CollateralId) public {
+    constructor(string orcaleGroupName, address paiMainContract, uint _price, uint96 _assetId) public {
         ORACLE = orcaleGroupName;
         master = ACLMaster(paiMainContract);
         lastUpdateBlock = block.number;
@@ -37,14 +39,14 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         sensitivityTime = 60;
         sensitivityRate = RAY / 20;
         disableOracleLimit = 5;
-        ASSET_COLLATERAL = CollateralId;
+        assetId = _assetId;
+        effectivePriceNumber = 4;
     }
 
     function updatePrice(uint256 newPrice) public auth(ORACLE) {
         require(!settlement);
         require(newPrice > 0);
-        /// @notice 每次都做位移运算会不会浪费gas，是不是直接算出来记录一个常量更好
-        require(newPrice < (1 << 200));
+        require(newPrice < priceUpperLimit);
         require(!disabled(msg.sender));
         updateSinglePriceInternal(newPrice);
         if(sub(height(),lastUpdateBlock) >= updateInterval) {
@@ -67,7 +69,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     }
 
     function updateOverallPrice() internal {
-        if (master.getMemberLimit(bytes(ORACLE)) / 2 >= pirces.length) {
+        if (effectivePriceNumber > pirces.length) {
             lastUpdateBlock = height();
             /// @notice 需要确保这个uint8能够被循环利用 256->0
             lastUpdateIndex = uint8(lastUpdateIndex + 1); //overflow is expected;
@@ -118,30 +120,35 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         return sub(sum,add(maxPrice,minPrice)) / (len - 2);
     }
 
-    function modifyUpdateInterval(uint newInterval) public auth("DIRECTORVOTE") {
+    function modifyEffectivePriceNumber(uint8 number) public auth("DirVote@STCoin") {
+        require(number >= 3);
+        effectivePriceNumber = number;
+    }
+
+    function modifyUpdateInterval(uint newInterval) public auth("DirVote@STCoin") {
         require(newInterval > 0);
         updateInterval = newInterval;
     }
 
-    function modifySensitivityTime(uint newTime) public auth("DIRECTORVOTE") {
+    function modifySensitivityTime(uint newTime) public auth("DirVote@STCoin") {
         require(newTime > updateInterval);
         sensitivityTime = newTime;
     }
 
-    function modifySensitivityRate(uint newRate) public auth("DIRECTORVOTE") {
+    function modifySensitivityRate(uint newRate) public auth("DirVote@STCoin") {
         require(newRate > RAY /10000);
         sensitivityRate = newRate;
     }
 
-    function modifyDisableOracleLimit(uint8 newlimit) public auth("DIRECTORVOTE") {
+    function modifyDisableOracleLimit(uint8 newlimit) public auth("DirVote@STCoin") {
         disableOracleLimit = newlimit;
     }
 
-    function emptyDisabledOracle() public auth("DIRECTORVOTE") {
+    function emptyDisabledOracle() public auth("DirVote@STCoin") {
         disabledOracle.length = 0;
     }
     
-    function disableOne(address addr) public auth("ORACLEMANAGER") {
+    function disableOne(address addr) public auth("OracleManager@STCoin") {
         require(disableOracleLimit > disabledOracle.length);
         for(uint i = 0; i < disabledOracle.length; i++) {
             if (addr == disabledOracle[i]) {
@@ -151,7 +158,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         disabledOracle.push(addr);
     }
 
-    function enableOne(address addr) public auth("ORACLEMANAGER") {
+    function enableOne(address addr) public auth("OracleManager@STCoin") {
         uint len = disabledOracle.length;
         for(uint i = 0; i < len; i++) {
             if (addr == disabledOracle[i]) {
@@ -177,12 +184,6 @@ contract PriceOracle is Template, ACLSlave, DSMath {
         return false;
     }
 
-    /// @notice 不应该允许换资产类型，可能会造成逻辑变的非常复杂，建议直接采取部署新合约的方式。
-    function updateCollateral(uint96 newId) public auth("DIRECTORVOTE") {
-        ASSET_COLLATERAL = newId;
-    }
-
-
     function getPrice() public view returns (uint256) {
         return lastUpdatePrice;
     }
@@ -194,7 +195,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     /// terminate the business and provide a final collateral price
     /// note this `price` is used for liquidation CDPs in settlement process
     /// the final price used to redeem PAI for collateral in the liquidator is calculated later by the liquidator itself
-    function terminate() public auth("SettlementContract") {
+    function terminate() public auth("Settlement@STCoin") {
         require(!settlement);
         settlement = true;
     }

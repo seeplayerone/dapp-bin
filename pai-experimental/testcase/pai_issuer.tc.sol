@@ -40,22 +40,22 @@ contract TestPaiIssuer is Template, DSTest {
 
         FakePerson p1 = new FakePerson();
         p1.callMint(issuer,100000000,p1);
-        (bool exist, string memory name, string memory symbol, string memory description, uint32 assetType, uint totalSupply) =
-            issuer.getAssetInfo(0);
+        Registry registry = Registry(0x630000000000000000000000000000000000000065);
+        (bool exist, string memory name, string memory symbol, string memory description, uint totalSupply,) =
+            registry.getAssetInfoByAssetId(issuer.organizationId(),0);
         assertTrue(exist);//0
         assertEq(name,"PAI");//1
         assertEq(symbol,"PAI");//2
         assertEq(description,"PAI Stable Coin");//3
-        assertEq(uint(assetType),0);//4
-        assertEq(totalSupply,100000000);//5
+        assertEq(totalSupply,100000000);//4
 
         issuer.mint(100000000,p1);
-        (,,,,,totalSupply) = issuer.getAssetInfo(0);
-        assertEq(totalSupply,200000000);//6
+        totalSupply = issuer.totalSupply();
+        assertEq(totalSupply,200000000);//5
         bool tempBool = p1.callBurn(issuer,50000000,ASSET_PAI);
-        assertTrue(tempBool);//7
-        (,,,,,totalSupply) = issuer.getAssetInfo(0);
-        assertEq(totalSupply,150000000);//8
+        assertTrue(tempBool);//6
+        totalSupply = issuer.totalSupply();
+        assertEq(totalSupply,150000000);//7
     }
 
     function testGovernance() public {
@@ -74,9 +74,9 @@ contract TestPaiIssuer is Template, DSTest {
         assertTrue(!tempBool);//0
         tempBool = p2.callMint(issuer,100000000,p1);
         assertTrue(!tempBool);//1
-        tempBool = p1.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
+        tempBool = p1.callCreateNewRole(paiDAO,"Minter@STCoin","ADMIN",0,false);
         assertTrue(tempBool);//2
-        tempBool = p1.callAddMember(paiDAO,p2,"PAIMINTER");
+        tempBool = p1.callAddMember(paiDAO,p2,"Minter@STCoin");
         assertTrue(tempBool);//3
         tempBool = p1.callMint(issuer,100000000,p1);
         assertTrue(!tempBool);//4

@@ -191,9 +191,9 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callUpdateCollateral(address oracle,uint96 newId) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("updateCollateral(uint96)"));
-        bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId,newId));
+    function callModifyEffectivePriceNumber(address oracle,uint8 number) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("modifyEffectivePriceNumber(uint8)"));
+        bool result = PriceOracle(oracle).call(abi.encodeWithSelector(methodId,number));
         return result;
     }
 
@@ -227,15 +227,9 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callSetAssetCollateral(address cdp, address newPriceOracle) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("setAssetCollateral(address)"));
-        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,newPriceOracle));
-        return result;
-    }
-
-    function callUpdateCutDown(address cdp, uint8 CDPType, uint newRate) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("updateCutDown(uint8,uint256)"));
-        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,CDPType,newRate));
+    function callUpdateBaseRateAdj(address cdp, int newRate) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("updateBaseInterestRateAdjustment(int256)"));
+        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,newRate));
         return result;
     }
 
@@ -257,24 +251,6 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callSwitchCDPCreation(address cdp, bool newState) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("switchCDPCreation(bool)"));
-        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,newState));
-        return result;
-    }
-
-    function callSwitchLiquidation(address cdp, bool newState) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("switchLiquidation(bool)"));
-        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,newState));
-        return result;
-    }
-
-    function callSwitchAllCDPFunction(address cdp, bool newState) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("switchAllCDPFunction(bool)"));
-        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,newState));
-        return result;
-    }
-
     function callUpdateCreateCollateralRatio(address cdp, uint newRatio, uint newTolerance) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("updateCreateCollateralRatio(uint256,uint256)"));
         bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,newRatio,newTolerance));
@@ -287,8 +263,14 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callUpdateLiquidationPenalty(address cdp, uint newPenalty) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("updateLiquidationPenalty(uint256)"));
+    function callUpdateLiquidationPenalty1(address cdp, uint newPenalty) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("updateLiquidationPenalty1(uint256)"));
+        bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,newPenalty));
+        return result;
+    }
+
+    function callUpdateLiquidationPenalty2(address cdp, uint newPenalty) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("updateLiquidationPenalty2(uint256)"));
         bool result = TimefliesCDP(cdp).call(abi.encodeWithSelector(methodId,newPenalty));
         return result;
     }
@@ -425,8 +407,8 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callUpdateFloatUp(address tdc, uint8 TDCType, uint newRate) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("updateFloatUp(uint8,uint256)"));
+    function callUpdateRateAdj(address tdc, uint8 TDCType, int newRate) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("updateRateAdj(uint8,int256)"));
         bool result = TimefliesTDC(tdc).call(abi.encodeWithSelector(methodId,TDCType,newRate));
         return result;
     }
@@ -458,12 +440,6 @@ contract FakePerson is Template {
     function callSetTDC(address finance, address _tdc) public returns (bool) {
         bytes4 methodId = bytes4(keccak256("setTDC(address)"));
         bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,_tdc));
-        return result;
-    }
-
-    function callSetAssetPIS(address finance, address newPriceOracle) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("setAssetPIS(address)"));
-        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,newPriceOracle));
         return result;
     }
 

@@ -2,7 +2,6 @@ pragma solidity 0.4.25;
 
 import "../library/template.sol";
 import "../library/acl_master.sol";
-import "../library/asset.sol";
 import "./registry.sol";
 
 
@@ -36,7 +35,7 @@ contract PAIDAO is Template, DSMath, ACLMaster {
         registed = true;
     }
 
-    function mint(uint amount, address dest) public auth("PISVOTE") {
+    function mint(uint amount, address dest) public auth("DirPisVote") {
         mintInternal(amount, dest);
     }
 

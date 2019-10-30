@@ -20,7 +20,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
 
         assertEq(oracle.getPrice(), RAY);//0
-        bool tempBool = p1.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",0);
+        bool tempBool = p1.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",0,false);
         assertTrue(tempBool); //1
         tempBool = p2.callUpdatePrice(oracle,2*RAY);
         assertTrue(!tempBool); //2
@@ -41,13 +41,13 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         paiDAO.init();
         
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
-        p1.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",7);
-        tempBool = p1.callAddMember(paiDAO,p1,"BTCOracle");
+        p1.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",7,false);
+        bool tempBool = p1.callAddMember(paiDAO,p1,"BTCOracle");
         tempBool = p1.callAddMember(paiDAO,p2,"BTCOracle");
         tempBool = p1.callAddMember(paiDAO,p3,"BTCOracle");
         tempBool = p1.callAddMember(paiDAO,p4,"BTCOracle");
 
-        bool tempBool = p1.callUpdatePrice(oracle, RAY * 99/100);
+        tempBool = p1.callUpdatePrice(oracle, RAY * 99/100);
         assertTrue(tempBool); //0
         tempBool = p2.callUpdatePrice(oracle, RAY * 99/100);
         assertTrue(tempBool); //1
@@ -104,7 +104,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
-        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9);
+        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9,false);
 
         FakePerson[5] memory p;
         for(uint i = 0; i < 5; i++) {
@@ -137,7 +137,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
-        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9);
+        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9,false);
 
         FakePerson[5] memory p;
         for(uint i = 0; i < 5; i++) {
@@ -170,13 +170,18 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
-        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9);
+        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9,false);
+        admin.callCreateNewRole(paiDAO,"DirVote@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,admin,"DirVote@STCoin");
 
         FakePerson[5] memory p;
         for(uint i = 0; i < 5; i++) {
             p[i] = new FakePerson();
             admin.callAddMember(paiDAO,p[i],"BTCOracle");
         }
+
+        bool tempBool = admin.callModifyEffectivePriceNumber(oracle,5);
+        assertTrue(tempBool);
 
         p[0].callUpdatePrice(oracle, RAY * 101 / 100);
         p[1].callUpdatePrice(oracle, RAY * 101 / 100);
@@ -190,7 +195,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         p[0].callUpdatePrice(oracle, RAY * 101 / 100);
         assertEq(oracle.getPrice(), RAY * 101 / 100);
 
-        bool tempBool = p[0].callUpdatePrice(oracle, 2 ** 220);
+        tempBool = p[0].callUpdatePrice(oracle, 2 ** 220);
         assertTrue(!tempBool);
     }
 
@@ -200,10 +205,10 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
-        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9);
-        admin.callCreateNewRole(paiDAO,"ORACLEMANAGER","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
-        admin.callAddMember(paiDAO,admin,"DIRECTORVOTE");
+        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",9,false);
+        admin.callCreateNewRole(paiDAO,"OracleManager@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"DirVote@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,admin,"DirVote@STCoin");
         admin.callModifyDisableOracleLimit(oracle,uint8(2));
 
         FakePerson p1 = new FakePerson();
@@ -220,7 +225,7 @@ contract PriceOracleTest is Template, DSTest,DSMath {
 
         tempBool = manager.callDisableOne(oracle, p1);
         assertTrue(!tempBool);//3
-        tempBool = admin.callAddMember(paiDAO,manager,"ORACLEMANAGER");
+        tempBool = admin.callAddMember(paiDAO,manager,"OracleManager@STCoin");
         assertTrue(tempBool);//4
         tempBool = manager.callDisableOne(oracle, p1);
         assertTrue(tempBool);//5
@@ -273,8 +278,8 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
-        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
-        admin.callAddMember(paiDAO,p1,"DIRECTORVOTE");
+        admin.callCreateNewRole(paiDAO,"DirVote@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,p1,"DirVote@STCoin");
 
         bool tempBool = p2.callModifyUpdateInterval(oracle, 100);
         assertTrue(!tempBool);
@@ -312,22 +317,38 @@ contract PriceOracleTest is Template, DSTest,DSMath {
         assertTrue(!tempBool);
     }
 
-    function testUpdateCollateral() public {
+    function testLongHistoryFunc() public {
         FakePaiDao paiDAO;
-        FakePerson admin = new FakePerson();
         FakePerson p1 = new FakePerson();
         FakePerson p2 = new FakePerson();
-        paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
-        paiDAO.init();
-        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
-        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
-        admin.callAddMember(paiDAO,p1,"DIRECTORVOTE");
+        FakePerson p3 = new FakePerson();
+        FakePerson p4 = new FakePerson();
 
-        assertEq(uint(oracle.ASSET_COLLATERAL()),0);
-        bool tempBool = p2.callUpdateCollateral(oracle, uint96(123));
-        assertTrue(!tempBool);
-        tempBool = p1.callUpdateCollateral(oracle, uint96(123));
-        assertTrue(tempBool);
-        assertEq(uint(oracle.ASSET_COLLATERAL()),123);
+        paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
+        paiDAO.init();
+        
+        oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,0);
+        p1.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",7,false);
+        bool tempBool = p1.callAddMember(paiDAO,p1,"BTCOracle");
+        tempBool = p1.callAddMember(paiDAO,p2,"BTCOracle");
+        tempBool = p1.callAddMember(paiDAO,p3,"BTCOracle");
+        tempBool = p1.callAddMember(paiDAO,p4,"BTCOracle");
+
+        for(uint i = 0 ; i <= 1000; i++) {
+            tempBool = p1.callUpdatePrice(oracle, RAY * (1000+i)/1000);
+            assertTrue(tempBool); //0
+            tempBool = p2.callUpdatePrice(oracle, RAY * (1000+i)/1000);
+            assertTrue(tempBool); //1
+            tempBool = p3.callUpdatePrice(oracle, RAY * (1000+i)/1000);
+            assertTrue(tempBool); //2
+            tempBool = p4.callUpdatePrice(oracle, RAY * (1000+i)/1000);
+            assertTrue(tempBool); //3
+
+            oracle.fly(50);
+            tempBool = p1.callUpdatePrice(oracle, RAY * (1000+i)/1000);
+            assertTrue(tempBool); //4
+            assertEq(oracle.getPrice(), RAY * (1000+i)/1000);//5
+        }
+
     }
 }

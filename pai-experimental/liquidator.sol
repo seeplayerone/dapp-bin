@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "../library/utils/ds-note.sol";
+import "../library/utils/ds_note.sol";
 import "../library/template.sol";
 import "./pai_issuer.sol";
 import "./price_oracle.sol";
@@ -37,7 +37,7 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
         ) public {
         master = ACLMaster(paiMainContract);
         priceOracle = PriceOracle(_oracle);
-        ASSET_COLLATERAL = priceOracle.ASSET_COLLATERAL();
+        ASSET_COLLATERAL = priceOracle.assetId();
         issuer = PAIIssuer(_issuer);
         ASSET_PAI = issuer.PAIGlobalId();
         CDP_NAME = cdpName;
@@ -53,28 +53,21 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
 
     }
 
-    /// @notice same as in cdp, PAI and Collateral can only be changed when the liquidator is in a clean state
-    ///  by then there is neither PAI nor Collateral remaining in the liquidator contract
-    function setPAIIssuer(address newIssuer) public note auth("DIRECTORVOTE") {
-        issuer = PAIIssuer(newIssuer);
-        ASSET_PAI = issuer.PAIGlobalId();
-    }
-
-    function setFinance(address _finance) public note auth("DIRECTORVOTE") {
+    function setFinance(address _finance) public note auth("100%Demonstration@STCoin") {
         finance = Finance(_finance);
     }
 
-    function setAssetCollateral(address newPriceOracle) public note auth("DIRECTORVOTE") {
+    function setOracle(address newPriceOracle) public note auth("100%Demonstration@STCoin") {
         priceOracle = PriceOracle(newPriceOracle);
-        ASSET_COLLATERAL = priceOracle.ASSET_COLLATERAL();
+        require(ASSET_COLLATERAL == priceOracle.assetId());
     }
 
-    function setDiscount1(uint value) public note auth("DIRECTORVOTE") {
+    function setDiscount1(uint value) public note auth("50%DemPreVote@STCoin") {
         require(value <= RAY);
         discount1 = value;
     }
 
-    function setDiscount2(uint value) public note auth("DIRECTORVOTE") {
+    function setDiscount2(uint value) public note auth("50%DemPreVote@STCoin") {
         require(value <= RAY);
         discount2 = value;
     }
@@ -169,12 +162,12 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
         totalDebt = add(totalDebt, amount);
     }
 
-    function terminatePhaseOne() public note auth("SettlementContract"){
+    function terminatePhaseOne() public note auth("Settlement@STCoin"){
         require(!settlementP1);
         settlementP1 = true;
     }
 
-    function terminatePhaseTwo() public note auth("SettlementContract"){
+    function terminatePhaseTwo() public note auth("Settlement@STCoin"){
         require(settlementP1);
         require(!settlementP2);
         if(flow.balance(this, ASSET_COLLATERAL) > 0) {
