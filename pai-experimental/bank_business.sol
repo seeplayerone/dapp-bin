@@ -52,9 +52,9 @@ contract BankBusiness is Template, DSMath, ACLSlave {
     /// burn asset
     event BurnAsset(uint, uint);
     
-    constructor(address paiMainContract, address _issuer, address _finance, uint _baseTime) public
+    constructor(address pisContract, address _issuer, address _finance, uint _baseTime) public
     {
-        master = ACLMaster(paiMainContract);
+        master = ACLMaster(pisContract);
         issuer = BankIssuer(_issuer);
         finance = _finance;
         if(0 == _baseTime) {
@@ -139,16 +139,18 @@ contract BankBusiness is Template, DSMath, ACLSlave {
         params[assetId].cashOutRate = _cashOutRate;
     }
 
-    function switchAssetBusiness(uint32 assetId, bool newState) public auth("50%DirVote@Bank") {
+    function updateBusinessStatus(uint32 assetId, bool newState) public auth("50%DirVote@Bank") {
         require(params[assetId].exist);
         params[assetId].enable = newState;
     }
 
-    function switchAllBusiness(bool newState) public auth("100%DirVote@Bank") {
+    function updateAllBusinessStatus(bool newState) public auth("100%DirVote@Bank") {
         disableAll = newState;
     }
 
-    
+    /**
+        @dev deposit offchain asset, the process is done offline. corresponding peg asset need to be mint on asimov.
+     */
     function deposit(string txid, string depAddr, address to, uint32 assetIndex, uint amount) public auth("Minter@Bank"){
         require(bytes(txid).length > 0, "requires txid");
         require(bytes(depAddr).length > 0, "requires depAddr");
@@ -165,6 +167,7 @@ contract BankBusiness is Template, DSMath, ACLSlave {
         mintInternal(to,assetIndex,amount);
     }
 
+    /// @dev 此类方法可以设置为private
     function mintInternal(address to, uint32 assetIndex, uint amount) internal {
         emit MintAsset(assetIndex);
         uint tax = rmul(params[assetIndex].cashInRate,amount);
@@ -173,11 +176,12 @@ contract BankBusiness is Template, DSMath, ACLSlave {
             emit TransferAsset(finance, tax);
         }
         uint rest = sub(amount,tax);
-            issuer.mint(assetIndex, rest, to);
+        issuer.mint(assetIndex, rest, to);
         emit TransferAsset(to, rest);
 
     }
 
+    /// @dev 每个独立业务部门的所有角色都可以存在一个统一的文件里面
     function startCashOutVote(address _to, uint32 _assetIndex, uint _amount) public auth("Minter@Bank") {
         require(_amount > 0, "amount must greater than zero");
         totalVoteId = add(totalVoteId,1);
@@ -201,7 +205,7 @@ contract BankBusiness is Template, DSMath, ACLSlave {
     }
 
     /**
-     * @dev burn asset
+     * @dev withdraw offchain asset, need to burn corresponding peg asset on asimov
      *
      * @param recAddr receive address
      */

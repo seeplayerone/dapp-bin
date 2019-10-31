@@ -790,7 +790,7 @@ contract TestFunction is TestBase {
         assertTrue(tempBool);
 
         bytes32 ahash = keccak256("closeAll");
-        methodId = bytes4(keccak256("switchAllBusiness(bool)"));
+        methodId = bytes4(keccak256("updateAllBusinessStatus(bool)"));
         ProposalData.ProposalItem[] memory items = new ProposalData.ProposalItem[](1);
         items[0].target = address(business);
         items[0].func = methodId;
@@ -822,7 +822,7 @@ contract TestFunction is TestBase {
         tempBool = minter1.execute(business,methodId,param);
         assertTrue(!tempBool);
 
-        methodId = bytes4(keccak256("switchAllBusiness(bool)"));
+        methodId = bytes4(keccak256("updateAllBusinessStatus(bool)"));
         items[0].target = address(business);
         items[0].func = methodId;
         items[0].param = abi.encode(false);
@@ -866,7 +866,7 @@ contract TestFunction is TestBase {
         assertTrue(tempBool);
 
         bytes32 ahash = keccak256("closeOneCoin");
-        methodId = bytes4(keccak256("switchAssetBusiness(uint32,bool)"));
+        methodId = bytes4(keccak256("updateBusinessStatus(uint32,bool)"));
         ProposalData.ProposalItem[] memory items = new ProposalData.ProposalItem[](1);
         items[0].target = address(business);
         items[0].func = methodId;
@@ -892,7 +892,7 @@ contract TestFunction is TestBase {
         tempBool = minter1.execute(business,methodId,param);
         assertTrue(tempBool);
 
-        methodId = bytes4(keccak256("switchAssetBusiness(uint32,bool)"));
+        methodId = bytes4(keccak256("updateBusinessStatus(uint32,bool)"));
         items[0].target = address(business);
         items[0].func = methodId;
         items[0].param = abi.encode(1,true);

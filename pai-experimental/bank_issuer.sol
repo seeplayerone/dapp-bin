@@ -5,7 +5,7 @@ import "../library/acl_slave.sol";
 import "./registry.sol";
 
 contract BankIssuer is Template, DSMath, ACLSlave {
-    ///params for organization
+    /// params for organization
     string public organizationName;
     uint32 public organizationId;
     Registry registry;
@@ -17,7 +17,7 @@ contract BankIssuer is Template, DSMath, ACLSlave {
     /// crate asset
     event CreateAsset(bytes12);
 
-    ///params for burn
+    /// black hole address on Asimov
     address private constant zeroAddr = 0x660000000000000000000000000000000000000000;
     
     constructor(string _organizationName, address paiMainContract) public
@@ -34,7 +34,7 @@ contract BankIssuer is Template, DSMath, ACLSlave {
     }
 
     /**
-     * @dev Create New Asset
+     * @dev create new asset
      *
      * @param name asset name
      * @param symbol asset symbol
@@ -51,6 +51,9 @@ contract BankIssuer is Template, DSMath, ACLSlave {
         emit CreateAsset(bytes12(AssetGlobalId[assetIndex]));
     }
 
+    /**
+        @dev mint asset
+     */
     function mint(uint32 assetIndex, uint amount, address dest) public auth("BusinessContract@Bank") {
         require(exist[assetIndex],"not valid assetIndex");
         flow.mintAsset(assetIndex, amount);
@@ -58,6 +61,9 @@ contract BankIssuer is Template, DSMath, ACLSlave {
         dest.transfer(amount, AssetGlobalId[assetIndex]);
     }
 
+    /**
+        @dev burn asset
+     */
     function burn() public payable {
         uint32 assetIndex = uint32(msg.assettype);
         require(msg.assettype == AssetGlobalId[assetIndex],"asset not supported");
@@ -65,6 +71,9 @@ contract BankIssuer is Template, DSMath, ACLSlave {
         zeroAddr.transfer(msg.value, AssetGlobalId[assetIndex]);
     }
 
+    /**
+        @dev fetch asset information
+     */
     function totalSupply(uint32 assetIndex) public view returns(uint supply) {
         (,,,,supply,) = registry.getAssetInfoByAssetId(organizationId,assetIndex);
     }

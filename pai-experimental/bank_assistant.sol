@@ -6,9 +6,9 @@ import "../library/acl_slave.sol";
 contract BankAssistant is Template,  ACLSlave {
     string director = "Director@Bank";
     string auditor = "Auditor@Bank";
-    constructor(address paiMainContract) public
+    constructor(address pisContract) public
     {
-        master = ACLMaster(paiMainContract);
+        master = ACLMaster(pisContract);
     }
     function impeachDirector(address addr) public auth("ImpeachmentVote@Bank") {
         master.removeMember(addr, bytes(director));

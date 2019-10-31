@@ -8,8 +8,8 @@ import "./pai_main.sol";
 import "./price_oracle.sol";
 
 contract BankFinance is Template,ACLSlave,DSMath {
-    constructor(address paiMainContract) public {
-        master = ACLMaster(paiMainContract);
+    constructor(address pisContract) public {
+        master = ACLMaster(pisContract);
     }
 
     function() public payable {
