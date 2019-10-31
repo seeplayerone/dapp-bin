@@ -2,9 +2,9 @@ pragma solidity 0.4.25;
 
 import "../library/utils/ds_note.sol";
 import "../library/template.sol";
-import "./liquidator.sol";
-import "./price_oracle.sol";
-import "./cdp.sol";
+import "./pi_liquidator.sol";
+import "./pi_price_oracle.sol";
+import "./pi_cdp.sol";
 import "../library/acl_slave.sol";
 
 /// @notice Settlement应该要能处理更多的清盘逻辑

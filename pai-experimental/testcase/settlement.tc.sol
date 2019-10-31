@@ -2,10 +2,10 @@ pragma solidity 0.4.25;
 
 import "../../library/utils/ds_math.sol";
 import "../../library/template.sol";
-import "../cdp.sol";
-import "../testPI.sol";
+import "../pi_cdp.sol";
+import "./ds_test_v2.sol";
 import "../fake_btc_issuer.sol";
-import "../settlement.sol";
+import "../pi_settlement.sol";
 import "./testPrepare.sol";
 
 contract TestBase is Template, DSTest, DSMath {

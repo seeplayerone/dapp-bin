@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "./pai_election_base.sol";
+import "./gov_election_base.sol";
 
 contract PAIElectionDirector is PAIElectionBase {
 

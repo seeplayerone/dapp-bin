@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "../pai-experimental/mathPI.sol";
+import "../pai-experimental/math_lg.sol";
 import "../pai-experimental/testPI.sol";
 
 contract TestMath is DSTest, MathPI {

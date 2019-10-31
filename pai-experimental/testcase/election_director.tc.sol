@@ -1,9 +1,9 @@
 pragma solidity 0.4.25;
 
-import "../pai_election_director.sol";
+import "../gov_election_director.sol";
 import "../../library/utils/ds_math.sol";
 import "../../library/utils/ds_test.sol";
-import "../pai_main.sol";
+import "../pis_main.sol";
 
 contract Fly {
     uint256  _era;

@@ -1,8 +1,8 @@
 pragma solidity 0.4.25;
 
 import "../library/acl_slave.sol";
-import "./election.sol";
-import "./pai_main.sol";
+import "./gov_election.sol";
+import "./pis_main.sol";
 
 contract PAIElectionBase is Election,ACLSlave,DSMath {
     uint constant public ONE_BLOCK_TIME = 5;

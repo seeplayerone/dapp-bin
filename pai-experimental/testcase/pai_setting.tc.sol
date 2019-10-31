@@ -1,8 +1,8 @@
 pragma solidity 0.4.25;
 
 import "../../library/template.sol";
-import "../price_oracle.sol";
-import "../testPI.sol";
+import "../pi_price_oracle.sol";
+import "./ds_test_v2.sol";
 import "./testPrepare.sol";
 
 contract GlobalSettingTest is Template, DSTest, DSMath {

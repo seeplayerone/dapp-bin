@@ -2,11 +2,11 @@ pragma solidity 0.4.25;
 
 import "../library/utils/ds_note.sol";
 import "../library/template.sol";
-import "./pai_issuer.sol";
-import "./price_oracle.sol";
-import "./pai_finance.sol";
+import "./pi_issuer.sol";
+import "./pi_price_oracle.sol";
+import "./pi_finance.sol";
 import "../library/acl_slave.sol";
-import "./pai_setting.sol";
+import "./pi_setting.sol";
 
 contract Liquidator is DSMath, DSNote, Template, ACLSlave {
 

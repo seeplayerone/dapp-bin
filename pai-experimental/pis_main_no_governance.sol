@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "./pai_main.sol";
+import "./pis_main.sol";
 
 
 contract PaiDaoNoGovernance is PAIDAO {

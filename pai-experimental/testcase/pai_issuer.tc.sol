@@ -1,9 +1,9 @@
 pragma solidity 0.4.25;
 
 import "../../library/template.sol";
-import "../pai_issuer.sol";
-import "../testPI.sol";
-import "../pai_main.sol";
+import "../pi_issuer.sol";
+import "./ds_test_v2.sol";
+import "../pis_main.sol";
 import "./testPrepare.sol";
 
 

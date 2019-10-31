@@ -5,9 +5,9 @@ import "../library/template.sol";
 import "../library/utils/ds_math.sol";
 import "../library/utils/execution.sol";
 import "../library/acl_slave.sol";
-import "./pai_main.sol";
-import "./pai_proposal.sol";
-import "./pai_PISvote.sol";
+import "./pis_main.sol";
+import "./gov_proposal.sol";
+import "./gov_vote_pis.sol";
 
 
 contract DIRVote is DSMath, Execution, Template, ACLSlave {

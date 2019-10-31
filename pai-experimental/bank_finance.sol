@@ -1,11 +1,11 @@
 pragma solidity 0.4.25;
 
 import "../library/template.sol";
-import "./pai_issuer.sol";
+import "./pi_issuer.sol";
 import "../library/acl_slave.sol";
-import "./pai_setting.sol";
-import "./pai_main.sol";
-import "./price_oracle.sol";
+import "./pi_setting.sol";
+import "./pis_main.sol";
+import "./pi_price_oracle.sol";
 
 contract BankFinance is Template,ACLSlave,DSMath {
     constructor(address pisContract) public {

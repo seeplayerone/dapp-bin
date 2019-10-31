@@ -2,7 +2,7 @@ pragma solidity 0.4.25;
 
 import "../library/template.sol";
 import "../library/utils/ds_math.sol";
-import "./registry.sol";
+import "./asi_registry.sol";
 
 contract FakeBTCIssuer is Template, DSMath {
     string private name = "Fake_BTC_ISSUER";

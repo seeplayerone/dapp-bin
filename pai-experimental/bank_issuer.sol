@@ -2,7 +2,7 @@ pragma solidity 0.4.25;
 
 import "../library/template.sol";
 import "../library/acl_slave.sol";
-import "./registry.sol";
+import "./asi_registry.sol";
 
 contract BankIssuer is Template, DSMath, ACLSlave {
     /// params for organization
