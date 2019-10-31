@@ -102,7 +102,7 @@ contract SettlementTest is TestBase {
     function settlementSetup() public {
         setup();
         admin.callUpdateLiquidationRatio(cdp, RAY * 2);
-        admin.callUpdateLiquidationPenalty(cdp, RAY * 3 / 2);
+        admin.callUpdateLiquidationPenalty1(cdp, RAY * 3 / 2);
         admin.callSetDiscount1(liquidator,RAY);
     }
 
