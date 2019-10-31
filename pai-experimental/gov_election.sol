@@ -260,17 +260,4 @@ contract Election is Template {
     function getElectionCandidateSupportRates(uint index) public view returns (uint[]) {
         return electionRecords[index].candidateSupportRates;
     }
-
-    function getNoneZeroElectionCandidates(uint index) public view returns (address[]) {
-        address[] memory results;
-        uint idx = 0;
-        for(uint i = 0; i < electionRecords[index].candidateSupportRates.length; i++) {
-            if (0 == electionRecords[index].candidateSupportRates[i]) {
-                return results;
-            }
-            results[idx] = electionRecords[index].candidates[i];
-            idx = idx + 1;
-        }
-        return results;
-    }
 }

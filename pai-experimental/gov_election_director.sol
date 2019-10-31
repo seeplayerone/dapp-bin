@@ -5,10 +5,10 @@ import "./gov_election_base.sol";
 contract PAIElectionDirector is PAIElectionBase {
 
     constructor(address pisContract, string winnerRole, string backupRole) 
-        //PAIElectionBase(pisContract, "PAI-DIRECTOR", "PAI-DIRECTOR-BACKUP") 
         PAIElectionBase(pisContract, winnerRole, backupRole)
         public {}
 
+    /// @dev 该功能和选举本身没有什么关系
     function addDirector() public {
         address[] memory backup = master.getMembers(bytes(BACKUP));
         uint len = backup.length;

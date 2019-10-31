@@ -38,17 +38,14 @@ contract DIRVote is DSMath, Execution, Template, ACLSlave {
     ProposalData public proposal;
     PISVote public nextVoteContract;
 
-    constructor(address paiMainContract, address _proposal, address _nextVote, uint _passProportion, uint _duration, string _director, string _originator) {
-        master = ACLMaster(paiMainContract);
+    constructor(address pisContract, address _proposal, address _nextVote, uint _passProportion, uint _duration, string _director, string _originator) public {
+        master = ACLMaster(pisContract);
         proposal = ProposalData(_proposal);
         nextVoteContract = PISVote(_nextVote);
         passProportion = _passProportion;
         duration = _duration;
         director = _director;
         AnotherOriginator = _originator;
-        // passProportion = RAY * 2 / 3;
-        // startProportion = RAY / 20;
-        // pisVoteDuration = 10 days / 5;
     }
 
     function startVote(uint _proposalId, uint _startTime, ExectionType _execType) public auth(director) returns(uint) {
@@ -102,7 +99,6 @@ contract DIRVote is DSMath, Execution, Template, ACLSlave {
         }
     }
 
-    /// @dev callback function to invoke organization contract
     function invokeVote(uint voteId) internal {
         ProposalData.ProposalItem[] memory items = proposal.getProposalItems(votes[voteId].proposalId);
         updateDirectorVoteStatus(voteId);

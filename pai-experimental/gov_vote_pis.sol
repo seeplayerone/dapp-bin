@@ -14,12 +14,8 @@ contract PISVote is DSMath, Execution, Template, ACLSlave {
     uint public startProportion;
     uint public duration;
     uint public passProportion;
-    uint public validityTerm = 1 days / 5;
+    uint public validityPeriod = 1 days / 5;
     uint96 public ASSET_PIS;
-
-    // vote event
-    // event CreateVote(uint);
-    // event ConductVote(uint, uint, VoteStatus);
 
     struct vote {
         uint proposalId;
@@ -34,21 +30,18 @@ contract PISVote is DSMath, Execution, Template, ACLSlave {
     /// all votes in this contract
     mapping(uint => vote) public votes;
     uint public lastVoteId = 0;
-    string public preVoteContract;
+    string public previousVoteContract;
 
     ProposalData public proposal;
 
-    constructor(address paiMainContract, address _proposal, uint _passProportion, uint _startProportion, uint _duration, string preVote) public {
-        master = ACLMaster(paiMainContract);
+    constructor(address pisContract, address _proposal, uint _passProportion, uint _startProportion, uint _duration, string _previousVote) public {
+        master = ACLMaster(pisContract);
         ASSET_PIS = PAIDAO(master).PISGlobalId();
         proposal = ProposalData(_proposal);
         passProportion = _passProportion;
         startProportion = _startProportion;
         duration = _duration;
-        preVoteContract = preVote;
-        // passProportion = RAY * 2 / 3;
-        // startProportion = RAY / 20;
-        // pisVoteDuration = 10 days / 5;
+        previousVoteContract = _previousVote;
     }
 
     /// @dev start a vote
@@ -59,7 +52,7 @@ contract PISVote is DSMath, Execution, Template, ACLSlave {
         return startVoteInternal(_proposalId,_startTime);
     }
 
-    function startVoteByAuthroity(uint _proposalId, uint _startTime) public auth(preVoteContract) returns(uint) {
+    function startVoteByAuthroity(uint _proposalId, uint _startTime) public auth(previousVoteContract) returns(uint) {
         return startVoteInternal(_proposalId,_startTime);
     }
 
@@ -108,13 +101,12 @@ contract PISVote is DSMath, Execution, Template, ACLSlave {
         msg.sender.transfer(msg.value,ASSET_PIS);
     }
 
-    /// @dev callback function to invoke organization contract
     function invokeVote(uint voteId) public {
         ProposalData.ProposalItem[] memory items = proposal.getProposalItems(votes[voteId].proposalId);
         updatePISVoteStatus(voteId);
         require(votes[voteId].status == VoteStatus.APPROVED);
         require(false == votes[voteId].executed);
-        require(height() < add(add(votes[voteId].startTime, duration),validityTerm));
+        require(height() < add(add(votes[voteId].startTime, duration),validityPeriod));
         uint len = items.length;
         for(uint i = 0; i < len; i++) {
             execute(items[i].target,abi.encodePacked(items[i].func, items[i].param));

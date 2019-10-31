@@ -9,17 +9,14 @@ import "./pis_main.sol";
 import "./gov_proposal.sol";
 import "./gov_vote_pis.sol";
 
+/// @dev TODO rename to Publicity
 contract Demonstration is DSMath, Execution, Template, ACLSlave {
 
     enum VoteStatus {NOTSTARTED, ONGOING, CLOSED}
     uint public duration;
     uint public passProportion;
-    uint public validityTerm = 1 days / 5;
+    uint public validityPeriod = 1 days / 5;
     uint96 public ASSET_PIS;
-
-    // vote event
-    // event CreateVote(uint);
-    // event ConductVote(uint, uint, VoteStatus);
 
     struct vote {
         uint proposalId;
@@ -32,26 +29,23 @@ contract Demonstration is DSMath, Execution, Template, ACLSlave {
     /// all votes in this contract
     mapping(uint => vote) public votes;
     uint public lastVoteId = 0;
-    string public preVoteContract;
+    string public previousVoteContract;
 
     ProposalData public proposal;
     PISVote public nextVoteContract;
 
-    constructor(address paiMainContract, address _proposal, address _nextVote, uint _passProportion, uint _duration, string preVote) {
-        master = ACLMaster(paiMainContract);
+    constructor(address pisContract, address _proposal, address _nextVote, uint _passProportion, uint _duration, string _previousVote) public {
+        master = ACLMaster(pisContract);
         ASSET_PIS = PAIDAO(master).PISGlobalId();
         proposal = ProposalData(_proposal);
         nextVoteContract = PISVote(_nextVote);
         passProportion = _passProportion;
         duration = _duration;
-        preVoteContract = preVote;
-        // passProportion = RAY * 2 / 3;
-        // startProportion = RAY / 20;
-        // pisVoteDuration = 10 days / 5;
+        previousVoteContract = _previousVote;
     }
 
     /// @dev start a vote
-    function startVoteByAuthroity(uint _proposalId, uint _startTime) public payable auth(preVoteContract) returns(uint) {
+    function startVoteByAuthroity(uint _proposalId, uint _startTime) public payable auth(previousVoteContract) returns(uint) {
         return startVoteInternal(_proposalId,_startTime);
     }
 
@@ -94,13 +88,12 @@ contract Demonstration is DSMath, Execution, Template, ACLSlave {
         }
     }
 
-    /// @dev callback function to invoke organization contract
     function invokeVote(uint voteId) public {
         ProposalData.ProposalItem[] memory items = proposal.getProposalItems(votes[voteId].proposalId);
         updatePISVoteStatus(voteId);
         require(votes[voteId].status == VoteStatus.CLOSED);
         require(false == votes[voteId].executed);
-        require(height() < add(add(votes[voteId].startTime, duration),validityTerm));
+        require(height() < add(add(votes[voteId].startTime, duration),validityPeriod));
         uint len = items.length;
         for(uint i = 0; i < len; i++) {
             execute(items[i].target,abi.encodePacked(items[i].func, items[i].param));
