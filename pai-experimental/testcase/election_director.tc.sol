@@ -1,8 +1,8 @@
 pragma solidity 0.4.25;
 
 import "../pai_election_director.sol";
-import "../3rd/math.sol";
-import "../3rd/test.sol";
+import "../../library/utils/ds_math.sol";
+import "../../library/utils/ds_test.sol";
 import "../pai_main.sol";
 
 contract Fly {
@@ -37,8 +37,8 @@ contract FakePerson {
 }
 
 contract FlyElection is PAIElectionDirector, Fly {
-    constructor(address paiDAO) 
-        PAIElectionDirector(paiDAO)
+    constructor(address pisContract, string winnerRole, string backupRole) 
+        PAIElectionDirector(pisContract,winnerRole,backupRole)
         public { }
 }
 
@@ -60,10 +60,15 @@ contract ElectionTest is DSTest {
 
     function setup() public returns (uint) {
         issuer = new FakePaiDao("jack-sb");
-        issuer.createNewRole("PAI-DIRECTOR","ADMIN",0);
-        issuer.createNewRole("PAI-DIRECTOR-BACKUP","ADMIN",0);
-        issuer.createNewRole("PISVOTE","ADMIN",0);
-        issuer.addMember(this,"PISVOTE");
+        issuer.createNewRole("PAI-DIRECTOR","ADMIN",4,false);
+        issuer.createNewRole("PAI-DIRECTOR-BACKUP","ADMIN",0,false);
+        issuer.createNewRole("Secretary","ADMIN",0,false);
+        issuer.addMember(this,"Secretary");
+        issuer.createNewRole("DirPisVote","ADMIN",0,false);
+        issuer.addMember(this,"DirPisVote");
+        issuer.createNewRole("Founder","ADMIN",0,false);
+        issuer.addMember(this,"Founder");
+
 
         issuer.init();
 
@@ -81,9 +86,10 @@ contract ElectionTest is DSTest {
         issuer.mint(10**8 * 25, address(bossWife));
         persons.push(bossWife);
 
-        elections = new FlyElection(issuer);
+        elections = new FlyElection(issuer,"PAI-DIRECTOR","PAI-DIRECTOR-BACKUP");
         issuer.addMember(elections,"ADMIN");
-        return elections.startElection(4, 3);
+        PAIElectionBase[] memory eles = new PAIElectionBase[](0);
+        return elections.startElection(3,eles);
     }
 
     function testSetup() public {
@@ -95,7 +101,7 @@ contract ElectionTest is DSTest {
         (uint a, uint b, uint c) = elections.getElectionRecord(index);
         assertEq(a, issuer.PISGlobalId());
         assertEq(b, 10**10);
-        assertEq(c, 5 * 10**6);
+        assertEq(c, 5 * 10**25);
         for(uint i = 0; i < 10; i ++) {
             assertEq(flow.balance(persons[i], issuer.PISGlobalId()), (i+1)*10**8);
         }
@@ -231,11 +237,11 @@ contract ElectionTest is DSTest {
         assertTrue(success);
 
         uint[] memory candidateSupportRates = elections.getElectionCandidateSupportRates(index);
-        assertEq(candidateSupportRates[0], 7 * 10**6);
-        assertEq(candidateSupportRates[1], 29 * 10**6);
-        assertEq(candidateSupportRates[2], 11 * 10**6);
-        assertEq(candidateSupportRates[3], 38 * 10**6);
-        assertEq(candidateSupportRates[4], 15 * 10**6);
+        assertEq(candidateSupportRates[0], 7 * 10**25);
+        assertEq(candidateSupportRates[1], 29 * 10**25);
+        assertEq(candidateSupportRates[2], 11 * 10**25);
+        assertEq(candidateSupportRates[3], 38 * 10**25);
+        assertEq(candidateSupportRates[4], 15 * 10**25);
 
         return index;
     }
@@ -261,11 +267,11 @@ contract ElectionTest is DSTest {
         assertTrue(success);
 
         uint[] memory candidateSupportRates = elections.getElectionCandidateSupportRates(index);
-        assertEq(candidateSupportRates[0], 38 * 10**6);
-        assertEq(candidateSupportRates[1], 29 * 10**6);
-        assertEq(candidateSupportRates[2], 15 * 10**6);
-        assertEq(candidateSupportRates[3], 11 * 10**6);
-        assertEq(candidateSupportRates[4], 7 * 10**6);
+        assertEq(candidateSupportRates[0], 38 * 10**25);
+        assertEq(candidateSupportRates[1], 29 * 10**25);
+        assertEq(candidateSupportRates[2], 15 * 10**25);
+        assertEq(candidateSupportRates[3], 11 * 10**25);
+        assertEq(candidateSupportRates[4], 7 * 10**25);
 
         address[] memory candidates = elections.getElectionCandidates(index);
         assertEq(candidates[0], persons[3]);
@@ -279,15 +285,15 @@ contract ElectionTest is DSTest {
 
     function testStart2rdNominationFail() public {
         testVoteForCandidates();
-
-        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,uint256)",4,3));
+        PAIElectionBase[] memory eles = new PAIElectionBase[](0);
+        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,address[])",3,eles));
         assertTrue(!success);
     }
 
     function testStart2rdNominationAfterProcess() public {
         testProcessResult();
-
-        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,uint256)",4,3));
+        PAIElectionBase[] memory eles = new PAIElectionBase[](0);
+        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,address[])",3,eles));
         assertTrue(success);
     }
 
@@ -305,16 +311,17 @@ contract ElectionTest is DSTest {
 
     function testStart2rdNominationAfterCease() public {
         testCeaseSuccess();
-        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,uint256)",4,3));
+        PAIElectionBase[] memory eles = new PAIElectionBase[](0);
+        bool success = elections.call(abi.encodeWithSignature("startElection(uint256,address[])",3,eles));
         assertTrue(success);
     }
 
     function testNoRelevantNomination() public {
         testNominateQualification();
 
-        FlyElection another = new FlyElection(issuer);
-
-        another.startElection(4, 3);
+        FlyElection another = new FlyElection(issuer,"PAI-DIRECTOR","PAI-DIRECTOR-BACKUP");
+        PAIElectionBase[] memory eles = new PAIElectionBase[](0);
+        another.startElection(3,eles);
 
         bool success = persons[6].execute(
                                 address(another), 
@@ -329,13 +336,10 @@ contract ElectionTest is DSTest {
     function testRelevantNomination() public {
         testNominateQualification();
 
-        FlyElection another = new FlyElection(issuer);
-
-        another.startElection(4, 3);
-
+        FlyElection another = new FlyElection(issuer,"PAI-DIRECTOR","PAI-DIRECTOR-BACKUP");
         PAIElectionBase[] memory go = new PAIElectionBase[](1);
         go[0] = elections;
-        another.setRelevantElections(go);
+        another.startElection(3,go);
 
         bool success = persons[6].execute(
                                 address(another), 

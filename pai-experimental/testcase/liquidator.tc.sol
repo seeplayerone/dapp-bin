@@ -7,6 +7,7 @@ import "./testPrepare.sol";
 contract TestBase is Template, DSTest, DSMath {
     Liquidator internal liquidator;
     TimefliesOracle internal oracle;
+    TimefliesOracle internal oracle2;
     FakePAIIssuer internal paiIssuer;
     FakeBTCIssuer internal btcIssuer;
     FakePerson internal admin;
@@ -18,6 +19,7 @@ contract TestBase is Template, DSTest, DSMath {
 
     uint96 internal ASSET_BTC;
     uint96 internal ASSET_PAI;
+    uint96 internal ASSET_PIS;
 
     function() public payable {
 
@@ -29,24 +31,37 @@ contract TestBase is Template, DSTest, DSMath {
         p2 = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
+        ASSET_PIS = paiDAO.PISGlobalId();
         btcIssuer = new FakeBTCIssuer();
         btcIssuer.init("BTC");
         ASSET_BTC = uint96(btcIssuer.getAssetType());
 
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY * 10,ASSET_BTC);
-        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3);
-        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"SettlementContract","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"BTCCDP","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"LiqudatorContract","ADMIN",0);
+        oracle2  = new TimefliesOracle("BTCOracle",paiDAO,RAY,ASSET_PIS);
+        admin.callCreateNewRole(paiDAO,"Liqudator@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3,false);
+        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"Settlement@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"BTCCDP","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"DirVote@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"50%DemPreVote@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"50%Demonstration@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"100%Demonstration@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"DirPisVote","ADMIN",0,false);
         admin.callAddMember(paiDAO,admin,"BTCOracle");
         admin.callAddMember(paiDAO,p1,"BTCOracle");
         admin.callAddMember(paiDAO,p2,"BTCOracle");
         admin.callAddMember(paiDAO,admin,"DIRECTORVOTE");
         admin.callAddMember(paiDAO,admin,"PISVOTE");
-        admin.callAddMember(paiDAO,admin,"SettlementContract");
+        admin.callAddMember(paiDAO,admin,"Settlement@STCoin");
+        admin.callAddMember(paiDAO,admin,"DirVote@STCoin");
+        admin.callAddMember(paiDAO,admin,"50%DemPreVote@STCoin");
+        admin.callAddMember(paiDAO,admin,"50%Demonstration@STCoin");
+        admin.callAddMember(paiDAO,admin,"100%Demonstration@STCoin");
         admin.callAddMember(paiDAO,admin,"BTCCDP");
+        admin.callAddMember(paiDAO,admin,"DirPisVote");
+        admin.callModifyEffectivePriceNumber(oracle,3);
 
 
         paiIssuer = new FakePAIIssuer("PAIISSUER",paiDAO);
@@ -54,13 +69,13 @@ contract TestBase is Template, DSTest, DSMath {
         ASSET_PAI = paiIssuer.PAIGlobalId();
 
         setting = new Setting(paiDAO);
-        finance = new Finance(paiDAO,paiIssuer,setting,oracle);
+        finance = new Finance(paiDAO,paiIssuer,setting,oracle2);
         liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
-        admin.callAddMember(paiDAO,liquidator,"LiqudatorContract");
+        admin.callAddMember(paiDAO,liquidator,"Liqudator@STCoin");
 
-        admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
-        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callCreateNewRole(paiDAO,"Minter@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,admin,"Minter@STCoin");
 
         btcIssuer.mint(100000000000, p1);
         btcIssuer.mint(100000000000, p2);
@@ -70,30 +85,17 @@ contract TestBase is Template, DSTest, DSMath {
 }
 
 contract LiquidatorTest is TestBase {
-    function testSetPAIIssuer() public {
-        setup();
-        assertEq(liquidator.issuer(), paiIssuer);
-        FakePAIIssuer issuer2 = new FakePAIIssuer("PAIISSUER2",paiDAO);
-        issuer2.init();
-        bool tempBool = p1.callSetPAIIssuer(liquidator, issuer2);
-        assertTrue(!tempBool);
-        tempBool = admin.callSetPAIIssuer(liquidator, issuer2);
-        assertTrue(tempBool);
-        assertEq(liquidator.issuer(), issuer2);
-        assertEq(uint(liquidator.ASSET_PAI()), uint(issuer2.PAIGlobalId()));
-    }
 
-    function testSetAssetCollateral() public {
+    function testSetOracle() public {
         setup();
         assertEq(uint(liquidator.ASSET_COLLATERAL()),uint(ASSET_BTC));
         assertEq(liquidator.priceOracle(),oracle);
-        TimefliesOracle oracle2 = new TimefliesOracle("BTCOracle",paiDAO,RAY,uint96(123));
-        bool tempBool = p1.callSetAssetCollateral(liquidator,oracle2);
+        TimefliesOracle oracle3 = new TimefliesOracle("BTCOracle",paiDAO,RAY,ASSET_BTC);
+        bool tempBool = p1.callSetOracle(liquidator,oracle3);
         assertTrue(!tempBool);
-        tempBool = admin.callSetAssetCollateral(liquidator,oracle2);
+        tempBool = admin.callSetOracle(liquidator,oracle3);
         assertTrue(tempBool);
-        assertEq(uint(liquidator.ASSET_COLLATERAL()),123);
-        assertEq(liquidator.priceOracle(),oracle2);
+        assertEq(liquidator.priceOracle(),oracle3);
     }
     
     function testSetDiscount() public {

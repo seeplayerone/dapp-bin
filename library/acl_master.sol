@@ -11,11 +11,11 @@ import "./utils/ds_math.sol";
 
 contract ACLMaster is DSMath {
     struct PermissionGroup {
+        bool exist;
+        bool canQuit;
         address[] members;
         bytes superior;
         uint32 memberLimit; // most of addresses this PG can have; 0 represents unlimited
-
-        bool exist;
     }
 
     mapping(uint => bytes) public roles;
@@ -32,13 +32,14 @@ contract ACLMaster is DSMath {
         groups[bytes(TOPADMIN)].members.push(msg.sender);
     }
     
-    function createNewRole(bytes newRole, bytes superior, uint32 limit) public auth(TOPADMIN) {
+    function createNewRole(bytes newRole, bytes superior, uint32 limit, bool canQuit) public auth(TOPADMIN) {
         require(!groups[newRole].exist);
         require(groups[superior].exist);
 
         indexOfPG = add(indexOfPG,1);
         roles[indexOfPG] = newRole;
         groups[newRole].exist = true;
+        groups[newRole].canQuit = canQuit;
         groups[newRole].superior = superior;
         groups[newRole].memberLimit = limit;
     }
@@ -68,6 +69,25 @@ contract ACLMaster is DSMath {
                 if(i != len - 1) {
                     groups[role].members[i] = groups[role].members[len - 1];
                 }
+                groups[role].members.length--;
+                return;
+            }
+        }
+    }
+
+    function quit(bytes role) public {
+        require(groups[role].exist);
+        require(groups[role].canQuit);
+        uint len = groups[role].members.length;
+        if(0 == len) {
+            return;
+        }
+        for(uint i = 0; i < len; i++) {
+            if(msg.sender == groups[role].members[i]) {
+                if(i != len - 1) {
+                    groups[role].members[i] = groups[role].members[len - 1];
+                }
+                // delete groups[role].members[len - 1];
                 groups[role].members.length--;
                 return;
             }

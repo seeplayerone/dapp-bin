@@ -1,17 +1,12 @@
 pragma solidity 0.4.25;
 
-import "../3rd/math.sol";
-import "../../library/template.sol";
-import "../cdp.sol";
-import "../testPI.sol";
-import "../fake_btc_issuer.sol";
-import "../settlement.sol";
 import "./testPrepare.sol";
 
 contract TestBase is Template, DSTest, DSMath {
     TimefliesCDP internal cdp;
     Liquidator internal liquidator;
     TimefliesOracle internal oracle;
+    TimefliesOracle internal oracle2;
     FakePAIIssuer internal paiIssuer;
     FakeBTCIssuer internal btcIssuer;
     FakePerson internal admin;
@@ -23,6 +18,7 @@ contract TestBase is Template, DSTest, DSMath {
 
     uint96 internal ASSET_BTC;
     uint96 internal ASSET_PAI;
+    uint96 internal ASSET_PIS;
 
     function() public payable {
 
@@ -34,40 +30,60 @@ contract TestBase is Template, DSTest, DSMath {
         p2 = new FakePerson();
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
+        ASSET_PIS = paiDAO.PISGlobalId();
         btcIssuer = new FakeBTCIssuer();
         btcIssuer.init("BTC");
         ASSET_BTC = uint96(btcIssuer.getAssetType());
 
         oracle = new TimefliesOracle("BTCOracle",paiDAO,RAY,ASSET_BTC);
-        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3);
-        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"SettlementContract","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"BTCCDP","ADMIN",0);
+        oracle2  = new TimefliesOracle("BTCOracle",paiDAO,RAY,ASSET_PIS);
+        admin.callCreateNewRole(paiDAO,"Liqudator@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3,false);
+        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"Settlement@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"BTCCDP","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"DirVote@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"50%DemPreVote@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"100%DemPreVote@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"50%Demonstration@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"100%Demonstration@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"DirPisVote","ADMIN",0,false);
         admin.callAddMember(paiDAO,admin,"BTCOracle");
         admin.callAddMember(paiDAO,p1,"BTCOracle");
         admin.callAddMember(paiDAO,p2,"BTCOracle");
         admin.callAddMember(paiDAO,admin,"DIRECTORVOTE");
         admin.callAddMember(paiDAO,admin,"PISVOTE");
-        admin.callAddMember(paiDAO,admin,"SettlementContract");
+        admin.callAddMember(paiDAO,admin,"Settlement@STCoin");
+        admin.callAddMember(paiDAO,admin,"DirVote@STCoin");
+        admin.callAddMember(paiDAO,admin,"50%DemPreVote@STCoin");
+        admin.callAddMember(paiDAO,admin,"100%DemPreVote@STCoin");
+        admin.callAddMember(paiDAO,admin,"50%Demonstration@STCoin");
+        admin.callAddMember(paiDAO,admin,"100%Demonstration@STCoin");
+        admin.callAddMember(paiDAO,admin,"BTCCDP");
+        admin.callAddMember(paiDAO,admin,"DirPisVote");
+        admin.callModifyEffectivePriceNumber(oracle,3);
 
         paiIssuer = new FakePAIIssuer("PAIISSUER",paiDAO);
         paiIssuer.init();
         ASSET_PAI = paiIssuer.PAIGlobalId();
 
-        liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
         setting = new Setting(paiDAO);
-        finance = new Finance(paiDAO,paiIssuer,setting,oracle);
+        finance = new Finance(paiDAO,paiIssuer,setting,oracle2);
+        liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
         cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,100000000000);
-        admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
-        admin.callAddMember(paiDAO,cdp,"PAIMINTER");
+        admin.callCreateNewRole(paiDAO,"Minter@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,cdp,"Minter@STCoin");
         admin.callAddMember(paiDAO,cdp,"BTCCDP");
 
-        btcIssuer.mint(1000000000000, p1);
-        btcIssuer.mint(1000000000000, p2);
-        btcIssuer.mint(1000000000000, this);
+        btcIssuer.mint(100000000000, p1);
+        btcIssuer.mint(100000000000, p2);
+        btcIssuer.mint(100000000000, this);
+        admin.callMint(paiIssuer,100000000000,p1);
+        admin.callMint(paiIssuer,100000000000,p2);
+        admin.callMint(paiIssuer,100000000000,this);
     }
 
     function setupTest() public {
@@ -84,19 +100,6 @@ contract TestBase is Template, DSTest, DSMath {
 }
 
 contract SettingTest is TestBase {
-    function testSetAssetCollateral() public {
-        setup();
-        assertEq(uint(cdp.ASSET_COLLATERAL()),uint(ASSET_BTC));
-        assertEq(cdp.priceOracle(),oracle);
-        TimefliesOracle oracle2 = new TimefliesOracle("BTCOracle",paiDAO,RAY,uint96(123));
-        bool tempBool = p1.callSetAssetCollateral(cdp,oracle2);
-        assertTrue(!tempBool);
-        tempBool = admin.callSetAssetCollateral(cdp,oracle2);
-        assertTrue(tempBool);
-        assertEq(uint(cdp.ASSET_COLLATERAL()),123);
-        assertEq(cdp.priceOracle(),oracle2);
-    }
-
     function testUpdateBaseInterestRate() public {
         setup();
         admin.callUpdateLendingRate(setting, RAY * 202 / 1000);
@@ -113,26 +116,37 @@ contract SettingTest is TestBase {
         //exp(log(1.1)/365/86400)*10^27 = 1000000003022265970012364960
     }
 
-    function testUpdateCutDown() public {
+    function testUpdateBaseInterestRateAdjustment() public {
         setup();
-        assertEq(cdp.cutDown(0), RAY * 2 / 1000);
-        assertEq(cdp.cutDown(1), RAY * 4 / 1000);
-        assertEq(cdp.cutDown(2), RAY * 6 / 1000);
-        assertEq(cdp.cutDown(3), RAY * 8 / 1000);
-        assertEq(cdp.cutDown(4), RAY * 10 / 1000);
-        assertEq(cdp.cutDown(5), RAY * 12 / 1000);
-        assertEq(cdp.cutDown(6), 0);
-        assertEq(cdp.cutDown(7), 0);
-        assertEq(cdp.cutDown(8), 0);
-        assertEq(cdp.cutDown(9), 0);
-        assertEq(cdp.cutDown(10), 0);
-        bool tempBool = p1.callUpdateCutDown(cdp,1,RAY * 2 / 1000);
+        admin.callUpdateLendingRate(setting, RAY * 202 / 1000);
+        cdp.updateBaseInterestRate();
+        assertEq(cdp.annualizedInterestRate(),RAY / 5);
+        assertEq(cdp.secondInterestRate(),1000000005781378656804591713);
+        admin.callUpdateBaseRateAdj(cdp,-int(RAY / 10));
+        assertEq(cdp.annualizedInterestRate(),RAY / 10);
+        assertEq(cdp.secondInterestRate(),1000000003022265980097387650);
+    }
+
+    function testUpdateRateAdj() public {
+        setup();
+        assertEq(cdp.rateAdj(0), -int(RAY * 2 / 1000));
+        assertEq(cdp.rateAdj(1), -int(RAY * 4 / 1000));
+        assertEq(cdp.rateAdj(2), -int(RAY * 6 / 1000));
+        assertEq(cdp.rateAdj(3), -int(RAY * 8 / 1000));
+        assertEq(cdp.rateAdj(4), -int(RAY * 10 / 1000));
+        assertEq(cdp.rateAdj(5), -int(RAY * 12 / 1000));
+        assertEq(cdp.rateAdj(6), 0);
+        assertEq(cdp.rateAdj(7), 0);
+        assertEq(cdp.rateAdj(8), 0);
+        assertEq(cdp.rateAdj(9), 0);
+        assertEq(cdp.rateAdj(10), 0);
+        bool tempBool = p1.callUpdateRateAdj(cdp,1,int(RAY * 2 / 1000));
         assertTrue(!tempBool);
         for(uint8 i = 0 ; i <= 10; i++) {
-            admin.callUpdateCutDown(cdp,i,RAY * 1 / 1000);
-            assertEq(cdp.cutDown(i), RAY * 1 / 1000);
+            admin.callUpdateRateAdj(cdp,i,int(RAY * 1 / 1000));
+            assertEq(cdp.rateAdj(i), int(RAY * 1 / 1000));
         }
-        tempBool = admin.callUpdateCutDown(cdp,11,RAY * 2 / 1000);
+        tempBool = admin.callUpdateRateAdj(cdp,11,int(RAY * 2 / 1000));
         assertTrue(!tempBool);
     }
 
@@ -197,42 +211,6 @@ contract SettingTest is TestBase {
         assertTrue(!cdp.disableCDPTransfer());
     }
 
-    function testSwitchCDPCreation() public {
-        setup();
-        assertTrue(!cdp.disableCDPCreation());
-        bool tempBool = p1.callSwitchCDPCreation(cdp,true);
-        assertTrue(!tempBool);
-        tempBool = admin.callSwitchCDPCreation(cdp,true);
-        assertTrue(tempBool);
-        assertTrue(cdp.disableCDPCreation());
-        admin.callSwitchCDPCreation(cdp,false);
-        assertTrue(!cdp.disableCDPCreation());
-    }
-
-    function testSwitchLiquidation() public {
-        setup();
-        assertTrue(!cdp.disableLiquidation());
-        bool tempBool = p1.callSwitchLiquidation(cdp,true);
-        assertTrue(!tempBool);
-        tempBool = admin.callSwitchLiquidation(cdp,true);
-        assertTrue(tempBool);
-        assertTrue(cdp.disableLiquidation());
-        admin.callSwitchLiquidation(cdp,false);
-        assertTrue(!cdp.disableLiquidation());
-    }
-
-    function testSwitchAllCDPFunction() public {
-        setup();
-        assertTrue(!cdp.disableALLCDPFunction());
-        bool tempBool = p1.callSwitchAllCDPFunction(cdp,true);
-        assertTrue(!tempBool);
-        tempBool = admin.callSwitchAllCDPFunction(cdp,true);
-        assertTrue(tempBool);
-        assertTrue(cdp.disableALLCDPFunction());
-        admin.callSwitchAllCDPFunction(cdp,false);
-        assertTrue(!cdp.disableALLCDPFunction());
-    }
-
     function testUpdateCreateCollateralRatio() public {
         setup();
         assertEq(cdp.createCollateralRatio(), 2 * RAY);
@@ -266,13 +244,21 @@ contract SettingTest is TestBase {
 
     function testUpdateLiquidationPenalty() public {
         setup();
-        assertEq(cdp.liquidationPenalty(), RAY * 113 / 100);
-        bool tempBool = p1.callUpdateLiquidationPenalty(cdp, RAY * 12 / 10);
+        assertEq(cdp.liquidationPenalty1(), RAY * 113 / 100);
+        assertEq(cdp.liquidationPenalty2(), RAY * 105 / 100);
+        bool tempBool = p1.callUpdateLiquidationPenalty1(cdp, RAY * 12 / 10);
         assertTrue(!tempBool);
-        tempBool = admin.callUpdateLiquidationPenalty(cdp, RAY * 12 / 10);
+        tempBool = p1.callUpdateLiquidationPenalty2(cdp, RAY * 12 / 10);
+        assertTrue(!tempBool);
+        tempBool = admin.callUpdateLiquidationPenalty1(cdp, RAY * 12 / 10);
         assertTrue(tempBool);
-        assertEq(cdp.liquidationPenalty(), RAY * 12 / 10);
-        tempBool = admin.callUpdateLiquidationPenalty(cdp, RAY * 19 / 20);
+        tempBool = admin.callUpdateLiquidationPenalty2(cdp, RAY * 12 / 10);
+        assertTrue(tempBool);
+        assertEq(cdp.liquidationPenalty1(), RAY * 12 / 10);
+        assertEq(cdp.liquidationPenalty2(), RAY * 12 / 10);
+        tempBool = admin.callUpdateLiquidationPenalty1(cdp, RAY * 19 / 20);
+        assertTrue(!tempBool);
+        tempBool = admin.callUpdateLiquidationPenalty2(cdp, RAY * 19 / 20);
         assertTrue(!tempBool);
     }
 
@@ -286,14 +272,6 @@ contract SettingTest is TestBase {
         assertEq(cdp.debtCeiling(), 200000000000);
     }
 
-    function testUpdateDebtRateCeiling() public {
-        setup();
-        assertEq(cdp.debtRateCeiling(), RAY * 2);
-        admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 4 / 5);
-        cdp.updateDebtRateCeiling();
-        assertEq(cdp.debtRateCeiling(), RAY * 4 / 5);
-    }
-
     function testSetLiquidator() public {
         setup();
         assertEq(cdp.liquidator(), liquidator);
@@ -304,17 +282,16 @@ contract SettingTest is TestBase {
         assertEq(cdp.liquidator(), p2);
     }
 
-    function testSetPAIIssuer() public {
+    function testSetOracle() public {
         setup();
-        assertEq(cdp.issuer(), paiIssuer);
-        FakePAIIssuer issuer2 = new FakePAIIssuer("PAIISSUER2",paiDAO);
-        issuer2.init();
-        bool tempBool = p1.callSetPAIIssuer(cdp, issuer2);
+        assertEq(uint(cdp.ASSET_COLLATERAL()),uint(ASSET_BTC));
+        assertEq(cdp.priceOracle(),oracle);
+        TimefliesOracle oracle3 = new TimefliesOracle("BTCOracle",paiDAO,RAY,ASSET_BTC);
+        bool tempBool = p1.callSetOracle(cdp,oracle3);
         assertTrue(!tempBool);
-        tempBool = admin.callSetPAIIssuer(cdp, issuer2);
+        tempBool = admin.callSetOracle(cdp,oracle3);
         assertTrue(tempBool);
-        assertEq(cdp.issuer(), issuer2);
-        assertEq(uint(cdp.ASSET_PAI()), uint(issuer2.PAIGlobalId()));
+        assertEq(cdp.priceOracle(),oracle3);
     }
 
     function testSetSetting() public {
@@ -329,7 +306,6 @@ contract SettingTest is TestBase {
         tempBool = admin.callSetSetting(cdp, setting2);
         assertTrue(tempBool);
         assertEq(cdp.setting(), setting2);
-        assertEq(cdp.debtRateCeiling(), RAY * 3);
         assertEq(cdp.annualizedInterestRate(),RAY / 10);
         assertEq(cdp.secondInterestRate(),1000000003022265980097387650);
     }
@@ -383,11 +359,6 @@ contract FunctionTest1 is TestBase {
         assertTrue(tempBool);//2
         (,owner,,,,) = cdp.CDPRecords(idx);
         assertEq(owner, p2);//3
-
-        admin.callSwitchAllCDPFunction(cdp,true);
-        tempBool = p2.callTransferCDPOwnership(cdp,idx,p1,0);
-        assertTrue(!tempBool);//4
-        admin.callSwitchAllCDPFunction(cdp,false);
         tempBool = p2.callTransferCDPOwnership(cdp,idx,p1,0);
         assertTrue(tempBool);//5
         (,owner,,,,) = cdp.CDPRecords(idx);
@@ -418,7 +389,7 @@ contract FunctionTest1 is TestBase {
         uint idx = 1;
         (,address owner,,,,) = cdp.CDPRecords(idx);
         assertEq(owner, p1);//0
-        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callAddMember(paiDAO,admin,"Minter@STCoin");
         admin.callMint(paiIssuer,100000000,p2);
 
         
@@ -433,10 +404,6 @@ contract FunctionTest1 is TestBase {
         assertEq(owner, p2);//3
 
         p2.callTransferCDPOwnership(cdp,idx,p1,1000000);
-        admin.callSwitchAllCDPFunction(cdp,true);
-        tempBool = p1.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
-        assertTrue(!tempBool);//4
-        admin.callSwitchAllCDPFunction(cdp,false);
         tempBool = p1.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
         assertTrue(tempBool);//5
         (,owner,,,,) = cdp.CDPRecords(idx);
@@ -463,9 +430,7 @@ contract FunctionTest1 is TestBase {
         p1.callTransferCDPOwnership(cdp,idx,p2,1000000);
         tempBool = p2.callBuyCDP(cdp,idx,500000,ASSET_PAI);
         assertTrue(!tempBool);//13
-        tempBool = p2.callBuyCDP(cdp,idx,1500000,ASSET_PAI);
-        assertTrue(!tempBool);//14
-        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callAddMember(paiDAO,admin,"Minter@STCoin");
         admin.callMint(paiIssuer,1000000,admin);
         assertEq(flow.balance(admin,ASSET_PAI),1000000);//15
         tempBool = admin.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
@@ -528,17 +493,9 @@ contract FunctionTest1 is TestBase {
         tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
         assertTrue(tempBool);
 
-        admin.callSwitchAllCDPFunction(cdp,true);
-        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
-        assertTrue(!tempBool);
-        admin.callSwitchAllCDPFunction(cdp,false);
         tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
         assertTrue(tempBool);
 
-        admin.callSwitchCDPCreation(cdp,true);
-        tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
-        assertTrue(!tempBool);
-        admin.callSwitchCDPCreation(cdp,false);
         tempBool = p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
         assertTrue(tempBool);
 
@@ -559,11 +516,10 @@ contract FunctionTest1 is TestBase {
     function testCreateFail2() public {
         setup();
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY / 2);
-        cdp.updateDebtRateCeiling();
         assertEq(cdp.totalPrincipal(),0);
-        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callAddMember(paiDAO,admin,"Minter@STCoin");
         admin.callMint(paiIssuer,5000000000,admin);
-        (,,,,,uint totalPaiSupply) = paiIssuer.getAssetInfo(0);
+        uint totalPaiSupply = paiIssuer.totalSupply();
         assertEq(totalPaiSupply,5000000000);
         bool tempBool = p1.callCreateDepositBorrow(cdp,500000000,0,1000000000,ASSET_BTC);
         assertTrue(tempBool);
@@ -609,10 +565,6 @@ contract FunctionTest2 is TestBase {
         tempBool = p1.callDeposit(cdp,1,1000000000,ASSET_BTC);
         assertTrue(tempBool);
 
-        admin.callSwitchAllCDPFunction(cdp,true);
-        tempBool = p1.callDeposit(cdp,1,1000000000,ASSET_BTC);
-        assertTrue(!tempBool);
-        admin.callSwitchAllCDPFunction(cdp,false);
         tempBool = p1.callDeposit(cdp,1,1000000000,ASSET_BTC);
         assertTrue(tempBool);
         admin.callTerminate(cdp);
@@ -640,10 +592,6 @@ contract FunctionTest2 is TestBase {
         tempBool = p1.callRepay(cdp,1,10000000,ASSET_PAI);
         assertTrue(tempBool);
 
-        admin.callSwitchAllCDPFunction(cdp,true);
-        tempBool = p1.callRepay(cdp,1,10000000,ASSET_PAI);
-        assertTrue(!tempBool);
-        admin.callSwitchAllCDPFunction(cdp,false);
         tempBool = p1.callRepay(cdp,1,10000000,ASSET_PAI);
         assertTrue(tempBool);
         admin.callTerminate(cdp);
@@ -656,7 +604,7 @@ contract FunctionTest2 is TestBase {
         admin.callUpdateLendingRate(setting, RAY * 202 / 1000);
         cdp.updateBaseInterestRate();
         p1.callCreateDepositBorrow(cdp,1000000000,0,2000000000,ASSET_BTC);
-        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callAddMember(paiDAO,admin,"Minter@STCoin");
         admin.callMint(paiIssuer,5000000000,p1);
         cdp.fly(1000000);
         (uint principal, uint interest) = cdp.debtOfCDP(1);
@@ -765,7 +713,7 @@ contract FunctionTest2 is TestBase {
         setup();
         uint idx = cdp.createDepositBorrow.value(10000000000, ASSET_BTC)(4000000000,CDP.CDPType.CURRENT);
         admin.callUpdateLiquidationRatio(cdp, RAY * 2);
-        admin.callUpdateLiquidationPenalty(cdp, RAY);
+        admin.callUpdateLiquidationPenalty1(cdp, RAY);
 
         assertTrue(cdp.safe(idx));
         admin.callModifySensitivityRate(oracle, RAY);
@@ -801,7 +749,7 @@ contract FunctionTest2 is TestBase {
         cdp.createDepositBorrow.value(10000000000, ASSET_BTC)(4000000000,CDP.CDPType.CURRENT);
         cdp.createDepositBorrow.value(10000000000, ASSET_BTC)(4000000000,CDP.CDPType.CURRENT);
         admin.callUpdateLiquidationRatio(cdp, RAY * 2);
-        admin.callUpdateLiquidationPenalty(cdp, RAY);
+        admin.callUpdateLiquidationPenalty1(cdp, RAY);
 
         assertTrue(cdp.safe(1));
         admin.callModifySensitivityRate(oracle, RAY);
@@ -818,18 +766,10 @@ contract FunctionTest2 is TestBase {
         assertTrue(tempBool);
         assertEq(cdp.totalPrincipal(), 16000000000);
 
-        admin.callSwitchAllCDPFunction(cdp,true);
-        tempBool = p1.callLiquidate(cdp,2);
-        assertTrue(!tempBool);
-        admin.callSwitchAllCDPFunction(cdp,false);
         tempBool = p1.callLiquidate(cdp,2);
         assertTrue(tempBool);
         assertEq(cdp.totalPrincipal(), 12000000000);
 
-        admin.callSwitchLiquidation(cdp,true);
-        tempBool = p1.callLiquidate(cdp,3);
-        assertTrue(!tempBool);
-        admin.callSwitchLiquidation(cdp,false);
         tempBool = p1.callLiquidate(cdp,3);
         assertTrue(tempBool);
         assertEq(cdp.totalPrincipal(), 8000000000);
@@ -859,7 +799,7 @@ contract LiquidationPenaltyTest is TestBase {
         uint idx = penaltySetup();
 
         admin.callUpdateLiquidationRatio(cdp, RAY * 21 / 10);
-        admin.callUpdateLiquidationPenalty(cdp, RAY * 15 / 10);
+        admin.callUpdateLiquidationPenalty1(cdp, RAY * 15 / 10);
 
         (,,uint collateral,,,) = cdp.CDPRecords(idx);
         assertEq(collateral, 2000000000);
@@ -871,7 +811,7 @@ contract LiquidationPenaltyTest is TestBase {
     function testPenaltyCase2() public {
         uint idx = penaltySetup();
 
-        admin.callUpdateLiquidationPenalty(cdp, RAY * 15 / 10);
+        admin.callUpdateLiquidationPenalty1(cdp, RAY * 15 / 10);
 
         admin.callModifySensitivityRate(oracle, RAY);
         admin.callUpdatePrice(oracle, RAY * 8 / 10);
@@ -892,7 +832,7 @@ contract LiquidationPenaltyTest is TestBase {
     function testPenaltyParity() public {
         uint idx = penaltySetup();
 
-        admin.callUpdateLiquidationPenalty(cdp, RAY * 15 / 10);
+        admin.callUpdateLiquidationPenalty1(cdp, RAY * 15 / 10);
 
         admin.callModifySensitivityRate(oracle, RAY);
         admin.callUpdatePrice(oracle, RAY * 5 / 10);
@@ -913,7 +853,7 @@ contract LiquidationPenaltyTest is TestBase {
     function testPenaltyUnder() public {
         uint idx = penaltySetup();
 
-        admin.callUpdateLiquidationPenalty(cdp, RAY * 15 / 10);
+        admin.callUpdateLiquidationPenalty1(cdp, RAY * 15 / 10);
 
         admin.callModifySensitivityRate(oracle, RAY);
         admin.callUpdatePrice(oracle, RAY * 4 / 10);
@@ -934,7 +874,7 @@ contract LiquidationPenaltyTest is TestBase {
     function testSettlementWithPenalty() public {
         uint idx = penaltySetup();
 
-        admin.callUpdateLiquidationPenalty(cdp, RAY * 15 / 10);
+        admin.callUpdateLiquidationPenalty1(cdp, RAY * 15 / 10);
 
         (,,uint collateral,,,) = cdp.CDPRecords(idx);
         assertEq(collateral, 2000000000);
@@ -948,7 +888,7 @@ contract LiquidationPenaltyTest is TestBase {
     function testSettlementWithoutPenalty() public {
         uint idx = penaltySetup();
 
-        admin.callUpdateLiquidationPenalty(cdp, RAY);
+        admin.callUpdateLiquidationPenalty1(cdp, RAY);
 
         (,,uint collateral,,,) = cdp.CDPRecords(idx);
         assertEq(collateral, 2000000000);

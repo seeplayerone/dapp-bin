@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "./3rd/note.sol";
+import "../library/utils/ds_note.sol";
 import "../library/template.sol";
 import "./liquidator.sol";
 import "./price_oracle.sol";
@@ -37,7 +37,7 @@ contract Settlement is Template, DSNote, ACLSlave {
         liquidator.terminatePhaseOne();
     }
 
-    function terminatePhaseTwo() public note auth("DIRECTORVOTE") {
+    function terminatePhaseTwo() public note auth("PISVOTE") {
         require(cdp.readyForPhaseTwo());
         liquidator.terminatePhaseTwo();
     }

@@ -15,8 +15,12 @@ contract GlobalSettingTest is Template, DSTest, DSMath {
 
         paiDAO = FakePaiDao(admin.createPAIDAO("PAIDAO"));
         paiDAO.init();
-        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
-        admin.callAddMember(paiDAO,p1,"DIRECTORVOTE");
+        admin.callCreateNewRole(paiDAO,"50%Demonstration@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,p1,"50%Demonstration@STCoin");
+        admin.callCreateNewRole(paiDAO,"DirVote@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,p1,"DirVote@STCoin");
+        admin.callCreateNewRole(paiDAO,"DirPisVote","ADMIN",0,false);
+        admin.callAddMember(paiDAO,p1,"DirPisVote");
         Setting setting = new Setting(paiDAO);
 
         bool tempBool = p2.callUpdateLendingRate(setting, RAY / 10);
@@ -28,7 +32,7 @@ contract GlobalSettingTest is Template, DSTest, DSMath {
 
         tempBool = p2.callUpdateDepositRate(setting, RAY / 10);
         assertTrue(!tempBool);
-        assertEq(setting.depositInterestRate(),RAY / 5);
+        assertEq(setting.currentDepositRate(),RAY / 5);
         tempBool = p1.callUpdateDepositRate(setting, RAY / 10);
         assertTrue(tempBool);
         assertEq(setting.depositInterestRate(),RAY / 10);

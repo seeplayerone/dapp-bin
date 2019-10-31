@@ -36,11 +36,17 @@ contract TestBase is Template, DSTest, DSMath {
 
         oracle = new TimefliesOracle("BTCOracle", paiDAO, RAY * 10, ASSET_BTC);
         PISOracle = new TimefliesOracle("PISOracle", paiDAO, RAY * 10, ASSET_PIS);
-        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3);
-        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"SettlementContract","ADMIN",0);
-        admin.callCreateNewRole(paiDAO,"BTCCDP","ADMIN",0);
+        admin.callCreateNewRole(paiDAO,"BTCOracle","ADMIN",3,false);
+        admin.callCreateNewRole(paiDAO,"DIRECTORVOTE","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"SettlementContract","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"BTCCDP","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"100%Demonstration@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"50%Demonstration@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"DirPisVote","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"DirPisVote@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"DirVote@STCoin","ADMIN",0,false);
+        admin.callCreateNewRole(paiDAO,"50%DemPreVote@STCoin","ADMIN",0,false);
         admin.callAddMember(paiDAO,admin,"BTCOracle");
         admin.callAddMember(paiDAO,p1,"BTCOracle");
         admin.callAddMember(paiDAO,p2,"BTCOracle");
@@ -48,6 +54,13 @@ contract TestBase is Template, DSTest, DSMath {
         admin.callAddMember(paiDAO,admin,"PISVOTE");
         admin.callAddMember(paiDAO,admin,"SettlementContract");
         admin.callAddMember(paiDAO,admin,"BTCCDP");
+        admin.callAddMember(paiDAO,admin,"100%Demonstration@STCoin");
+        admin.callAddMember(paiDAO,admin,"50%Demonstration@STCoin");
+        admin.callAddMember(paiDAO,admin,"DirPisVote");
+        admin.callAddMember(paiDAO,admin,"DirPisVote@STCoin");
+        admin.callAddMember(paiDAO,admin,"DirVote@STCoin");
+        admin.callAddMember(paiDAO,admin,"50%DemPreVote@STCoin");
+        admin.callModifyEffectivePriceNumber(oracle,3);
 
         paiIssuer = new FakePAIIssuer("PAIISSUER",paiDAO);
         paiIssuer.init();
@@ -58,15 +71,15 @@ contract TestBase is Template, DSTest, DSMath {
         liquidator = new Liquidator(paiDAO,oracle, paiIssuer,"BTCCDP",finance,setting);
         admin.callUpdateRatioLimit(setting, ASSET_BTC, RAY * 2);
 
-        admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
-        admin.callAddMember(paiDAO,admin,"PAIMINTER");
+        admin.callCreateNewRole(paiDAO,"Minter@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,admin,"Minter@STCoin");
 
         tdc = new TimefliesTDC(paiDAO,setting,paiIssuer,finance);
         admin.callSetTDC(finance, tdc);
 
         cdp = new TimefliesCDP(paiDAO,paiIssuer,oracle,liquidator,setting,finance,100000000000);
-        admin.callCreateNewRole(paiDAO,"PAIMINTER","ADMIN",0);
-        admin.callAddMember(paiDAO,cdp,"PAIMINTER");
+        admin.callCreateNewRole(paiDAO,"Minter@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,cdp,"Minter@STCoin");
         admin.callAddMember(paiDAO,cdp,"BTCCDP");
         admin.callUpdateLendingRate(setting, RAY * 202 / 1000);
         cdp.updateBaseInterestRate();
@@ -81,24 +94,6 @@ contract TestBase is Template, DSTest, DSMath {
 }
 
 contract SettingTest is TestBase {
-    function testSetPAIIssuer() public {
-        setup();
-        assertEq(finance.issuer(), paiIssuer);
-        FakePAIIssuer issuer2 = new FakePAIIssuer("PAIISSUER2",paiDAO);
-        issuer2.init();
-        bool tempBool = p1.callSetPAIIssuer(finance, issuer2);
-        assertTrue(!tempBool);
-        tempBool = admin.callSetPAIIssuer(finance, issuer2);
-        assertTrue(!tempBool);
-        admin.callCashOut(finance,4400000000,p2);
-        assertEq(flow.balance(finance,ASSET_PAI),0);
-        tempBool = p1.callSetPAIIssuer(finance, issuer2);
-        assertTrue(!tempBool);
-        tempBool = admin.callSetPAIIssuer(finance, issuer2);
-        assertTrue(tempBool);
-        assertEq(finance.issuer(), issuer2);
-        assertEq(uint(finance.ASSET_PAI()), uint(issuer2.PAIGlobalId()));
-    }
 
     function testSetSetting() public {
         setup();
@@ -126,12 +121,15 @@ contract SettingTest is TestBase {
     function testSetOracle() public {
         setup();
         assertEq(finance.priceOracle(),PISOracle);
-        TimefliesOracle oracle2 = new TimefliesOracle("BTCOracle",paiDAO,RAY,uint96(123));
+        TimefliesOracle oracle2 = new TimefliesOracle("BTCOracle",paiDAO,RAY,ASSET_PIS);
+        TimefliesOracle oracle3 = new TimefliesOracle("BTCOracle",paiDAO,RAY,uint96(123));
         bool tempBool = p1.callSetOracle(finance,oracle2);
         assertTrue(!tempBool);
         tempBool = admin.callSetOracle(finance,oracle2);
         assertTrue(tempBool);
         assertEq(finance.priceOracle(),oracle2);
+        tempBool = admin.callSetOracle(finance,oracle3);
+        assertTrue(!tempBool);
     }
 
     function testSetPISseller() public {
@@ -192,8 +190,8 @@ contract FunctionTest is TestBase {
         assertTrue(!tempBool);
         tempBool = admin.callPayForInterest(finance, 100, p2);
         assertTrue(!tempBool);
-        admin.callCreateNewRole(paiDAO,"TDCContract","ADMIN",0);
-        admin.callAddMember(paiDAO,admin,"TDCContract");
+        admin.callCreateNewRole(paiDAO,"TDC@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,admin,"TDC@STCoin");
         tempBool = admin.callPayForInterest(finance, 100, p2);
         assertTrue(tempBool);
         assertEq(flow.balance(p2,ASSET_PAI), 100);
@@ -205,8 +203,8 @@ contract FunctionTest is TestBase {
         assertTrue(!tempBool);
         tempBool = admin.callPayForDebt(finance, 400000000);
         assertTrue(!tempBool);
-        admin.callCreateNewRole(paiDAO,"LiqudatorContract","ADMIN",0);
-        admin.callAddMember(paiDAO,admin,"LiqudatorContract");
+        admin.callCreateNewRole(paiDAO,"Liqudator@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,admin,"Liqudator@STCoin");
         tempBool = admin.callPayForDebt(finance, 400000000);
         assertTrue(tempBool);
         assertEq(flow.balance(admin,ASSET_PAI), 400000000);
@@ -221,8 +219,8 @@ contract FunctionTest is TestBase {
         DividendsSample dd = new DividendsSample(p1,p2,p3,finance);
         bool tempBool = p1.callGetMoney(dd);
         assertTrue(!tempBool);
-        admin.callCreateNewRole(paiDAO,"DividendsContract","ADMIN",0);
-        admin.callAddMember(paiDAO,dd,"DividendsContract");
+        admin.callCreateNewRole(paiDAO,"Dividends@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,dd,"Dividends@STCoin");
         tempBool = p1.callGetMoney(dd);
         assertTrue(tempBool);
         tempBool = p2.callGetMoney(dd);
@@ -241,8 +239,8 @@ contract FunctionTest is TestBase {
         assertTrue(!tempBool);
         tempBool = p2.callCreateDepositBorrow(cdp,10000000000,0,20000000000,ASSET_BTC);
         assertTrue(tempBool);
-        admin.callCreateNewRole(paiDAO,"AirDropAddr","ADMIN",0);
-        admin.callAddMember(paiDAO,p1,"AirDropAddr");
+        admin.callCreateNewRole(paiDAO,"AirDrop@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,p1,"AirDrop@STCoin");
         tempBool = p1.callApplyForAirDropCashOut(finance,1000);
         assertTrue(tempBool);
         assertEq(finance.applyAmount(),1000);
@@ -269,8 +267,8 @@ contract FunctionTest is TestBase {
         //approval
         assertEq(finance.lastAirDropCashOut(),0);
         tempBool = p2.callApprovalAirDropCashOut(finance,3,true);
-        admin.callCreateNewRole(paiDAO,"CFO","ADMIN",0);
-        admin.callAddMember(paiDAO,p2,"CFO");
+        admin.callCreateNewRole(paiDAO,"CFO@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,p2,"CFO@STCoin");
         tempBool = p2.callApprovalAirDropCashOut(finance,3,true);
         assertEq(finance.applyAmount(),0);
         assertEq(finance.lastAirDropCashOut(),block.timestamp);
@@ -341,8 +339,8 @@ contract FunctionTest is TestBase {
         tempBool = p2.callOperationCashOut(finance,400000000,p2);
         assertTrue(!tempBool);
 
-        admin.callCreateNewRole(paiDAO,"CFO","ADMIN",0);
-        admin.callAddMember(paiDAO,p2,"CFO");
+        admin.callCreateNewRole(paiDAO,"CFO@STCoin","ADMIN",0,false);
+        admin.callAddMember(paiDAO,p2,"CFO@STCoin");
         assertEq(finance.operationCashLimit(),0);
         admin.callIncreaseOperationCashLimit(finance,400000000);
         assertEq(finance.operationCashLimit(),400000000);
@@ -366,7 +364,7 @@ contract FunctionTest is TestBase {
         admin.callSetSafePad(finance,4400000010);
         tempBool = p1.callMintPIS(finance);
         assertTrue(!tempBool);
-        admin.callCreateNewRole(paiDAO,"FinanceContract","ADMIN",0);
+        admin.callCreateNewRole(paiDAO,"FinanceContract","ADMIN",0,false);
         admin.callAddMember(paiDAO,finance,"FinanceContract");
         tempBool = p1.callMintPIS(finance);
         assertTrue(tempBool);

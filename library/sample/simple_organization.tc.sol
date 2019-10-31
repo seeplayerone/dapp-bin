@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
 import "./simple_organization.sol";
-import "../utils/ds-test.sol";
+import "../utils/ds_test.sol";
 import "../utils/execution.sol";
 
 interface RegistryInterface {

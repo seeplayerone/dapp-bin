@@ -12,7 +12,7 @@ contract PISVote is DSMath, Execution, Template, ACLSlave {
     enum VoteStatus {NOTSTARTED, ONGOING, APPROVED, REJECTED}
     enum VoteAttitude {AGREE,DISAGREE,ABSTAIN}
     uint public startProportion;
-    uint public voteDuration;
+    uint public duration;
     uint public passProportion;
     uint public validityTerm = 1 days / 5;
     uint96 public ASSET_PIS;
@@ -38,13 +38,13 @@ contract PISVote is DSMath, Execution, Template, ACLSlave {
 
     ProposalData public proposal;
 
-    constructor(address paiMainContract, address _proposal, uint _passProportion, uint _startProportion, uint _voteDuration, string preVote) {
+    constructor(address paiMainContract, address _proposal, uint _passProportion, uint _startProportion, uint _duration, string preVote) public {
         master = ACLMaster(paiMainContract);
         ASSET_PIS = PAIDAO(master).PISGlobalId();
         proposal = ProposalData(_proposal);
         passProportion = _passProportion;
         startProportion = _startProportion;
-        voteDuration = _voteDuration;
+        duration = _duration;
         preVoteContract = preVote;
         // passProportion = RAY * 2 / 3;
         // startProportion = RAY / 20;
@@ -54,13 +54,12 @@ contract PISVote is DSMath, Execution, Template, ACLSlave {
     /// @dev start a vote
     function startVote(uint _proposalId, uint _startTime) public payable returns(uint) {
         require(msg.assettype == ASSET_PIS);
-        (,,,,,uint totalPISSupply) = PAIDAO(master).getAssetInfo(0);
-        require(msg.value > rmul(startProportion,totalPISSupply));
+        require(msg.value > rmul(startProportion,PAIDAO(master).totalSupply()));
         msg.sender.transfer(msg.value,ASSET_PIS);
         return startVoteInternal(_proposalId,_startTime);
     }
 
-    function startVoteByAuthroity(uint _proposalId, uint _startTime) public payable auth(preVoteContract) returns(uint) {
+    function startVoteByAuthroity(uint _proposalId, uint _startTime) public auth(preVoteContract) returns(uint) {
         return startVoteInternal(_proposalId,_startTime);
     }
 
@@ -82,7 +81,7 @@ contract PISVote is DSMath, Execution, Template, ACLSlave {
             v.status = VoteStatus.NOTSTARTED;
             return;
         }
-        if (height() > add(v.startTime, voteDuration)) {
+        if (height() > add(v.startTime, duration)) {
             if(0 == v.agreeVotes || v.agreeVotes < rmul(add(add(v.agreeVotes,v.disagreeVotes),v.abstainVotes),passProportion)) {
                 v.status = VoteStatus.REJECTED;
                 return;
@@ -115,7 +114,7 @@ contract PISVote is DSMath, Execution, Template, ACLSlave {
         updatePISVoteStatus(voteId);
         require(votes[voteId].status == VoteStatus.APPROVED);
         require(false == votes[voteId].executed);
-        require(height() < add(add(votes[voteId].startTime, voteDuration),validityTerm));
+        require(height() < add(add(votes[voteId].startTime, duration),validityTerm));
         uint len = items.length;
         for(uint i = 0; i < len; i++) {
             execute(items[i].target,abi.encodePacked(items[i].func, items[i].param));

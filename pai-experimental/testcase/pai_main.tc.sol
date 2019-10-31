@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
 import "../../library/template.sol";
-import "../3rd/math.sol";
+import "../../library/utils/ds_math.sol";
 import "../testPI.sol";
 import "../pai_main.sol";
 import "./testPrepare.sol";
@@ -11,7 +11,7 @@ contract TestPaiMain is Template, DSTest, DSMath {
 
     uint96 ASSET_PIS;
     string ADMIN = "ADMIN";
-    string PISVOTE = "PISVOTE";
+    string DirPisVote = "DirPisVote";
     string TESTLIMITATION = "TESTLIMITATION";
 
     function testInit() public {
@@ -46,22 +46,22 @@ contract TestPaiMain is Template, DSTest, DSMath {
         ASSET_PIS = paiDAO.PISGlobalId();
         FakePerson p1 = new FakePerson();
         p1.callMint(paiDAO,100000000,p1);
-        (bool exist, string memory name, string memory symbol, string memory description, uint32 assetType, uint totalSupply) =
-            paiDAO.getAssetInfo(0);
+        Registry registry = Registry(0x630000000000000000000000000000000000000065);
+        (bool exist, string memory name, string memory symbol, string memory description, uint totalSupply,) =
+            registry.getAssetInfoByAssetId(paiDAO.organizationId(),0);
         assertTrue(exist);//0
         assertEq(name,"PIS");//1
         assertEq(symbol,"PIS");//2
         assertEq(description,"Share of PAIDAO");//3
-        assertEq(uint(assetType),0);//4
-        assertEq(totalSupply,100000000);//5
+        assertEq(totalSupply,100000000);//4
 
         paiDAO.mint(100000000,p1);
-        (,,,,,totalSupply) = paiDAO.getAssetInfo(0);
-        assertEq(totalSupply,200000000);//6
+        totalSupply = paiDAO.totalSupply();
+        assertEq(totalSupply,200000000);//5
         bool tempBool = p1.callBurn(paiDAO,50000000,ASSET_PIS);
-        assertTrue(tempBool);//7
-        (,,,,,totalSupply) = paiDAO.getAssetInfo(0);
-        assertEq(totalSupply,150000000);//8
+        assertTrue(tempBool);//6
+        totalSupply = paiDAO.totalSupply();
+        assertEq(totalSupply,150000000);//7
     }
 
     function testGovernance() public {
@@ -76,29 +76,29 @@ contract TestPaiMain is Template, DSTest, DSMath {
         paiDAO.init();
         ASSET_PIS = paiDAO.PISGlobalId();
 
-        p1.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
-        p1.callAddMember(paiDAO,p1,"PISVOTE");
+        p1.callCreateNewRole(paiDAO,"DirPisVote","ADMIN",0,false);
+        p1.callAddMember(paiDAO,p1,"DirPisVote");
 
-        assertTrue(paiDAO.addressExist(bytes(PISVOTE),p1));//0
+        assertTrue(paiDAO.addressExist(bytes(DirPisVote),p1));//0
 
 
         bool tempBool = p1.callMint(paiDAO,100000000,p1);
         assertTrue(tempBool);//1
         tempBool = p2.callMint(paiDAO,100000000,p2);
         assertTrue(!tempBool);//2
-        tempBool = p1.callAddMember(paiDAO,p2,"PISVOTE");
+        tempBool = p1.callAddMember(paiDAO,p2,"DirPisVote");
         assertTrue(tempBool);//3
         tempBool = p2.callMint(paiDAO,100000000,p2);
         assertTrue(tempBool);//4
-        tempBool = p1.callRemoveMember(paiDAO,p2,"PISVOTE");
+        tempBool = p1.callRemoveMember(paiDAO,p2,"DirPisVote");
         assertTrue(tempBool);//5
         tempBool = p2.callMint(paiDAO,100000000,p2);
         assertTrue(!tempBool);//6
 
 
-        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR","ADMIN",0);
+        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR","ADMIN",0,false);
         assertTrue(tempBool);//7
-        tempBool = p1.callCreateNewRole(paiDAO,"CASHIER","DIRECTOR",0);
+        tempBool = p1.callCreateNewRole(paiDAO,"CASHIER","DIRECTOR",0,false);
         assertTrue(tempBool);//8
         tempBool = p1.callAddMember(paiDAO,p3,"DIRECTOR");
         assertTrue(tempBool);//9
@@ -111,9 +111,9 @@ contract TestPaiMain is Template, DSTest, DSMath {
         tempBool = p3.callAddMember(paiDAO,p5,"CASHIER");
         assertTrue(!tempBool);//13
 
-        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR2","ADMIN",0);
+        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR2","ADMIN",0,false);
         assertTrue(tempBool);//14
-        tempBool = p1.callCreateNewRole(paiDAO,"CASHIER2","DIRECTOR2",0);
+        tempBool = p1.callCreateNewRole(paiDAO,"CASHIER2","DIRECTOR2",0,false);
         assertTrue(tempBool);//15
         tempBool = p1.callAddMember(paiDAO,p4,"CASHIER2");
         assertTrue(!tempBool);//16
@@ -147,11 +147,11 @@ contract TestPaiMain is Template, DSTest, DSMath {
         assertTrue(tempBool); //28
 
 
-        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR3","ADMIN",0);
+        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR3","ADMIN",0,false);
         assertTrue(tempBool);//29
-        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR4","ADMIN",0);
+        tempBool = p1.callCreateNewRole(paiDAO,"DIRECTOR4","ADMIN",0,false);
         assertTrue(tempBool);//30
-        tempBool = p1.callCreateNewRole(paiDAO,"CASHIER3","DIRECTOR3",0);
+        tempBool = p1.callCreateNewRole(paiDAO,"CASHIER3","DIRECTOR3",0,false);
         assertTrue(tempBool);//31
         tempBool = p1.callAddMember(paiDAO,p2,"DIRECTOR3");
         assertTrue(tempBool);//32
@@ -170,7 +170,7 @@ contract TestPaiMain is Template, DSTest, DSMath {
         tempBool = p3.callAddMember(paiDAO,p5,"CASHIER3");
         assertTrue(tempBool);//39
 
-        tempBool = p1.callCreateNewRole(paiDAO,"TESTLIMITATION","ADMIN",3);
+        tempBool = p1.callCreateNewRole(paiDAO,"TESTLIMITATION","ADMIN",3,false);
         assertTrue(tempBool);//40
         tempBool = p1.callAddMember(paiDAO,p1,"TESTLIMITATION");
         assertTrue(tempBool);//41
@@ -214,17 +214,17 @@ contract TestPaiMain is Template, DSTest, DSMath {
 
         paiDAO = FakePaiDao(p1.createPAIDAO("PAIDAO"));
         paiDAO.init();
-        bool tempBool = p2.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
+        bool tempBool = p2.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0,false);
         assertTrue(!tempBool);
-        tempBool = p1.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0);
+        tempBool = p1.callCreateNewRole(paiDAO,"PISVOTE","ADMIN",0,false);
         assertTrue(tempBool);
         tempBool = p1.callAddMember(paiDAO,p3,"PISVOTE");
         assertTrue(tempBool);
-        tempBool = p3.callCreateNewRole(paiDAO,"CHANGETEST","ADMIN",0);
+        tempBool = p3.callCreateNewRole(paiDAO,"CHANGETEST","ADMIN",0,false);
         assertTrue(!tempBool);
         tempBool = p1.callChangeTopAdmin(paiDAO,"PISVOTE");
         assertTrue(tempBool);
-        tempBool = p3.callCreateNewRole(paiDAO,"CHANGETEST","ADMIN",0);
+        tempBool = p3.callCreateNewRole(paiDAO,"CHANGETEST","ADMIN",0,false);
         assertTrue(tempBool);
 
     }

@@ -37,8 +37,9 @@ contract FakeBTCIssuer is Template, DSMath {
     function mint(uint amount, address dest) public {
         if(firstTry) {
             firstTry = false;
-            flow.createAsset(assetType, assetIndex, amount);
-            registry.newAsset("FBTC", "FBTC", "Fake BTC Pegging Coin", assetType, assetIndex);
+            //flow.createAsset(assetType, assetIndex, amount);
+            registry.newAsset("FBTC", "FBTC", "Fake BTC Pegging Coin", assetType, assetIndex,amount);
+            flow.mintAsset(assetIndex, amount);
         } else {
             flow.mintAsset(assetIndex, amount);
         }

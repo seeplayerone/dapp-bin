@@ -1,6 +1,6 @@
 pragma solidity 0.4.25;
 
-import "../library/utils/ds-note.sol";
+import "../library/utils/ds_note.sol";
 import "../library/template.sol";
 import "./pai_issuer.sol";
 import "./pai_finance.sol";
@@ -11,7 +11,7 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
     //time deposit certificates
     event SetParam(uint paramType, uint param);
     //please check specific meaning of type in each method
-    event SetFloatUp(TDCType _type, uint _newFloatUp);
+    event SetRateAdj(TDCType _type, int _newRateAdj);
     event SetTerm(TDCType _type, uint _newTerm);
     event SetState(TDCType _type, bool newState);
     event SetContract(uint contractType, address contractAddress);
@@ -26,12 +26,9 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
 
     uint256 public TDCIndex = 0; /// how many TDCs have been created
 
-    /// @notice 不需要这个值，直接从settings里面读取即可
-    uint public baseInterestRate; ///annualized interest rate, in RAY
-
     //There are 10 kinds of TDCs.
     enum TDCType {_30DAYS,_60DAYS,_90DAYS,_180DAYS,_360DAYS,FLEXIABLE1,FLEXIABLE2,FLEXIABLE3,FLEXIABLE4,FLEXIABLE5}
-    mapping(uint8 => uint) public floatUp;
+    mapping(uint8 => int) public rateAdj;
     mapping(uint8 => uint) public term;
     mapping(uint8 => bool) public enable;
 
@@ -40,7 +37,6 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
     Finance public finance;
     Setting public setting;
 
-    bool public disableDeposit;
     bool public disableGetInterest;
 
     mapping (uint => TDCRecord) public TDCRecords; /// all TDC records
@@ -62,16 +58,15 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         ) public {
         master = ACLMaster(paiMainContract);
         setting = Setting(_setting);
-        baseInterestRate = setting.depositInterestRate();
         issuer = PAIIssuer(_issuer);
         ASSET_PAI = issuer.PAIGlobalId();
         finance = Finance(_finance);
 
-        floatUp[uint8(TDCType._30DAYS)] = RAY * 4 / 1000;
-        floatUp[uint8(TDCType._60DAYS)] = RAY * 6 / 1000;
-        floatUp[uint8(TDCType._90DAYS)] = RAY * 8 / 1000;
-        floatUp[uint8(TDCType._180DAYS)] = RAY * 10 / 1000;
-        floatUp[uint8(TDCType._360DAYS)] = RAY * 12 / 1000;
+        rateAdj[uint8(TDCType._30DAYS)] = int(RAY * 4 / 1000);
+        rateAdj[uint8(TDCType._60DAYS)] = int(RAY * 6 / 1000);
+        rateAdj[uint8(TDCType._90DAYS)] = int(RAY * 8 / 1000);
+        rateAdj[uint8(TDCType._180DAYS)] = int(RAY * 10 / 1000);
+        rateAdj[uint8(TDCType._360DAYS)] = int(RAY * 12 / 1000);
         term[uint8(TDCType._30DAYS)] = 30 days;
         term[uint8(TDCType._60DAYS)] = 60 days;
         term[uint8(TDCType._90DAYS)] = 90 days;
@@ -89,59 +84,41 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         return block.timestamp;
     }
 
-    /// @notice not necessary
-    function updateBaseInterestRate() public note {
-        baseInterestRate = setting.depositInterestRate();
-        emit SetParam(0,baseInterestRate);
+    function updateRateAdj(TDCType _type, int _newRateAdj) public note auth("50%Demonstration@STCoin") {
+        rateAdj[uint8(_type)] = _newRateAdj;
+        emit SetRateAdj(_type,_newRateAdj);
     }
 
-    function updateFloatUp(TDCType _type, uint _newFloatUp) public note auth("DIRECTORVOTE") {
-        floatUp[uint8(_type)] = _newFloatUp;
-        emit SetFloatUp(_type,_newFloatUp);
-    }
-
-    function updateTerm(TDCType _type, uint _newTerm) public note auth("DIRECTORVOTE") {
+    function updateTerm(TDCType _type, uint _newTerm) public note auth("100%DemPreVote@STCoin") {
         require(_type > TDCType._360DAYS);
         term[uint8(_type)] = _newTerm;
         emit SetTerm(_type,_newTerm);
     }
 
-    function changeState(TDCType _type, bool newState) public note auth("DIRECTORVOTE") {
+    function changeState(TDCType _type, bool newState) public note auth("50%DemPreVote@STCoin") {
         enable[uint8(_type)] = newState;
         emit SetState(_type,newState);
     }
 
-    function switchDeposit(bool newState) public note auth("DIRECTORVOTE") {
-        disableDeposit = newState;
-        emit FunctionSwitch(0,newState);
-    }
-
-    function switchGetInterest(bool newState) public note auth("DIRECTORVOTE") {
+    function switchGetInterest(bool newState) public note auth("50%DemPreVote@STCoin") {
         disableGetInterest = newState;
         emit FunctionSwitch(1,newState);
     }
 
-    function setSetting(address _setting) public note auth("DIRECTORVOTE") {
+    function setSetting(address _setting) public note auth("100%Demonstration@STCoin") {
         setting = Setting(_setting);
         emit SetContract(0,setting);
-        baseInterestRate = setting.depositInterestRate();
-        emit SetParam(0,baseInterestRate);
     }
 
-    function setPAIIssuer(PAIIssuer newIssuer) public note auth("DIRECTORVOTE") {
-        issuer = newIssuer;
-        emit SetContract(1,issuer);
-        ASSET_PAI = issuer.PAIGlobalId();
-        emit SetParam(1,ASSET_PAI);
+    function setFinance(address _finance) public note auth("100%Demonstration@STCoin") {
+        finance = Finance(_finance);
+        emit SetContract(1,_finance);
     }
-
-    //function setFinance
 
     /// @dev TDC base operations
     /// create a TDC
     function deposit(TDCType _type) public payable returns (uint record) {
         require(setting.globalOpen());
-        require(!disableDeposit);
         require(enable[uint8(_type)]);
         require(msg.assettype == ASSET_PAI);
 
@@ -178,7 +155,10 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
     }
 
     function getInterestRate(TDCType _type) public view returns (uint) {
-        return add(baseInterestRate,floatUp[uint8(_type)]);
+        if(rateAdj[uint8(_type)] > 0) {
+            return add(setting.depositInterestRate(),uint(rateAdj[uint8(_type)]));
+        }
+        return sub(setting.depositInterestRate(),uint(-rateAdj[uint8(_type)]));
     }
 
     function passedTime(uint record) public view returns (uint) {

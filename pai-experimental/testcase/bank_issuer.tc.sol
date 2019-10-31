@@ -15,8 +15,8 @@ contract TestBankIssuer is Template, DSTest {
         paiDAO.init();
         FakeBankIssuer issuer = new FakeBankIssuer("BANKISSUER",paiDAO);
         issuer.init();
-        issuer.createAsset("aa","bb","cc");
-        issuer.createAsset("bbb","ccc","ddd");
+        issuer.createAsset("aa","bb","cc",1);
+        issuer.createAsset("bbb","ccc","ddd",2);
 
         FakePerson p1 = new FakePerson();
         FakePerson p2 = new FakePerson();
@@ -25,22 +25,20 @@ contract TestBankIssuer is Template, DSTest {
         string memory name;
         string memory symbol;
         string memory des;
-        uint32 id;
         uint supply;
-        (exist,name,symbol,des,id,supply) = issuer.getAssetInfo(1);
+        Registry registry = Registry(0x630000000000000000000000000000000000000065);
+        (exist,name,symbol,des,supply,) = registry.getAssetInfoByAssetId(issuer.organizationId(),1);
         assertTrue(exist);
         assertEq(name,"aa");
         assertEq(symbol,"bb");
         assertEq(des,"cc");
-        assertEq(uint(id),0);
         assertEq(supply,0);
         ASSET_A = issuer.AssetGlobalId(1);
-        (exist,name,symbol,des,id,supply) = issuer.getAssetInfo(2);
+        (exist,name,symbol,des,supply,) = registry.getAssetInfoByAssetId(issuer.organizationId(),2);
         assertTrue(exist);
         assertEq(name,"bbb");
         assertEq(symbol,"ccc");
         assertEq(des,"ddd");
-        assertEq(uint(id),0);
         assertEq(supply,0);
         ASSET_B = issuer.AssetGlobalId(2);
 

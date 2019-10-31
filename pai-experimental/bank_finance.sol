@@ -7,7 +7,7 @@ import "./pai_setting.sol";
 import "./pai_main.sol";
 import "./price_oracle.sol";
 
-contract Finance is Template,ACLSlave,DSMath {
+contract BankFinance is Template,ACLSlave,DSMath {
     constructor(address paiMainContract) public {
         master = ACLMaster(paiMainContract);
     }
@@ -15,7 +15,7 @@ contract Finance is Template,ACLSlave,DSMath {
     function() public payable {
     }
 
-    function cashOut(uint96 assetGlobalId, uint amount, address dest) public auth("Director@Bank") {
+    function cashOut(uint96 assetGlobalId, uint amount, address dest) public auth("50%DirVote@Bank") {
         require(amount > 0);
         dest.transfer(amount,assetGlobalId);
     }

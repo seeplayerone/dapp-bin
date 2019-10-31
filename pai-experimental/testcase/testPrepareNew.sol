@@ -12,10 +12,15 @@ import "../cdp.sol";
 import "../tdc.sol";
 import "../settlement.sol";
 import "../fake_btc_issuer.sol";
-import "../pai_election.sol";
-import "../pai_PISvote_special.sol";
-import "../pai_PISvote_standard.sol";
-import "../pai_director_vote.sol";
+import "../pai_election_director.sol";
+import "../pai_PISvote.sol";
+import "../pai_proposal.sol";
+import "../pai_DIRvote.sol";
+import "../pai_demonstration.sol";
+import "../bank_assistant.sol";
+import "../bank_issuer.sol";
+import "../bank_finance.sol";
+import "../bank_business.sol";
 
 contract FakePerson is Template {
     function() public payable {}
@@ -31,100 +36,6 @@ contract FakePerson is Template {
     function execute(address target, bytes4 selector, bytes params) public returns (bool){
         return target.call(abi.encodePacked(selector, params));
     }
-
-    // function createPAIDAONoGovernance(string _str) public returns (address) {
-    //     return (new FakePaiDaoNoGovernance(_str));
-    // }
-
-    function callCreateNewRole(address paidao, string newRole, string superior, uint32 limit) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("createNewRole(bytes,bytes,uint32)"));
-        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,bytes(newRole),bytes(superior),limit));
-        return result;
-    }
-
-    function callChangeTopAdmin(address paidao, string newAdmin) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("changeTopAdmin(string)"));
-        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,newAdmin));
-        return result;
-    }
-
-    function callAddMember(address paidao, address _address, string role) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("addMember(address,bytes)"));
-        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,_address,bytes(role)));
-        return result;
-    }
-
-    function callRemoveMember(address paidao, address _address, string role) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("removeMember(address,bytes)"));
-        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,_address,bytes(role)));
-        return result;
-    }
-
-    function callMint(address paidao, uint amount, address dest) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("mint(uint256,address)"));
-        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId,amount,dest));
-        return result;
-    }
-
-    function callChangeSuperior(address paidao, string role, string newSuperior) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("changeSuperior(bytes,bytes)"));
-        bool result = PAIDAO(paidao).call(abi.encodeWithSelector(methodId, bytes(role),bytes(newSuperior)));
-        return result;
-    }
-
-    function callUpdateRatioLimit(address setting, uint96 assetGlobalId, uint newRate) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("updateRatioLimit(uint96,uint256)"));
-        bool result = Setting(setting).call(abi.encodeWithSelector(methodId,assetGlobalId,newRate));
-        return result;
-    }
-
-    function callSetTDC(address finance, address _tdc) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("setTDC(address)"));
-        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,_tdc));
-        return result;
-    }
-
-    function callSetPISseller(address finance, address newSeller) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("setPISseller(address)"));
-        bool result = TimefliesFinance(finance).call(abi.encodeWithSelector(methodId,newSeller));
-        return result;
-    }
-
-    function callCreateNewElectionType(address election, bytes role, uint limits) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("createNewElectionType(bytes,uint256)"));
-        bool result = PISelection(election).call(abi.encodeWithSelector(methodId,role,limits));
-        return result;
-    }
-
-    // function callStartProposal(address VSP, bytes32 _attachmentHash,uint _startTime, PISVoteSpecial.Order[] memory orders,uint amount,uint96 id) public returns (bool) {
-    //     bytes4 methodId = bytes4(keccak256("startProposal(bytes32,uint256,Order[])"));
-    //     bool result = PISVoteSpecial(VSP).call.value(amount,id)(abi.encodeWithSelector(methodId,_attachmentHash,_startTime,orders));
-    //     return result;
-    // }
-
-    function callStartProposal(address VST, bytes32 _attachmentHash, uint FuncDataId, uint _startTime,address _targetContract,bytes[] params,uint amount,uint96 id) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("startProposal(bytes32,uint256,uint256,address,bytes[])"));
-        bool result = PISVoteStandard(VST).call.value(amount,id)(abi.encodeWithSelector(methodId,_attachmentHash,FuncDataId,_startTime,_targetContract,params));
-        return result;
-    }
-
-    function callStartProposal(address DV, bytes32 _attachmentHash, uint FuncDataId, uint _startTime,address _targetContract,bytes[] params) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("startProposal(bytes32,uint256,uint256,address,bytes[])"));
-        bool result = DirectorVoteContract(DV).call(abi.encodeWithSelector(methodId,_attachmentHash,FuncDataId,_startTime,_targetContract,params));
-        return result;
-    }
-
-    function callAddNewVoteParam(address VST, uint _passProportion,bytes4 _func,uint _pisVoteDuration) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("addNewVoteParam(uint256,bytes4,uint256)"));
-        bool result = PISVoteStandard(VST).call(abi.encodeWithSelector(methodId,_passProportion,_func,_pisVoteDuration));
-        return result;
-    }
-
-    function callAddNewVoteParam(address DV,uint _passVotes, uint _passProportion,bytes4 _func,uint _directorVoteDuration, uint _pisVoteDuration) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("addNewVoteParam(uint256,uint256,bytes4,uint256,uint256)"));
-        bool result = DirectorVoteContract(DV).call(abi.encodeWithSelector(methodId,_passVotes,_passProportion,_func,_directorVoteDuration,_pisVoteDuration));
-        return result;
-    }
 }
 
 contract FakePAIIssuer is PAIIssuer {
@@ -132,6 +43,14 @@ contract FakePAIIssuer is PAIIssuer {
         PAIIssuer(_organizationName,paiMainContract)
     public {
         templateName = "Fake-Template-Name-For-Test-pai_issuer";
+    }
+}
+
+contract FakeBankIssuer is BankIssuer {
+    constructor(string _organizationName, address paiMainContract)
+        BankIssuer(_organizationName,paiMainContract)
+    public {
+        templateName = "Fake-Template-Name-For-Test-bank_issuer";
     }
 }
 
@@ -217,32 +136,38 @@ contract TimefliesFinance is Finance, TestTimeflies {
     }
 }
 
-contract TimefliesElection is PISelection,TestTimeflies {
-    constructor(address paiMainContract)
-    PISelection(paiMainContract)
+contract TimefliesElection is PAIElectionDirector,TestTimeflies {
+    constructor(address pisContract, string winnerRole, string backupRole)
+    PAIElectionDirector(pisContract,winnerRole,backupRole)
     public {
     }
 }
 
 
-
-contract TimefliesVoteSP is PISVoteSpecial,TestTimeflies {
-    constructor(address paiMainContract)
-    PISVoteSpecial(paiMainContract)
+contract TimefliesPISVote is PISVote,TestTimeflies {
+    constructor(address paiMainContract, address _proposal, uint _passProportion, uint _startProportion, uint _pisVoteDuration, string preVote)
+    PISVote(paiMainContract,_proposal,_passProportion,_startProportion,_pisVoteDuration,preVote)
     public {
     }
 }
 
-contract TimefliesVoteST is PISVoteStandard,TestTimeflies {
-    constructor(address paiMainContract)
-    PISVoteStandard(paiMainContract)
+contract TimefliesDIRVote is DIRVote,TestTimeflies {
+    constructor(address paiMainContract, address _proposal, address _nextVote, uint _passProportion, uint _voteDuration, string _director, string _originator)
+    DIRVote(paiMainContract, _proposal, _nextVote, _passProportion, _voteDuration, _director,_originator)
     public {
     }
 }
 
-contract TimefliesVoteDir is DirectorVoteContract,TestTimeflies {
-    constructor(address paiMainContract)
-    DirectorVoteContract(paiMainContract)
+contract TimefliesDemonstration is Demonstration,TestTimeflies {
+    constructor(address paiMainContract, address _proposal, address _nextVote, uint _passProportion, uint _duration, string preVote)
+    Demonstration(paiMainContract, _proposal, _nextVote, _passProportion, _duration, preVote)
+    public {
+    }
+}
+
+contract TimefliesBankBusiness is BankBusiness,TestTimeflies {
+    constructor(address paiMainContract, address _issuer, address _finance, uint _baseTime)
+    BankBusiness(paiMainContract, _issuer, _finance, _baseTime)
     public {
     }
 }

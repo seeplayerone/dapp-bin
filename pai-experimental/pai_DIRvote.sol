@@ -33,23 +33,29 @@ contract DIRVote is DSMath, Execution, Template, ACLSlave {
     mapping(uint => vote) public votes;
     uint public lastVoteId = 0;
     string public director;
+    string public AnotherOriginator;
 
     ProposalData public proposal;
     PISVote public nextVoteContract;
 
-    constructor(address paiMainContract, address _proposal, address _nextVote, uint _passProportion, uint _duration, string _director) {
+    constructor(address paiMainContract, address _proposal, address _nextVote, uint _passProportion, uint _duration, string _director, string _originator) {
         master = ACLMaster(paiMainContract);
         proposal = ProposalData(_proposal);
         nextVoteContract = PISVote(_nextVote);
         passProportion = _passProportion;
         duration = _duration;
         director = _director;
+        AnotherOriginator = _originator;
         // passProportion = RAY * 2 / 3;
         // startProportion = RAY / 20;
         // pisVoteDuration = 10 days / 5;
     }
 
-    function startVote(uint _proposalId, uint _startTime, ExectionType _execType) public payable auth(director) returns(uint) {
+    function startVote(uint _proposalId, uint _startTime, ExectionType _execType) public auth(director) returns(uint) {
+        return startVoteInternal(_proposalId,_startTime,_execType);
+    }
+
+    function startVoteByOthers(uint _proposalId, uint _startTime, ExectionType _execType) public auth(AnotherOriginator) returns(uint) {
         return startVoteInternal(_proposalId,_startTime,_execType);
     }
 
