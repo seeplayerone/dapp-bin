@@ -4,17 +4,19 @@ import "../library/template.sol";
 import "../library/utils/ds_math.sol";
 import "./asi_registry.sol";
 
+/**
+    @dev Note this contract is only for TEST, should not be deployed on PROD
+ */
+
 contract FakeBTCIssuer is Template, DSMath {
     string private name = "Fake_BTC_ISSUER";
-    uint32 private orgnizationID;
+    uint32 private organizationID;
     uint32 private assetIndex;
     uint32 private assetType;
     uint256 private ASSET_BTC;
     
-    uint private totalSupply = 0;
     Registry registry;
 
-    bool private firstTry;
     address private hole = 0x660000000000000000000000000000000000000000;
 
     function() public payable {
@@ -23,34 +25,26 @@ contract FakeBTCIssuer is Template, DSMath {
 
     function init(string _name) public {
         name = _name;
-        /// TODO organization registration should be done in DAO
         registry = Registry(0x630000000000000000000000000000000000000065);
-        orgnizationID = registry.registerOrganization(name, "Fake-Template-Name-For-Test");
+        organizationID = registry.registerOrganization(name, "Fake-Template-Name-For-Test");
         assetIndex = 1;
         assetType = 0;
-        uint64 assetId = uint64(assetType) << 32 | uint64(orgnizationID);
+        uint64 assetId = uint64(assetType) << 32 | uint64(organizationID);
         uint96 asset = uint96(assetId) << 32 | uint96(assetIndex);
         ASSET_BTC = asset;
-        firstTry = true;
+        registry.newAsset("FBTC", "FBTC", "Fake BTC Pegging Coin", assetType, assetIndex, 0);
     }
 
     function mint(uint amount, address dest) public {
-        if(firstTry) {
-            firstTry = false;
-            //flow.createAsset(assetType, assetIndex, amount);
-            registry.newAsset("FBTC", "FBTC", "Fake BTC Pegging Coin", assetType, assetIndex,amount);
-            flow.mintAsset(assetIndex, amount);
-        } else {
-            flow.mintAsset(assetIndex, amount);
-        }
+        flow.mintAsset(assetIndex, amount);
+        registry.mintAsset(assetIndex, amount);
         dest.transfer(amount, ASSET_BTC);
-        totalSupply = add(totalSupply, amount);
     }
 
     function burn() public payable {
         require(msg.assettype == ASSET_BTC);
+        registry.burnAsset(assetIndex,msg.value);
         hole.transfer(msg.value, msg.assettype);
-        totalSupply = sub(totalSupply, msg.value);
     }
 
     function getAssetType() public view returns (uint256) {
@@ -62,6 +56,7 @@ contract FakeBTCIssuer is Template, DSMath {
         view 
         returns (bool, string, string, string, uint32, uint)
     {
-        return (true, "FBTC", "FBTC", "Fake BTC Pegging Coin", 0, totalSupply);
+        (,,,,uint supply,) = registry.getAssetInfoByAssetId(organizationID, assetIndex);
+        return (true, "FBTC", "FBTC", "Fake BTC Pegging Coin", 0, supply);
     }
 }
