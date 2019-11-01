@@ -7,7 +7,7 @@ contract Setting is Template, DSMath, ACLSlave {
     uint public lendingInterestRate; // in RAY
     uint public depositInterestRate; // in RAY
     int public currentDepositAdjustment; // in RAY
-    mapping(uint96 => uint) public mintPaiRatioLimit; //in RAY
+    mapping(uint96 => uint) public paiForAssetRatioThreshold; //in RAY
     bool public globalOpen;
     constructor(address paiMainContract) public {
         master = ACLMaster(paiMainContract);
@@ -30,7 +30,7 @@ contract Setting is Template, DSMath, ACLSlave {
     }
 
     function updateRatioLimit(uint96 assetGlobalId, uint ratio) public auth("DirVote@STCoin") {
-        mintPaiRatioLimit[assetGlobalId] = ratio;
+        paiForAssetRatioThreshold[assetGlobalId] = ratio;
     }
 
     function globalShutDown() public auth("DirPisVote") {

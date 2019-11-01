@@ -333,7 +333,7 @@ contract CDP is MathPI, DSNote, Template, ACLSlave {
         require(amount >= lowerBorrowingLimit);
         require(add(msg.value,totalCollateral()) <= debtCeiling);
         uint totalPaiSupply = issuer.totalSupply();
-        require(add(totalPrincipal,amount) <= rmul(add(totalPaiSupply,amount), setting.mintPaiRatioLimit(ASSET_COLLATERAL)) || 0 == totalPaiSupply);
+        require(add(totalPrincipal,amount) <= rmul(add(totalPaiSupply,amount), setting.paiForAssetRatioThreshold(ASSET_COLLATERAL)) || 0 == totalPaiSupply);
         uint id = createCDPInternal(_type);
         depositInternal(id);
         borrowInternal(id, amount);

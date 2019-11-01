@@ -15,11 +15,11 @@ contract Settlement is Template, DSNote, ACLSlave {
     Liquidator private liquidator;
     PriceOracle private oracle;
 
-    constructor(address paiMainContract,address _po, address _cdp, address _lq) public {
-        master = ACLMaster(paiMainContract);
-        oracle = PriceOracle(_po);
+    constructor(address pisContract,address _oracle, address _cdp, address _liquidator) public {
+        master = ACLMaster(pisContract);
+        oracle = PriceOracle(_oracle);
         cdp = CDP(_cdp);
-        liquidator = Liquidator(_lq);
+        liquidator = Liquidator(_liquidator);
     }
 
     /// terminate business => settlement process starts
