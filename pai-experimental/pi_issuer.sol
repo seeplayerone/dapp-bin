@@ -19,10 +19,10 @@ contract PAIIssuer is Template, DSMath, ACLSlave {
     ///params for burn
     address private constant zeroAddr = 0x660000000000000000000000000000000000000000;
     
-    constructor(string _organizationName, address paiMainContract) public
+    constructor(string _organizationName, address pisContract) public
     {
         organizationName = _organizationName;
-        master = ACLMaster(paiMainContract);
+        master = ACLMaster(pisContract);
     }
 
     function init() public {
@@ -31,7 +31,7 @@ contract PAIIssuer is Template, DSMath, ACLSlave {
         organizationId = registry.registerOrganization(organizationName, templateName);
         uint64 PAILocalId = (uint64(assetType) << 32 | uint64(organizationId));
         PAIGlobalId = uint96(PAILocalId) << 32 | uint96(assetIndex);
-        registry.newAsset("PAI", "PAI", "PAI Stable Coin", assetType, assetIndex,0);
+        registry.newAsset("PAI", "PAI", "PAI Stable Coin", assetType, assetIndex, 0);
         registed = true;
     }
 

@@ -23,24 +23,24 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
 
     PriceOracle public priceOracle; /// price oracle
     PAIIssuer public issuer; /// PAI issuer
-    string public CDP_NAME;///identify different cdps
-    Finance public finance; ///finance contract
-    Setting public setting;
+    string public CDP_NAME; /// identify different cdps
+    Finance public finance; /// finance contract
+    Setting public setting; /// global setting contract
 
     constructor(
-        address paiMainContract,
+        address pisContract,
         address _oracle,
         address _issuer,
-        string cdpName,
+        string _cdpName,
         address _finance,
         address _setting
         ) public {
-        master = ACLMaster(paiMainContract);
+        master = ACLMaster(pisContract);
         priceOracle = PriceOracle(_oracle);
         ASSET_COLLATERAL = priceOracle.assetId();
         issuer = PAIIssuer(_issuer);
         ASSET_PAI = issuer.PAIGlobalId();
-        CDP_NAME = cdpName;
+        CDP_NAME = _cdpName;
         finance = Finance(_finance);
         setting = Setting(_setting);
         discount1 = RAY * 97 / 100;
@@ -91,7 +91,7 @@ contract Liquidator is DSMath, DSNote, Template, ACLSlave {
                 totalDebt = 0;
             }
             if(totalAssetPAI() > 0) {
-                finance.transfer(totalAssetPAI(), ASSET_PAI);
+                address(finance).transfer(totalAssetPAI(), ASSET_PAI);
             }
             return;
         }
