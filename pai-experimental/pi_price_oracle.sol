@@ -22,15 +22,16 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     string public ORACLE;
     address[] public disabledOracle;
 
-    struct singlePirce {
+    struct SinglePirce {
         address updater;
         uint price;
     }
-    singlePirce[] pirces;
+    SinglePirce[] prices;
 
-    constructor(string orcaleGroupName, address paiMainContract, uint _price, uint96 _assetId) public {
-        ORACLE = orcaleGroupName;
-        master = ACLMaster(paiMainContract);
+    /// @dev 相关参数都应该可以通过构造函数设置而不是写死了
+    constructor(string oracleGroupName, address pisContract, uint _price, uint96 _assetId) public {
+        ORACLE = oracleGroupName;
+        master = ACLMaster(pisContract);
         lastUpdateBlock = block.number;
         lastUpdatePrice = _price;
         lastUpdateIndex = 0;
@@ -55,23 +56,22 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     }
 
     function updateSinglePriceInternal(uint newPrice) internal {
-        uint len = pirces.length;
+        uint len = prices.length;
         for(uint i; i < len; i++) {
-            if(msg.sender == pirces[i].updater) {
-                pirces[i].price = newPrice;
+            if(msg.sender == prices[i].updater) {
+                prices[i].price = newPrice;
                 return;
             }
         }
-        singlePirce memory temp;
+        SinglePirce memory temp;
         temp.updater = msg.sender;
         temp.price = newPrice;
-        pirces.push(temp);
+        prices.push(temp);
     }
 
     function updateOverallPrice() internal {
-        if (effectivePriceNumber > pirces.length) {
+        if (effectivePriceNumber > prices.length) {
             lastUpdateBlock = height();
-            /// @notice 需要确保这个uint8能够被循环利用 256->0
             lastUpdateIndex = uint8(lastUpdateIndex + 1); //overflow is expected;
             //the lastUpdatePrice also needs to be updated, but its value needs no change, so the following code is noted.
             //lastUpdatePrice = lastUpdatePrice;
@@ -91,7 +91,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
             lastUpdatePrice = priceCalculated;
         }
         priceHistory[lastUpdateIndex] = lastUpdatePrice;
-        pirces.length = 0;
+        prices.length = 0;
     }
 
     function comparedPrice() internal view returns(uint) {
@@ -103,19 +103,19 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     }
 
     function calculatePrice() internal view returns (uint) {
-        require(pirces.length > 2);
+        require(prices.length > 2);
         uint sum;
         uint maxPrice;
         uint minPrice = uint(-1);
-        uint len = pirces.length;
+        uint len = prices.length;
         for(uint i; i < len; i++) {
-            if(pirces[i].price > maxPrice) {
-                maxPrice = pirces[i].price;
+            if(prices[i].price > maxPrice) {
+                maxPrice = prices[i].price;
             }
-            if(pirces[i].price < minPrice) {
-                minPrice = pirces[i].price;
+            if(prices[i].price < minPrice) {
+                minPrice = prices[i].price;
             }
-            sum = add(sum,pirces[i].price);
+            sum = add(sum,prices[i].price);
         }
         return sub(sum,add(maxPrice,minPrice)) / (len - 2);
     }
@@ -136,7 +136,7 @@ contract PriceOracle is Template, ACLSlave, DSMath {
     }
 
     function modifySensitivityRate(uint newRate) public auth("DirVote@STCoin") {
-        require(newRate > RAY /10000);
+        require(newRate > RAY / 10000);
         sensitivityRate = newRate;
     }
 
