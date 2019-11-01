@@ -214,13 +214,13 @@ contract SettingTest is TestBase {
     function testUpdateCreateCollateralRatio() public {
         setup();
         assertEq(cdp.createCollateralRatio(), 2 * RAY);
-        assertEq(cdp.createRatioTolerance(), RAY / 20);
+        assertEq(cdp.createToleranceRatio(), RAY / 20);
         bool tempBool = p1.callUpdateCreateCollateralRatio(cdp, 3 * RAY, RAY * 7 / 100);
         assertTrue(!tempBool);
         tempBool = admin.callUpdateCreateCollateralRatio(cdp, 3 * RAY, RAY * 7 / 100);
         assertTrue(tempBool);
         assertEq(cdp.createCollateralRatio(), 3 * RAY);
-        assertEq(cdp.createRatioTolerance(), RAY * 7 / 100);
+        assertEq(cdp.createToleranceRatio(), RAY * 7 / 100);
         tempBool = admin.callUpdateCreateCollateralRatio(cdp, 3 * RAY, RAY * 11 / 100);
         assertTrue(!tempBool);
         assertEq(cdp.liquidationRatio(), RAY * 3 / 2);

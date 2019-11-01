@@ -43,7 +43,6 @@ contract Finance is Template,ACLSlave,DSMath {
         return block.timestamp;
     }
 
-    /// @notice 为什么是任意人都能调用啊？
     function mintPIS() public {
         require(0x0 != PISseller);
         require(flow.balance(PISseller,ASSET_PIS) == 0);
@@ -77,7 +76,7 @@ contract Finance is Template,ACLSlave,DSMath {
     }
 
     function payForDebt(uint amount) public auth("Liqudator@STCoin") {
-        if (0 == amount)
+        if (0 == amount || 0 == flow.balance(this,ASSET_PAI))
             return;
         if (flow.balance(this,ASSET_PAI) > amount) {
             msg.sender.transfer(amount,ASSET_PAI);
@@ -101,12 +100,12 @@ contract Finance is Template,ACLSlave,DSMath {
         } else {
             delta = sub(timeNow(),lastAirDropCashOut);
         }
-        uint CashOutLimit = mul(delta,setting.currentDepositRate());
-        CashOutLimit =rmul(sub(sub(totalSupply,depositNumber),flow.balance(this,ASSET_PAI)),CashOutLimit) / 1 years;
-        if (CashOutLimit > amount) {
+        uint cashOutLimit = mul(delta,setting.currentDepositRate());
+        cashOutLimit =rmul(sub(sub(totalSupply,depositNumber),flow.balance(this,ASSET_PAI)),cashOutLimit) / 1 years;
+        if (cashOutLimit > amount) {
             applyAmount = amount;
         } else {
-            applyAmount = CashOutLimit;
+            applyAmount = cashOutLimit;
         }
         applyNonce = add(applyNonce,1);
         applyAddr = msg.sender;
