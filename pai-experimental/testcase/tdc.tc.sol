@@ -191,15 +191,15 @@ contract SettingTest is TestBase {
         }
     }
 
-    function testSwitchGetInterest() public {
+    function testupdateTDCGetInterstStatus() public {
         setup();
         assertTrue(!tdc.disableGetInterest());
-        bool tempBool = p1.callSwitchGetInterest(tdc,true);
+        bool tempBool = p1.callupdateTDCGetInterstStatus(tdc,true);
         assertTrue(!tempBool);
-        tempBool = admin.callSwitchGetInterest(tdc,true);
+        tempBool = admin.callupdateTDCGetInterstStatus(tdc,true);
         assertTrue(tempBool);
         assertTrue(tdc.disableGetInterest());
-        admin.callSwitchGetInterest(tdc,false);
+        admin.callupdateTDCGetInterstStatus(tdc,false);
         assertTrue(!tdc.disableGetInterest());
     }
 
@@ -404,10 +404,10 @@ contract FunctionTest is TestBase {
         tempBool = p2.callReturnMoney(tdc,1);
         assertTrue(tempBool);
 
-        admin.callSwitchGetInterest(tdc,true);
+        admin.callupdateTDCGetInterstStatus(tdc,true);
         tempBool = p2.callReturnMoney(tdc,2);
         assertTrue(!tempBool);
-        admin.callSwitchGetInterest(tdc,false);
+        admin.callupdateTDCGetInterstStatus(tdc,false);
         tempBool = p2.callReturnMoney(tdc,2);
         assertTrue(tempBool);
 

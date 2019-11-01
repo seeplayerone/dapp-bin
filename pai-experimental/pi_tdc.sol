@@ -47,16 +47,16 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         uint256 principal;
         uint256 interestRate;
         uint256 startTime;
-        uint256 principalPayed;
+        uint256 principalWithdrawn;
     }
 
     constructor(
-        address paiMainContract,
+        address pisContract,
         address _setting,
         address _issuer,
         address _finance
         ) public {
-        master = ACLMaster(paiMainContract);
+        master = ACLMaster(pisContract);
         setting = Setting(_setting);
         issuer = PAIIssuer(_issuer);
         ASSET_PAI = issuer.PAIGlobalId();
@@ -84,6 +84,7 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         return block.timestamp;
     }
 
+    /// @dev 需要判断合成利率是否为正，cdp也类似
     function updateRateAdj(TDCType _type, int _newRateAdj) public note auth("50%Demonstration@STCoin") {
         rateAdj[uint8(_type)] = _newRateAdj;
         emit SetRateAdj(_type,_newRateAdj);
@@ -100,7 +101,7 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         emit SetState(_type,newState);
     }
 
-    function switchGetInterest(bool newState) public note auth("50%DemPreVote@STCoin") {
+    function updateTDCGetInterstStatus(bool newState) public note auth("50%DemPreVote@STCoin") {
         disableGetInterest = newState;
         emit FunctionSwitch(1,newState);
     }
@@ -136,9 +137,9 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         require(setting.globalOpen());
         require(TDCRecords[record].owner != 0x0);
         require(msg.sender == TDCRecords[record].owner);
-        require(sub(TDCRecords[record].principal, TDCRecords[record].principalPayed) >= amount);
+        require(sub(TDCRecords[record].principal, TDCRecords[record].principalWithdrawn) >= amount);
         if (checkMaturity(record)) {
-            TDCRecords[record].principalPayed = add(TDCRecords[record].principalPayed,amount);
+            TDCRecords[record].principalWithdrawn = add(TDCRecords[record].principalWithdrawn,amount);
             emit Withdraw(record,msg.sender,amount,1);
         } else {
             TDCRecords[record].principal = sub(TDCRecords[record].principal,amount);
@@ -174,7 +175,7 @@ contract TDC is DSMath, DSNote, Template, ACLSlave {
         require(TDCRecords[record].principal != 0);
         require(checkMaturity(record));
         uint interest = mul(TDCRecords[record].principal,rmul(TDCRecords[record].interestRate, term[uint8(TDCRecords[record].tdcType)])) / 1 years;
-        uint principal = sub(TDCRecords[record].principal,TDCRecords[record].principalPayed);
+        uint principal = sub(TDCRecords[record].principal,TDCRecords[record].principalWithdrawn);
         if (interest > 0) {
             finance.payForInterest(interest,TDCRecords[record].owner);
         }

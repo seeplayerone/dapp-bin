@@ -419,8 +419,8 @@ contract FakePerson is Template {
         return result;
     }
 
-    function callSwitchGetInterest(address tdc, bool newState) public returns (bool) {
-        bytes4 methodId = bytes4(keccak256("switchGetInterest(bool)"));
+    function callupdateTDCGetInterstStatus(address tdc, bool newState) public returns (bool) {
+        bytes4 methodId = bytes4(keccak256("updateTDCGetInterstStatus(bool)"));
         bool result = TimefliesTDC(tdc).call(abi.encodeWithSelector(methodId,newState));
         return result;
     }
