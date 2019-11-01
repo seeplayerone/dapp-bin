@@ -199,15 +199,15 @@ contract SettingTest is TestBase {
         }
     }
 
-    function testSwitchCDPTransfer() public {
+    function testupdateCDPTransferState() public {
         setup();
         assertTrue(!cdp.disableCDPTransfer());
-        bool tempBool = p1.callSwitchCDPTransfer(cdp,true);
+        bool tempBool = p1.callupdateCDPTransferState(cdp,true);
         assertTrue(!tempBool);
-        tempBool = admin.callSwitchCDPTransfer(cdp,true);
+        tempBool = admin.callupdateCDPTransferState(cdp,true);
         assertTrue(tempBool);
         assertTrue(cdp.disableCDPTransfer());
-        admin.callSwitchCDPTransfer(cdp,false);
+        admin.callupdateCDPTransferState(cdp,false);
         assertTrue(!cdp.disableCDPTransfer());
     }
 
@@ -364,10 +364,10 @@ contract FunctionTest1 is TestBase {
         (,owner,,,,) = cdp.CDPRecords(idx);
         assertEq(owner, p1);//6
 
-        admin.callSwitchCDPTransfer(cdp,true);
+        admin.callupdateCDPTransferState(cdp,true);
         tempBool = p1.callTransferCDPOwnership(cdp,idx,p2,0);
         assertTrue(!tempBool);//7
-        admin.callSwitchCDPTransfer(cdp,false);
+        admin.callupdateCDPTransferState(cdp,false);
         tempBool = p1.callTransferCDPOwnership(cdp,idx,p2,0);
         assertTrue(tempBool);//8
         (,owner,,,,) = cdp.CDPRecords(idx);
@@ -410,10 +410,10 @@ contract FunctionTest1 is TestBase {
         assertEq(owner, p1);//6
 
         p1.callTransferCDPOwnership(cdp,idx,p2,1000000);
-        admin.callSwitchCDPTransfer(cdp,true);
+        admin.callupdateCDPTransferState(cdp,true);
         tempBool = p2.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
         assertTrue(!tempBool);//7
-        admin.callSwitchCDPTransfer(cdp,false);
+        admin.callupdateCDPTransferState(cdp,false);
         tempBool = p2.callBuyCDP(cdp,idx,1000000,ASSET_PAI);
         assertTrue(tempBool);//8
         (,owner,,,,) = cdp.CDPRecords(idx);
