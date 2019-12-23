@@ -13,6 +13,7 @@ interface Registry {
      function mintAsset(uint32 assetIndex, uint amountOrVoucherId) external;
      function updateOrganizationStatus(bool status) external;
      function burnAsset(uint32 assetIndex, uint amount) external;
+     function newAssetInfo(string name, string symbol, string description, uint32 assetType, uint32 assetIndex, uint amountOrVoucherId, bool isRestricted) external;
 }
 
 /// @title basic organization which inherits Template, ACL and Asset, it has capabilities to:
@@ -140,6 +141,17 @@ contract Organization is Template, ACL, Asset {
         flow.createAsset(assetType, assetIndex, amountOrVoucherId);
         newAsset(name, symbol, description, assetType, assetIndex, amountOrVoucherId);
         registry.newAsset(name, symbol, description, assetType, assetIndex, amountOrVoucherId);
+    }
+
+    /// @dev create an asset
+    /// @param assetType asset type
+    /// @param assetIndex asset index in the organization
+    /// @param amountOrVoucherId amount or the unique voucher id of asset
+    function create(string name, string symbol, string description, uint32 assetType, uint32 assetIndex,
+        uint256 amountOrVoucherId, bool isRestricted) internal {
+        flow.createAsset(assetType, assetIndex, amountOrVoucherId);
+        newAsset(name, symbol, description, assetType, assetIndex, amountOrVoucherId);
+        registry.newAssetInfo(name, symbol, description, assetType, assetIndex, amountOrVoucherId, isRestricted);
     }
 
     /// @dev mint an asset
