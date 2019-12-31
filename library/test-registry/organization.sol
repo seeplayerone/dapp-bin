@@ -132,21 +132,17 @@ contract Organization is Template, ACL, Asset {
         registry.updateOrganizationStatus(status);
     }
     
-    /// @dev create an asset
-    /// @param assetType asset type
-    /// @param assetIndex asset index in the organization
-    /// @param amountOrVoucherId amount or the unique voucher id of asset
+    /// deprecated!!!
     function create(string name, string symbol, string description, uint32 assetType, uint32 assetIndex,
         uint256 amountOrVoucherId) internal {
-        flow.createAsset(assetType, assetIndex, amountOrVoucherId);
-        newAsset(name, symbol, description, assetType, assetIndex, amountOrVoucherId);
-        registry.newAsset(name, symbol, description, assetType, assetIndex, amountOrVoucherId);
+        create(name, symbol, description, assetType, assetIndex, amountOrVoucherId, false);
     }
 
     /// @dev create an asset
     /// @param assetType asset type
     /// @param assetIndex asset index in the organization
     /// @param amountOrVoucherId amount or the unique voucher id of asset
+    /// @param isRestricted is restricted asset
     function create(string name, string symbol, string description, uint32 assetType, uint32 assetIndex,
         uint256 amountOrVoucherId, bool isRestricted) internal {
         flow.createAsset(assetType, assetIndex, amountOrVoucherId);
